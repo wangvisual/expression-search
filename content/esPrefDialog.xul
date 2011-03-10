@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://expressionsearch/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
+<prefwindow id="expressionsearch-prefs"
+     title="&expressionsearch.dialog.title;"
+     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;">
+  <preferences>
+    <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool"/>
+    <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
+    <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
+  </preferences>
+  <vbox>
+    <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
+    <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
+    <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
+  </vbox>
+</prefpane>
+<prefpane id="expressionsearch-pane-general" label="&expressionsearch.dialog.help;">
+  <vbox>
+    <text class='textlink' value="&expressionsearch.option.help;" onclick="loadURL('&expressionsearch.option.helpfile;');"/>
+    <text/>
+    <text class='textlink' value="&expressionsearch.option.email;" onclick="sendEmail('mailto:opera.wang+es@gmail.com');"/>
+  </vbox>
+</prefpane>
+<script>
+  function loadURL(url) {
+    var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].getService(Components.interfaces.nsIWindowWatcher);
+    ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
+  }
+  function sendEmail(url) {
+    var uri = Components.classes["@mozilla.org/network/simple-uri;1"].getService(Components.interfaces.nsIURI);
+    uri.spec = url;
+    Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].getService(Components.interfaces.nsIExternalProtocolService).loadUrl(uri);
+  }
+</script>  
+</prefwindow>

@@ -1,0 +1,18 @@
+<!ENTITY about.about "About">
+<!ENTITY about.author "Author:">
+<!ENTITY about.help "Help">
+<!ENTITY about.homepage "Home Page:">
+<!ENTITY about.contributors.label "Contributors:">
+
+<!ENTITY expressionsearch.textbox.emptyText.base "Expression Search... #1">
+<!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
+<!ENTITY expressionsearch.option.hidelabel "Hide string 'Quick Filter' to get more space">
+<!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
+<!ENTITY expressionsearch.option.help "View help document">
+<!ENTITY expressionsearch.option.email "Send Email to author">
+<!ENTITY expressionsearch.dialog.title "Expression Search options">
+<!ENTITY expressionsearch.dialog.settings "Settings">
+<!ENTITY expressionsearch.dialog.help "Help">
+
+<!-- If you can localize the help document, please change "content" to "locale" below and put locailized document under locale dir -->
+<!ENTITY expressionsearch.option.helpfile "chrome://expressionsearch/content/help.html">

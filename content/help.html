@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Expression Search</title>
+<style type="text/css">
+  #helpcontent {
+    max-width: 1000px;
+  }
+</style>
+</head>
+
+<body>
+<div id=helpcontent>
+<p>Expression Search is an extension to Thunderbird (versions 3.0+) which add powerful message searching features.
+It's a modified version of GMailUI, written by Ken Mixter.</p>
+<p>
+Type "hello world" to search within the current view for this string in subject/from/to/cc.<br>
+Type "from:fred to:tom attachment:yes" to see all messages from Fred to Tom in the current view that have an attachment.<br>
+Press Ctrl+Enter to have this search apply to all folders.<br>
+Press Shift+Enter to invoke Gloda Search in all indexed folders.<br>
+</p>
+
+<p>Expression Search's features are described below.</p>
+
+<h3>Search expressions and quick search key</h3>
+<p>
+This extension adds a new search text box to the end of your quick search bar. Whatever phrase you enter
+is searched for in your currently selected folder's to/from/cc/subject fields.  Notice that by default
+the body is not searched for your search phrase.  If that results in too many matches,you can focus the seach
+using "operators".  Operators are just short words followed by a colon, such as "from:amazon.com".
+</p>
+
+Here are some examples:
+
+<p>
+<b>weekend plans</b>
+</p>
+<p>This expression searches all messages in the current folder or view for 
+'weekend plans' in the <i>from</i>, <i>to</i>, <i>cc</i>, or <i>subject</i>
+fields.</p>
+<p>
+
+<b>from:mike</b> or <b>f:mike</b>
+</p>
+<p>This expression searches all messages in the current folder or view for 'mike' in the <i>from</i>
+field.</p>
+<p>
+<b>to:bill</b> or <b>t:bill</b>
+</p>
+<p>This expression searches all messages in the current folder or view for 'bill' in the
+<i>to</i> or <i>cc</i> fields of the message.
+</p>
+<p>
+<b>subject:electric bill</b> or <b>s:electric bill</b>
+</p>
+<p>This expression searches all messages in the current folder or view for 'electric bill' 
+in the <i>subject</i> fields of the message.
+</p>
+<p>
+<b>attachment:yes</b> or <b>a:yes</b>
+</p>
+<p>This expression searches all messages in the current folder or view for an attachment,
+Notice that it does not search for attachments named "yes".  You can also use "y" or "1" for 
+"yes".  You can use "no", "n", or "0" to search for messages without attachments.
+</p>
+<p>
+<b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b>
+</p>
+<p>This expression searches all messages in the current folder or view for status, The
+status can be one of Replied, Read, Marked, Forwarded, UnRead or Attachment.
+</p>
+
+<p>
+<b>before:2011/03/09 07:12:00</b> or <b>be:09 Mar 2011 05:00:00</b> or <b>after:Mar 10, 2011</b> or <b>af:(2011/03/01 -2011/03/09)</b>
+</p>
+<p>This expression searches all messages in the current folder or view within the date range, The
+date format can be checked <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse'>Here<a>.
+</p>
+
+<p>
+<b>body:electric bill</b>
+</p>
+<p>This expression searches all messages in the current folder or view for 'electric bill' 
+in the body of the message. On large or remote folders it may take some time. Also, if you 
+combine this with other search operators like "from:", "subject:" or "to:" this will speed 
+things up considerably. 
+</p>
+<p>
+<b>all: weekend plans</b>
+</p>
+<p>This expression searches all messages in the current folder or view for
+'weekend plans' anywhere in the message, including the <i>from</i>, <i>to</i>, <i>cc</i>, or <i>subject</i>
+fields, and the <i>body</i>.
+</p>
+<p>
+<b>g: weather</b>
+</p>
+<p>This will call gloda (faceted) search if gloda enabled. This mode can't be used toghter will other specifications like 'f:' or 't:'.
+</p>
+<p>
+<b>3+2</b>
+</p>
+<p>If the expression looks like an arithmetic one, when you press enter, it will be calculated and the result will be shown in the search box.
+</p>
+<h3>Hot Key</h3>
+<p>
+By default, Press Ctrl+F, your cursor will appear in the quick search bar, and
+you will be able to type.
+</p>
+<p>Once you are typing in your search query, and you hit enter or otherwise let
+it begin searching, your cursor will remain inside of the query box to allow you 
+to modify the query.  However, if you'd rather go back to browsing your messages,
+instead of clicking on the message headers in your search results, you can just
+press 'ESC' to refocus back to the message results, and press 'ESC' again to clear
+the search criteria.</p>
+
+<h3>Quick Search Virtual Folder</h3>
+<p>If you haven't before used 'virtual folders' in Thunderbird, let me introduce them.
+This standard feature of Thunderbird lets you create a search, name it, and then
+have that name appear in your folders list.  You can select that folder from the
+list and see the current result of the saved search.  Note two useful things: 1)
+the 'contents' of the virtual folder can actually be in any of your real folders,
+and so a virtual folder actually can 'contain' messages that span many folders,
+and 2) the virtual folder's contents are recomputed each time you view it, so if
+you saved a virtual folder with 'sender' field containing 'Donald', then if you
+receive a new message from someone named Donald, it will be placed in your INBOX,
+but you'll immediately be able to switch to your Donald virtual folder, and find
+it there.</p>
+<p>So that's what regular virtual search folders do in Thunderbird. But this
+extension makes it extremely easy to create them.  Now, when you normally hit
+'enter' in the Expression search quick search bar, you can instead hit
+'ctrl-enter' and a virtual folder called 'ExressionSearch' will be created (or modified
+if it already existed) to search for that search across ALL of your folders in the
+current account.</p>
+<p>The resulting virtual folder 'ExpressionSearch' can then be modified
+by editing properties, or can be renamed to make it a permanent virtual search folder.
+If you do not rename the folder, the next time you use ctrl-enter the ExpressionSearch 
+virtual folder is reused to show your new quick search result.</p>
+
+<p>The option "Keep selected folders for saved search" to have the "ExpressionSearch"
+virtual folder being persistent not only allows you to mark it as "Preferred" without
+the setting being lost when restarting TB, but also you can edit the properties of the
+"ExpressionSearch" virtual folder to specify once for all which of your physical folders
+should be searched or not with a global non-faceted search (CTRL+Enter).</p>
+
+<h3>More complex searching</h3>
+<p>The quick search bar allows you use the simple expressions from above, but it also
+allows you to compose more complex searches.  For instance, if you want to search for
+a message from Bob Barker to Dave Letterman about monologues, you can use:
+
+</p>
+<p><b>f:Bob Barker t:Dave Letterman s:monologues</b>
+</p>
+<p>If you are tired of getting results that have jokes about "Monica", you can instead use:
+
+</p>
+<p><b>f:Bob Barker t:Dave Letterman s:monologues -Monica</b>
+</p>
+<p>If you are interested in messages from either of these celebrities:
+
+</p>
+<p><b>f:Bob Barker or f:Dave Letterman</b>
+</p>
+<h3>Notes</h3>
+<p>Note 1: For the average user, the above information is usually adequate.  If you
+are curious, this feature still relies upon an underlying Thunderbird message searching
+mechanism.  That mechanism cannot always perform searches correctly that have a combination of boolean
+operators.  So, if you try to perform a search that mixes "ands" and "ors" you may get back
+too many results.  As an example, if you were to search for "t:dan and f:(bob or dave)" you
+will be mixing boolean operators and the results may be over inclusive or may work.  As an extra technical
+note, if you did "t:dan and -f:(bob or dave)", DeMorgan's theorem takes place and you are actually
+composing a search of "t:dan and f:-bob and f:-dave".
+</p>
+<p>
+However, due to restrictions in Thunderbird's virtual search folder, the complex searching results maybe correct
+in your current search results, but maybe NOT in you search folder. as the search folder can only handle 'Match all'
+and 'Match any' types.
+</p>
+<p>
+Note 2: In case you also using the normal search filter, the final results is logically "AND", that means
+both filter are effective.
+</p>
+
+<h3>Version history</h3>
+<ul><li>
+Version 0.7: Added 'status/is' search. Added 'before/after' search. Added numerical calculation.
+</li><li>
+Version 0.6: Added Help & Contact link to Options dialog.
+</li><li>
+Version 0.5: Added Options dialog.
+</li><li>
+Version 0.4: Work with Thunderbird 3.1 .
+</li><li>
+Version 0.3: Shift+Enter to launch gloda search. Fix 'Cc','Cu','Ci','Cr' redefine error.
+</li><li>
+Version 0.2: Added 'g:' search mode for gloda search. Press 'Esc' in thread tree will clear the search criteria.
+</li><li>
+Version 0.1: First version, changed from GMailUI to make it works for Thunderbird 3.
+</li></ul>
+
+<h3>Feedback, Suggestions, and on-going Development</h3>
+<p>Please send email to <a href='mailto:Opera.Wang+es@gmail.com'>Opera.Wang+es@gmail.com</a> for feedback, suggetions etc</p>
+<p>Compared with original GMailUI, these features are still missing:
+<ul>
+<li>Use 'Y' to archive selected mail to archive folder</li>
+<li>Use J/K to move messages up and down, and Ctrl+J to mark a message as junk</li>
+<li>Key '/' focuses on the quick search bar</li>
+</ul>
+</p>
+<br />
+</div> 
+</body>
+</html>
