@@ -119,7 +119,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l):/g,'').replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'')
               if ( searchValue != '' ) {
                 //this._fireCommand(this); // just for selection, but no use as TB will unselect it
-                let tabmail = aDocument.getElementById("tabmail");
+                let tabmail = document.getElementById("tabmail");
                 tabmail.openTab("glodaFacet", {
                   searcher: new GlodaMsgSearcher(null, searchValue)
                 });
@@ -138,7 +138,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         } // end of IsEnter
         // -- Keypresses for focus transferral
         if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) ) {
-          let threadPane = aDocument.getElementById("threadTree");
+          let threadPane = document.getElementById("threadTree");
           // focusing does not actually select the row...
           threadPane.focus();
           // ...so explicitly select the current index.
