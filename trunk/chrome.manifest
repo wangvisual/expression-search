@@ -1,12 +1,12 @@
-#content   expressionsearch                 content/
-#skin      expressionsearch   classic/1.0   skin/
-#locale    expressionsearch   en-US         locale/en-US/
-#locale    expressionsearch   zh-CN         locale/zh-CN/
+content   expressionsearch                 content/
+skin      expressionsearch   classic/1.0   skin/
+locale    expressionsearch   en-US         locale/en-US/
+locale    expressionsearch   zh-CN         locale/zh-CN/
 
-content   expressionsearch                 jar:chrome/expressionsearch.jar!/content/
-skin      expressionsearch   classic/1.0   jar:chrome/expressionsearch.jar!/skin/
-locale    expressionsearch   en-US         jar:chrome/expressionsearch.jar!/locale/en-US/
-locale    expressionsearch   zh-CN         jar:chrome/expressionsearch.jar!/locale/zh-CN/
+#content   expressionsearch                 jar:chrome/expressionsearch.jar!/content/
+#skin      expressionsearch   classic/1.0   jar:chrome/expressionsearch.jar!/skin/
+#locale    expressionsearch   en-US         jar:chrome/expressionsearch.jar!/locale/en-US/
+#locale    expressionsearch   zh-CN         jar:chrome/expressionsearch.jar!/locale/zh-CN/
 
 resource  expressionsearch                 modules/
 

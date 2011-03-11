@@ -1,11 +1,4 @@
-set PATH=c:\Program Files\7-Zip;%PATH%
-set zip=7z.exe a -tzip -r
-
-set ChromeFiles=content locale skin
-set AllFiles=chrome defaults modules chrome.manifest icon.png install.rdf
-
-del chrome\*.jar
+set zip=c:\Program Files\7-Zip\7z.exe a -tzip -r
+set AllFiles=content local skin defaults modules chrome.manifest icon.png install.rdf
 del gmailui-*-tb.xpi
-%zip% t.zip %ChromeFiles% -x!.svn
-mv t.zip chrome/expressionsearch.jar
-%zip% gmailui-0.7-tb.xpi %AllFiles% -xr!.svn
+%zip% gmailui-0.8-tb.xpi %AllFiles% -xr!.svn
