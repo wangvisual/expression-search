@@ -2,9 +2,21 @@
 // GPL V3 / MPL
 // debug utils
 var ExpressionSearchLog = {
-  log: function(msg) {
+  popup: function(title, msg) {
+    try {
+      Components.classes['@mozilla.org/alerts-service;1'].
+                getService(Components.interfaces.nsIAlertsService).
+                showAlertNotification(null, title, msg, false, '', null);
+    } catch(e) {
+      // prevents runtime error on platforms that don't implement nsIAlertsService
+    }
+  },
+
+  log: function(msg,popup) {
     var console = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
     console.logStringMessage(msg);
+    if ( typeof(popup)!='undefined' && popup )
+      this.popup("Warning!",msg);
   },
   
   // from errorUtils.js

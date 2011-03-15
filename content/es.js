@@ -24,7 +24,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             this.initSearchInput();
             this.isInited = 1;
           } else {
-            ExpressionSearchLog.log("Expression Search:Warning, init again");
+            ExpressionSearchLog.log("Expression Search:Warning, init again",1);
           }
         } catch (err) {
           ExpressionSearchLog.logException(err);
@@ -37,15 +37,15 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         //this.Cc = Components.classes;
         //this.Cr = Components.results;
         this.Cu.import("resource://expressionsearch/gmailuiParse.js");
-        this.Cu.import("resource://app/modules/quickFilterManager.js");
-        this.Cu.import("resource://app/modules/StringBundle.js");
+        this.Cu.import("resource:///modules/quickFilterManager.js");
+        this.Cu.import("resource:///modules/StringBundle.js");
         // for create quick search folder
-        this.Cu.import("resource://app/modules/virtualFolderWrapper.js");
-        this.Cu.import("resource://app/modules/iteratorUtils.jsm");
+        this.Cu.import("resource:///modules/virtualFolderWrapper.js");
+        this.Cu.import("resource:///modules/iteratorUtils.jsm");
         // need to know whehter gloda enabled
-        this.Cu.import("resource://app/modules/gloda/indexer.js");
+        this.Cu.import("resource:///modules/gloda/indexer.js");
         // to call gloda search, actually no need
-        //Cu.import("resource://app/modules/gloda/msg_search.js");
+        //Cu.import("resource:///modules/gloda/msg_search.js");
       },
       
       initPerf: function() {
@@ -90,6 +90,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
         // remove our filter from the QuickFilterManager
         QuickFilterManager.killFilter('expression'); //Remove a filter from existence by name
+        window.removeEventListener("load", ExpressionSearchChrome.moveToToolbar, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
       },
       
@@ -422,7 +423,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         var is_not = false;
         if (e.kind == 'op' && e.tok == '-') {
           if (e.left.kind != 'spec') {
-            ExpressionSearchLog.log('Exression Search: unexpected expression tree');
+            ExpressionSearchLog.log('Exression Search: unexpected expression tree',1);
             return;
           }
           e = e.left;
@@ -442,10 +443,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             attr = nsMsgSearchAttrib.Keywords;
           } else if (e.tok == 'calc' ) {
             return;
-          } else {ExpressionSearchLog.log('Exression Search: unexpected specifier'); return; }
+          } else {ExpressionSearchLog.log('Exression Search: unexpected specifier',1); return; }
           var op = is_not ? nsMsgSearchOp.DoesntContain:nsMsgSearchOp.Contains;
           if (e.left.kind != 'str') {
-            ExpressionSearchLog.log('Exression Search: unexpected expression tree');
+            ExpressionSearchLog.log('Exression Search: unexpected expression tree',1);
             return;
           }
           if (e.tok == 'attachment') {
@@ -466,7 +467,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               date = new Date(inValue);
               e.left.tok = date.getTime()*1000; // why need *1000, I don't know ;-)
               if ( isNaN(e.left.tok) ) {
-                ExpressionSearchLog.log('Expression Search: date '+ inValue + " is not valid");
+                ExpressionSearchLog.log('Expression Search: date '+ inValue + " is not valid",1);
                 return;
               }
             } catch (err) {
@@ -489,7 +490,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               e.left.tok = nsMsgMessageFlags.Read;
               is_not = !is_not;
             } else {
-              ExpressionSearchLog.log('Exression Search: unknown status '+e.left.tok);
+              ExpressionSearchLog.log('Exression Search: unknown status '+e.left.tok,1);
               return;
             }
           }
@@ -577,7 +578,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         } else if (e.kind == 'num') {
           return e;
         } else {
-          ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result');
+          ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result',1);
           return { kind: 'error', tok: 'internal' };
         }
       },
@@ -593,13 +594,40 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         x.value = lhs + " = " + rhs;
         x.setSelectionRange(lhs.length, lhs.length + rhs.length + 3);
       },
+      
+      moveToToolbar: function() {
+        //thunderbird-private-tabmail-buttons
+        //  qfb-show-filter-bar
+      
+        //quick-filter-bar
+        //  quick-filter-bar-main-bar
+        //  quick-filter-bar-expando
+        //    quick-filter-bar-tab-bar
+        //    quick-filter-bar-filter-text-bar
+        
+        // sticky [collpased buttons] [100 results] [search filter]
+        //                                          subject ...
+        
+        //QuickFilterState.visible
+        
+        //QuickFilterBarMuxer
+        //  onMakeActive for qfb-show-filter-bar visiable
+        //  reflectFiltererState for qfb-show-filter-bar checked
+        
+        return;
+        var toolbar = document.getElementById('mail-bar3');
+        var needMove = document.getElementById('qfb-results-label');
+        toolbar.appendChild(needMove.parentNode.removeChild(needMove));
+        needMove = document.getElementById('expression-search-textbox');
+        toolbar.appendChild(needMove.parentNode.removeChild(needMove));
+      }
 
     };
     
+    //onload is too late for me to init
     // this is much complex than 'ExpressionSearchChrome.init();' and both works ;-)
     (function() { this.init(); }).apply(ExpressionSearchChrome);
-    //onload is too late for me to register
-    //window.addEventListener("load", function() { ExpressionSearchChrome.init(); }, false);
+    window.addEventListener("load", ExpressionSearchChrome.moveToToolbar, false);
     window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
 };
 
