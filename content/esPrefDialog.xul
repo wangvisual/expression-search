@@ -12,17 +12,24 @@
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
   </preferences>
-  <vbox>
-    <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
-    <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
-    <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
-  </vbox>
-</prefpane>
-<prefpane id="expressionsearch-pane-general" label="&expressionsearch.dialog.help;">
-  <vbox>
-    <text class='textlink' value="&expressionsearch.option.help;" onclick="loadURL('&expressionsearch.option.helpfile;');"/>
-    <text/>
-    <text class='textlink' value="&expressionsearch.option.email;" onclick="sendEmail('mailto:opera.wang+es@gmail.com');"/>
+  
+  <vbox flex="1">
+    <groupbox flex="1" id="expressionsearch-pane-setting">
+      <caption label="&expressionsearch.dialog.settings;"/>
+      <vbox>
+        <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
+        <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
+        <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
+      </vbox>
+    </groupbox>
+    <groupbox flex="1" id="expressionsearch-pane-help">
+      <caption label="&expressionsearch.dialog.help;"/>
+      <vbox>
+        <text class='textlink' value="&expressionsearch.option.help;" onclick="loadURL('&expressionsearch.option.helpfile;');"/>
+        <text/>
+        <text class='textlink' value="&expressionsearch.option.email;" onclick="sendEmail('mailto:opera.wang+es@gmail.com');"/>
+      </vbox>
+    </groupbox>
   </vbox>
 </prefpane>
 <script>

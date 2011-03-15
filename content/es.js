@@ -198,15 +198,18 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             // -- platform-dependent emptytext setup
             let filterNode = aDocument.getElementById('qfb-qs-textbox');
             let quickKey = '';
+            let attributeName = "emptytext"; // for 3.1
             if ( filterNode && typeof(Application)!='undefined' ) {
+              if ( filterNode.hasAttribute("placeholder") )
+                attributeName = "placeholder"; // for 3.3
               quickKey = filterNode.getAttribute(Application.platformIsMac ? "keyLabelMac" : "keyLabelNonMac");
               // now Ctrl+F will focus to our input, so remove the message in this one
-              filterNode.setAttribute( "emptytext", filterNode.getAttribute("emptytextbase").replace("#1", '') );
+              filterNode.setAttribute( attributeName, filterNode.getAttribute("emptytextbase").replace("#1", '') );
               // force to update the message
               filterNode.value = '';
               ExpressionSearchChrome.refreshFilterBar();
             }
-            aNode.setAttribute( "emptytext", aNode.getAttribute("emptytextbase").replace("#1", quickKey) );
+            aNode.setAttribute( attributeName, aNode.getAttribute("emptytextbase").replace("#1", quickKey) );
             // force an update of the emptytext now that we've updated it.
             aNode.value = "";
             if ( aNode && aNode._fireCommand ) {
