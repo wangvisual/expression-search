@@ -86,8 +86,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       unregister: function() {
         ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
         var aNode = document.getElementById(QuickFilterManager.textBoxDomId);
-        if (aNode)
+        if (aNode) {
             aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
+            aNode.removeEventListener("blur", ExpressionSearchChrome.onSearchBlur, true);
+        }
         // remove our filter from the QuickFilterManager
         QuickFilterManager.killFilter('expression'); //Remove a filter from existence by name
         window.removeEventListener("load", ExpressionSearchChrome.moveToToolbar, false);
@@ -109,13 +111,20 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         }
       },
       
+      onSearchBlur: function(aEvent) {
+        let panel = document.getElementById("qfb-text-search-upsell");
+        if ( panel.state == "open")
+          panel.hidePopup();
+      },
+      
       onSearchKeyPress: function(event){
         ExpressionSearchChrome.isEnter = 0;
         if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
           ExpressionSearchChrome.isEnter = 1;
+          let panel = document.getElementById("qfb-text-search-upsell");
           let searchValue = this.value; // this is aNode/my search text box
           if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
-            if ( GlodaIndexer.enabled && ( event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
+            if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
               searchValue = searchValue.replace(/^g:\s*/i,'');
               searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):/g,'').replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'')
               if ( searchValue != '' ) {
@@ -129,9 +138,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               ExpressionSearchChrome.latchQSFolderReq = 1;
               this._fireCommand(this);
             } else {
-              ExpressionSearchChrome.isEnter = 0; // showCalculationResult also will select the result.
               var e = compute_expression(searchValue);
               if (e.kind == 'spec' && e.tok == 'calc') {
+                ExpressionSearchChrome.isEnter = 0; // showCalculationResult also will select the result.
                 ExpressionSearchChrome.showCalculationResult(e);
               }
             }
@@ -215,6 +224,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             aNode.value = "";
             if ( aNode && aNode._fireCommand ) {
               aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too later, 
+              aNode.addEventListener("blur", ExpressionSearchChrome.onSearchBlur, true);
             }
           },
 
@@ -259,16 +269,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             //  text if we're transitioning emptytext to emptytext)
             ExpressionSearchLog.log("aFromPFP: "+aFromPFP);
             ExpressionSearchLog.log("aNode.value "+aNode.value);
-            ExpressionSearchLog.logObject(aMuxer, "aMuxer", 0);
-            
-            if (aFromPFP == "nosale") {
-              let panel = aDocument.getElementById("qfb-text-search-upsell");
-              if (panel.state != "closed")
-                panel.hidePopup();
-              return;
-            }
+            //ExpressionSearchLog.logObject(aMuxer, "aMuxer", 0);
+            let panel = aDocument.getElementById("qfb-text-search-upsell");
             if (aFromPFP == "upsell") {
-              let panel = aDocument.getElementById("qfb-text-search-upsell");
               let line1 = aDocument.getElementById("qfb-upsell-line-one");
               let line2 = aDocument.getElementById("qfb-upsell-line-two");
               line1.value = line1.getAttribute("fmt").replace("#1", aFilterValue.text);
@@ -278,12 +281,14 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                   aDocument.commandDispatcher.focusedElement == aNode.inputField) {
                 let filterBar = aDocument.getElementById("quick-filter-bar");
                 //panel.sizeTo(filterBar.clientWidth - 20, filterBar.clientHeight - 20);
-                panel.openPopup(aNode, "after_end", -7, 7, false, true);
+                panel.openPopup(aNode, "after_start", -7, 7, false, true);
               }
               return;
-            } 
-            
-            
+            }
+            if (panel.state != "closed")
+              panel.hidePopup();
+            //if (aFromPFP == "nosale")
+            //  return;
             
             let desiredValue = "";
             if ( aFilterValue && aFilterValue.text ) {
@@ -302,9 +307,17 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             // now search is done, expand first container if closed
             if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
               var treeView = gFolderDisplay.tree.treeBoxObject.view;
-              if ( aNode.value != '' && treeView.rowCount > 0 && treeView.isContainer(0) && !treeView.isContainerOpen(0)) {
-                treeView.toggleOpenState(0);
-              }
+              if ( aNode.value != '' && treeView.rowCount > 0 ) {
+                if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
+                  treeView.toggleOpenState(0);
+                if ( ExpressionSearchChrome.isEnter ) {
+                  let threadPane = document.getElementById("threadTree");
+                  // focusing does not actually select the row...
+                  threadPane.focus();
+                  // ...so explicitly select the current index.
+                  threadPane.view.selection.select(threadPane.currentIndex);
+                } // isEnter
+              } // rowCount > 0
             }
           },
 
