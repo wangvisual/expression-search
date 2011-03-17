@@ -89,7 +89,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         var aNode = document.getElementById(QuickFilterManager.textBoxDomId);
         if (aNode) {
             aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
-            aNode.removeEventListener("blur", ExpressionSearchChrome.onSearchBlur, true);
+            aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
         }
         // remove our filter from the QuickFilterManager
         QuickFilterManager.killFilter('expression'); //Remove a filter from existence by name
@@ -112,7 +112,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         }
       },
       
-      onSearchBlur: function(aEvent) {
+      hideUpsellPanel: function() {
         let panel = document.getElementById("qfb-text-search-upsell");
         if ( panel.state == "open")
           panel.hidePopup();
@@ -147,6 +147,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             }
           }
         } // end of IsEnter
+        ExpressionSearchChrome.hideUpsellPanel(); // hide the panel when key press
         // -- Keypresses for focus transferral
         if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) )
           ExpressionSearchChrome.selectFirstMessage(true);
@@ -219,7 +220,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             aNode.value = "";
             if ( aNode && aNode._fireCommand ) {
               aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too later, 
-              aNode.addEventListener("blur", ExpressionSearchChrome.onSearchBlur, true);
+              aNode.addEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
             }
           },
 
