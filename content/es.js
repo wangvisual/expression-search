@@ -13,7 +13,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       isEnter: 0,
       
       // preference object
-      perfs: null,
+      prefs: null,
 
       init: function() {
         try {
@@ -58,6 +58,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           this.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
           this.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
           this.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+          this.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
         } catch ( err ) {
           ExpressionSearchLog.logException(err);
         }
@@ -147,10 +148,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           }
         } // end of IsEnter
         // -- Keypresses for focus transferral
-        if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) ) {
-          ExpressionSearchLog.log("down",1);
+        if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) )
           ExpressionSearchChrome.selectFirstMessage(true);
-        }
       },
 
       initSearchInput: function() {
@@ -254,7 +253,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               aState.text = text;
               needSearch = true;
             }
-            if ( !needSearch && ExpressionSearchChrome.isEnter ) // else the first message will be selected in reflectInDom
+            if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.select_msg_on_enter ) // else the first message will be selected in reflectInDom
                 ExpressionSearchChrome.selectFirstMessage(true);
             return [aState, needSearch];
           },
@@ -302,7 +301,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               //}
             }
             
-            ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter);
+            ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.select_msg_on_enter);
           },
 
           postFilterProcess: function(aState,
@@ -331,11 +330,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       
       // select first message, expand first container if closed
       selectFirstMessage: function(needSelect) {
-        ExpressionSearchLog.log("select");
         if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
-          var treeView = gFolderDisplay.tree.treeBoxObject.view; //nsITreeView
-          var aNode = document.getElementById(QuickFilterManager.textBoxDomId);
-          if ( aNode && treeView && aNode.value != '' && treeView.rowCount > 0 ) {
+          let treeView = gFolderDisplay.tree.treeBoxObject.view; //nsITreeView
+          let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
+          let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+          if ( aNode && treeView && dbViewWrapper && aNode.value != '' && treeView.rowCount > 0 ) {
             if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
               treeView.toggleOpenState(0);
             if ( needSelect ) {
@@ -344,7 +343,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               threadPane.focus();
               // ...so explicitly select the currentIndex if avaliable or the 1st one
               //threadPane.view.selection.select(threadPane.currentIndex);
-              treeView.selection.select(treeView.isContainer(0)?1:0); //threadPane.view == treeView
+              treeView.selection.select( treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0 );
             } // needSelect
           } // rowCount > 0
         }
