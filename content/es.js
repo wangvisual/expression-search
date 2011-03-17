@@ -148,12 +148,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         } // end of IsEnter
         // -- Keypresses for focus transferral
         if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) ) {
-          let threadPane = document.getElementById("threadTree");
-          // focusing does not actually select the row...
-          threadPane.focus();
-          // ...so explicitly select the current index.
-          threadPane.view.selection.select(threadPane.currentIndex);
-          return false;
+          ExpressionSearchLog.log("down",1);
+          ExpressionSearchChrome.selectFirstMessage(true);
         }
       },
 
@@ -258,6 +254,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               aState.text = text;
               needSearch = true;
             }
+            if ( !needSearch && ExpressionSearchChrome.isEnter ) // else the first message will be selected in reflectInDom
+                ExpressionSearchChrome.selectFirstMessage(true);
             return [aState, needSearch];
           },
 
@@ -304,21 +302,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               //}
             }
             
-            // now search is done, expand first container if closed
-            if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
-              var treeView = gFolderDisplay.tree.treeBoxObject.view;
-              if ( aNode.value != '' && treeView.rowCount > 0 ) {
-                if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
-                  treeView.toggleOpenState(0);
-                if ( ExpressionSearchChrome.isEnter ) {
-                  let threadPane = document.getElementById("threadTree");
-                  // focusing does not actually select the row...
-                  threadPane.focus();
-                  // ...so explicitly select the current index.
-                  threadPane.view.selection.select(threadPane.currentIndex);
-                } // isEnter
-              } // rowCount > 0
-            }
+            ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter);
           },
 
           postFilterProcess: function(aState,
@@ -343,6 +327,27 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
 
         QuickFilterManager.defineFilter(ExpressionFilter);
         QuickFilterManager.textBoxDomId = ExpressionFilter.domId;
+      },
+      
+      // select first message, expand first container if closed
+      selectFirstMessage: function(needSelect) {
+        ExpressionSearchLog.log("select");
+        if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
+          var treeView = gFolderDisplay.tree.treeBoxObject.view; //nsITreeView
+          var aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+          if ( aNode && treeView && aNode.value != '' && treeView.rowCount > 0 ) {
+            if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
+              treeView.toggleOpenState(0);
+            if ( needSelect ) {
+              let threadPane = document.getElementById("threadTree");
+              // focusing does not actually select the row...
+              threadPane.focus();
+              // ...so explicitly select the currentIndex if avaliable or the 1st one
+              //threadPane.view.selection.select(threadPane.currentIndex);
+              treeView.selection.select(treeView.isContainer(0)?1:0); //threadPane.view == treeView
+            } // needSelect
+          } // rowCount > 0
+        }
       },
       
       // not works well for complex searchTerms. But it's for all folders.
