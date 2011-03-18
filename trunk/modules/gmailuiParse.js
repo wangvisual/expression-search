@@ -1,6 +1,10 @@
 // (c) 2005 Ken Mixter
 // Original by Ken Mixter for GMailUI, which is "GMailUI is completely free to use as you wish."
-// Changed by Opera Wang, Added status/u/is/i pattern, Added before/after pattern
+/* Changed by Opera Wang
+    Added status/u/is/i pattern
+    Added before/after pattern
+    if ":" seems like within normal string, advance without break.
+*/
 
 var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
 
@@ -67,7 +71,15 @@ function ADVANCE_TOKEN() {
   // not a single-char token, so scan it all in.
   var tok = "";
   if (!this.calc) {
+    //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
+    /*
     while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
+      tok+=this.str[0];
+      this.str = this.str.substr(1);
+    }
+    */
+    while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
+      if ( this.str[0] == ':' && /from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af/.test(tok) ) break;
       tok+=this.str[0];
       this.str = this.str.substr(1);
     }
