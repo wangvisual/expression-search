@@ -12,8 +12,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       // if last key is Enter
       isEnter: 0,
       
-      // preference object
-      prefs: null,
+      prefs: null, // preference object
+      options: {}, // preference results
 
       init: function() {
         try {
@@ -55,10 +55,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
         this.prefs.addObserver("", this, false);
         try {
-          this.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
-          this.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
-          this.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
-          this.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+          this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
+          this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
+          this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+          this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+          this.options.c2s_enableMiddleButton = this.prefs.getBoolPref("c2s_enableMiddleButton");
         } catch ( err ) {
           ExpressionSearchLog.logException(err);
         }
@@ -71,18 +72,21 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
          }
          switch(data) {
            case "hide_normal_filer":
-             this.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
+             this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
              this.refreshFilterBar();
              break;
            case "hide_filter_label":
-             this.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
+             this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
              this.refreshFilterBar();
              break;
            case "reuse_existing_folder":
-             this.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+             this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
              break;
            case "select_msg_on_enter":
-             this.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+             this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+             break;
+           case "c2s_enableMiddleButton":
+             this.options.c2s_enableMiddleButton = this.prefs.getBoolPref("c2s_enableMiddleButton");
              break;
          }
       },
@@ -96,22 +100,25 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         }
         // remove our filter from the QuickFilterManager
         QuickFilterManager.killFilter('expression'); //Remove a filter from existence by name
-        window.removeEventListener("load", ExpressionSearchChrome.moveToToolbar, false);
+        let threadPane = document.getElementById("threadTree");
+        if ( threadPane )
+          threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
+        window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
       },
       
       refreshFilterBar: function() {
         let filterNode = document.getElementById('qfb-qs-textbox');
         if ( filterNode && filterNode.style ) {
-          filterNode.style.display = this.hide_normal_filer ? 'none' : '';
+          filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
         }
         let quickFilter = document.getElementById('qfb-filter-label');
         if ( quickFilter && quickFilter.style ) {
-          quickFilter.style.display = this.hide_filter_label ? 'none' : '';
+          quickFilter.style.display = this.options.hide_filter_label ? 'none' : '';
         }
         let spacer = document.getElementById('qfb-filter-bar-spacer');
         if ( spacer ) {
-          spacer.flex = this.hide_filter_label ? 1 : 200;
+          spacer.flex = this.options.hide_filter_label ? 1 : 200;
         }
       },
       
@@ -262,7 +269,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               aState.text = text;
               needSearch = true;
             }
-            if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.select_msg_on_enter ) // else the first message will be selected in reflectInDom
+            if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter ) // else the first message will be selected in reflectInDom
                 ExpressionSearchChrome.selectFirstMessage(true);
             return [aState, needSearch];
           },
@@ -293,7 +300,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
 
             if (panel.state != "closed")
               panel.hidePopup();
-            ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.select_msg_on_enter);
+            ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
           },
 
           postFilterProcess: function(aState, aViewWrapper, aFiltering) {
@@ -317,14 +324,18 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       
       // select first message, expand first container if closed
       selectFirstMessage: function(needSelect) {
+        ExpressionSearchLog.log("select:" + needSelect);
         if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
+          ExpressionSearchLog.log("select1");
           let treeView = gFolderDisplay.tree.treeBoxObject.view; //nsITreeView
           let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
           let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
           if ( aNode && treeView && dbViewWrapper && aNode.value != '' && treeView.rowCount > 0 ) {
+            ExpressionSearchLog.log("select2");
             if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
               treeView.toggleOpenState(0);
             if ( needSelect ) {
+              ExpressionSearchLog.log("select3");
               let threadPane = document.getElementById("threadTree");
               // focusing does not actually select the row...
               threadPane.focus();
@@ -350,7 +361,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         }
         var QSFolderURI = rootFolder.URI + "/" + QSFolderName;
         
-        if ( !rootFolder.containsChildNamed(QSFolderName) || ! this.reuse_existing_folder ) {
+        if ( !rootFolder.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
           var allFolders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
           rootFolder.ListDescendents(allFolders);
           var numFolders = allFolders.Count();
@@ -378,7 +389,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           // save the settings
           let virtualFolderWrapper = VirtualFolderHelper.wrapVirtualFolder(msgFolder);
           virtualFolderWrapper.searchTerms = searchTerms;
-          if ( ! this.reuse_existing_folder ) {
+          if ( ! this.options.reuse_existing_folder ) {
             virtualFolderWrapper.searchFolders = uriSearchString;
           }
           virtualFolderWrapper.onlineSearch = false;
@@ -440,7 +451,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         else if (attr == nsMsgSearchAttrib.HdrProperty || attr == nsMsgSearchAttrib.Uint32HdrProperty)
           term.hdrProperty = aHdrProperty;
 
-        //ExpressionSearchLog.log("Expression Search: "+term.termAsString);
+        ExpressionSearchLog.log("Expression Search: "+term.termAsString);
         searchTerms.push(term);
       },
 
@@ -647,6 +658,81 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         x.setSelectionRange(lhs.length, lhs.length + rhs.length + 3);
       },
       
+      //Check conditions for search: corresponding modifier is hold on or middle button is pressed
+      CheckClickSearchEvent: function( event ) {
+        if ( ExpressionSearchChrome.options.c2s_enableMiddleButton && event.button == 1 ) return true;
+        var selectionType = ExpressionSearchChrome.options.selectionType;
+        if ( selectionType == "shift" )
+            return event.shiftKey;
+        else if ( selectionType == "ctrl" )
+            return event.ctrlKey;
+        return false;
+      },
+      
+      onClicked: function(event) {
+        if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
+        let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+        if ( !aNode ) return;
+        //if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
+        var row = {}; var col = {}; var childElt = {};
+        event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
+        if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' ) return;
+        // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
+        let token = "";
+        let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
+        switch(col.value.id) {
+           case "subjectCol":
+             token = "s";
+             let oldValue = "";
+             while ( oldValue != sCellText ) {
+               oldValue = sCellText;
+               [/^\s*\S{2,3}(?::|：)\s*(.*)$/, /^\s*\[.+\]:*\s*(.*)$/, /^\s+(.*)$/].forEach( function(element, index, array) {
+                 sCellText = sCellText.replace(element, '$1');
+               });
+             }
+             //sCellText = gOneClickExtension.RegexpReplaceString( sCellText );
+             break;
+           case "senderCol":
+             token = "f";
+             break;
+           case "recipientCol":
+             token = "t";
+             sCellText = sCellText.replace(/'/g, '');
+             // and, or, 1st, mouse?
+             if ( sCellText.indexOf(',') != -1 ) {
+               sCellText = sCellText.replace(/,/g, ' and');
+               sCellText = "(" + sCellText + ")";
+             }
+             break;
+           case "tagsCol":
+             token = "tag";
+             break;
+           case "sio_inoutaddressCol":
+             token = "what";
+             break;
+           default:
+             return;
+        }
+        if ( sCellText == "" ) return;
+        ExpressionSearchLog.log(token + ":"+sCellText);
+        if ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) {
+          QuickFilterBarMuxer._showFilterBar(true);
+          aNode.select();
+        }
+        aNode.value = token + ":" + sCellText;
+        aNode._fireCommand(aNode);
+        // Stop even bubbling
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      
+      initAfterLoad: function() {
+        ExpressionSearchChrome.moveToToolbar();
+        let threadPane = document.getElementById("threadTree");
+        if ( threadPane )
+          threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
+      },
+      
       moveToToolbar: function() {
         //thunderbird-private-tabmail-buttons
         //  qfb-show-filter-bar
@@ -682,7 +768,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
     //onload is too late for me to init
     // this is much complex than 'ExpressionSearchChrome.init();' and both works ;-)
     (function() { this.init(); }).apply(ExpressionSearchChrome);
-    window.addEventListener("load", ExpressionSearchChrome.moveToToolbar, false);
+    window.addEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
     window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
 };
 
