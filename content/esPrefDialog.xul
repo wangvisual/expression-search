@@ -11,6 +11,7 @@
     <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool"/>
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
+    <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
   </preferences>
   
   <vbox flex="1">
@@ -20,6 +21,7 @@
         <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
         <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
         <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
+        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
       </vbox>
     </groupbox>
     <groupbox flex="1" id="expressionsearch-pane-help">

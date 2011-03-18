@@ -1,3 +1,12 @@
+<!-- too much conflicts with TB's built-in hotkeys
+<!ENTITY expressionsearch.markJunk.key           "j">
+<!ENTITY expressionsearch.markJunk.mod           "accel">
+<!ENTITY expressionsearch.nextMsg.key            "j">
+<!ENTITY expressionsearch.previousMsg.key        "k">
+-->
+
+<!ENTITY expressionsearch.focusSearch.key        "/">
+
 <!ENTITY about.about "About">
 <!ENTITY about.author "Author:">
 <!ENTITY about.help "Help">
@@ -5,11 +14,14 @@
 <!ENTITY about.contributors.label "Contributors:">
 
 <!ENTITY expressionsearch.textbox.emptyText.base "Expression Search... #1">
+
 <!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
 <!ENTITY expressionsearch.option.hidelabel "Hide string 'Quick Filter' to get more space">
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
+<!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.help "View help document">
 <!ENTITY expressionsearch.option.email "Send Email to author">
+
 <!ENTITY expressionsearch.dialog.title "Expression Search options">
 <!ENTITY expressionsearch.dialog.settings "Settings">
 <!ENTITY expressionsearch.dialog.help "Help">
