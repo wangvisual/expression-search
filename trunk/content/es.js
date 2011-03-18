@@ -71,16 +71,19 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
          }
          switch(data) {
            case "hide_normal_filer":
-            this.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
-            this.refreshFilterBar();
-            break;
+             this.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
+             this.refreshFilterBar();
+             break;
            case "hide_filter_label":
-            this.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
-            this.refreshFilterBar();
-            break;
+             this.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
+             this.refreshFilterBar();
+             break;
            case "reuse_existing_folder":
-            this.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
-            break;
+             this.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+             break;
+           case "select_msg_on_enter":
+             this.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+             break;
          }
       },
 
@@ -118,6 +121,13 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           panel.hidePopup();
       },
       
+      expression2gloda: function(searchValue) {
+        searchValue = searchValue.replace(/^g:\s*/i,'');
+        searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):/g,'');
+        searchValue = searchValue.replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'');
+        return searchValue;
+      },
+      
       onSearchKeyPress: function(event){
         ExpressionSearchChrome.isEnter = 0;
         if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
@@ -126,8 +136,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           let searchValue = this.value; // this is aNode/my search text box
           if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
             if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
-              searchValue = searchValue.replace(/^g:\s*/i,'');
-              searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):/g,'').replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'')
+              searchValue = ExpressionSearchChrome.expression2gloda(searchValue);
               if ( searchValue != '' ) {
                 //this._fireCommand(this); // just for selection, but no use as TB will unselect it
                 let tabmail = document.getElementById("tabmail");
@@ -163,7 +172,6 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           domId: "expression-search-textbox",
 
           appendTerms: function(aTermCreator, aTerms, aFilterValue) {
-            ExpressionSearchLog.logObject(aFilterValue,"aFilterValue",0);
             if (aFilterValue.text) {
               try {
                 if ( aFilterValue.text.toLowerCase().indexOf('g:') == 0 ) { // may get called when init with saved values in searchInput.
@@ -265,58 +273,36 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                                 aFromPFP) { //PFP: PostFilterProcess, the second value PFP returns
             // Update the text if it has changed (linux does weird things with empty
             //  text if we're transitioning emptytext to emptytext)
-            ExpressionSearchLog.log("aFromPFP: "+aFromPFP);
-            ExpressionSearchLog.log("aNode.value "+aNode.value);
-            //ExpressionSearchLog.logObject(aMuxer, "aMuxer", 0);
+            let desiredValue = "";
+            if ( aFilterValue && aFilterValue.text )
+              desiredValue = aFilterValue.text;
+            if (aNode.value != desiredValue)
+              aNode.value = desiredValue;
+            
             let panel = aDocument.getElementById("qfb-text-search-upsell");
             if (aFromPFP == "upsell") {
+              let searchString = ExpressionSearchChrome.expression2gloda(aFilterValue.text);
               let line1 = aDocument.getElementById("qfb-upsell-line-one");
               let line2 = aDocument.getElementById("qfb-upsell-line-two");
-              line1.value = line1.getAttribute("fmt").replace("#1", aFilterValue.text);
-              line2.value = line2.getAttribute("fmt").replace("#1", aFilterValue.text);
-
-              if (panel.state == "closed" &&
-                  aDocument.commandDispatcher.focusedElement == aNode.inputField) {
-                let filterBar = aDocument.getElementById("quick-filter-bar");
-                //panel.sizeTo(filterBar.clientWidth - 20, filterBar.clientHeight - 20);
+              line1.value = line1.getAttribute("fmt").replace("#1", searchString);
+              line2.value = line2.getAttribute("fmt").replace("#1", searchString);
+              if (panel.state == "closed" && aDocument.commandDispatcher.focusedElement == aNode.inputField)
                 panel.openPopup(aNode, "after_start", -7, 7, false, true);
-              }
               return;
             }
+
             if (panel.state != "closed")
               panel.hidePopup();
-            //if (aFromPFP == "nosale")
-            //  return;
-            
-            let desiredValue = "";
-            if ( aFilterValue && aFilterValue.text ) {
-              desiredValue = aFilterValue.text;
-              ExpressionSearchLog.log("desiredValue: "+desiredValue+":"+aNode.value);
-            }
-            ExpressionSearchLog.log("Type:"+typeof(aFilterValue));
-            if (aNode.value != desiredValue) {
-              //if ( aFromPFP ) {
-              //} else {
-                ExpressionSearchLog.log("aNode.value "+aNode.value+"="+desiredValue);
-                aNode.value = desiredValue;
-              //}
-            }
-            
             ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.select_msg_on_enter);
           },
 
-          postFilterProcess: function(aState,
-                                      aViewWrapper,
-                                      aFiltering) {
-            //return [aState, true, false]; // true for call reflectInDOM
-            
+          postFilterProcess: function(aState, aViewWrapper, aFiltering) {
             // If we're not filtering, not filtering on text, there are results, or
             //  gloda is not enabled so upselling makes no sense, then bail.
             // (Currently we always return "nosale" to make sure our panel is closed;
             //  this might be overkill but unless it becomes a performance problem, it
             //  keeps us safe from weird stuff.)
-            if (!aFiltering || !aState.text || aViewWrapper.dbView.numMsgsInView ||
-                !GlodaIndexer.enabled)
+            if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || !GlodaIndexer.enabled)
               return [aState, "nosale", false];
 
             // since we're filtering, filtering on text, and there are no results, tell
