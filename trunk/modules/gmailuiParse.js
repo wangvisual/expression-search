@@ -73,12 +73,7 @@ function ADVANCE_TOKEN() {
   let allTokens = /^(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
-    /*
-    while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
-      tok+=this.str[0];
-      this.str = this.str.substr(1);
-    }
-    */
+    //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
     while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
       if ( this.str[0] == ':' && allTokens.test(tok) ) break;
       tok+=this.str[0];
@@ -103,12 +98,6 @@ function ADVANCE_TOKEN() {
   if (this.str[0] == ':') {
     this.str = this.str.substr(1);
     if ( allTokens.test(tok) ) {
-    /*if (tok == 'from' || tok == 'f' || tok == 'to' || tok == 't' ||
-      tok == 'subject' || tok == 's' || tok == 'all' ||
-      tok == 'body' || tok == 'b' || tok == 'attachment' || tok == 'a' ||
-      tok == 'tag' || tok == 'label' || tok == 'l' ||
-      tok == 'before' || tok == 'be' || tok == 'after' || tok == 'af' ||
-      tok == 'status' || tok == 'u' || tok == 'is' || tok == 'i') {*/
       if (tok == 'f') tok = 'from';
       if (tok == 't') tok = 'to';
       if (tok == 's') tok = 'subject';

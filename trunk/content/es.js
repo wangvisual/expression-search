@@ -451,7 +451,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         else if (attr == nsMsgSearchAttrib.HdrProperty || attr == nsMsgSearchAttrib.Uint32HdrProperty)
           term.hdrProperty = aHdrProperty;
 
-        ExpressionSearchLog.log("Expression Search: "+term.termAsString);
+        //ExpressionSearchLog.log("Expression Search: "+term.termAsString);
         searchTerms.push(term);
       },
 
@@ -607,6 +607,23 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           priorTerm.endsGrouping = true;
           firstDJTerm = -1;
         }
+        function getSearchTermString(searchTerms) {
+          let condition = "";
+          searchTerms.forEach( function(searchTerm, index, array) {
+            if (index > 0) condition += " ";
+            if (searchTerm.matchAll)
+              condition += "ALL";
+            else {
+              condition += searchTerm.booleanAnd ? "AND" : "OR";
+              condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " (" : "";
+            }
+            condition += " (" + searchTerm.termAsString + ")";
+            // ")" may not balanced with "(", but who cares
+            condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " )" : "";
+          } );
+          return condition;
+        }
+        ExpressionSearchLog.log("Experssion Search Conditions: "+getSearchTermString(searchTerms));
         return null;
       },
 
@@ -660,8 +677,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       
       //Check conditions for search: corresponding modifier is hold on or middle button is pressed
       CheckClickSearchEvent: function( event ) {
+        // event.button: 0:left, 1:middle, 2:right
         if ( ExpressionSearchChrome.options.c2s_enableMiddleButton && event.button == 1 ) return true;
         var selectionType = ExpressionSearchChrome.options.selectionType;
+        selectionType = "ctrl";
+        // right moust, middle
         if ( selectionType == "shift" )
             return event.shiftKey;
         else if ( selectionType == "ctrl" )
@@ -673,7 +693,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
         let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
         if ( !aNode ) return;
-        //if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
+        if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
         var row = {}; var col = {}; var childElt = {};
         event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
         if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' ) return;
