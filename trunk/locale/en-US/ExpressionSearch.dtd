@@ -24,6 +24,7 @@
 
 <!ENTITY expressionsearch.dialog.title "Expression Search options">
 <!ENTITY expressionsearch.dialog.settings "Settings">
+<!ENTITY expressionsearch.dialog.c2ssettings "Click2Search Settings">
 <!ENTITY expressionsearch.dialog.help "Help">
 
 <!-- If you can localize the help document, please change "content" to "locale" below and put locailized document under locale dir -->

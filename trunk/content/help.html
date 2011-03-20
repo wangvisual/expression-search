@@ -18,6 +18,7 @@ Type "hello world" to search within the current view for this string in subject/
 Type "from:fred to:tom attachment:yes" to see all messages from Fred to Tom in the current view that have an attachment.<br>
 Press Ctrl+Enter to have this search apply to all folders.<br>
 Press Shift+Enter to invoke Gloda Search in all indexed folders.<br>
+Use Ctrl/Shift+Right Click to search the clicked subject/From/Recipient.<br>
 </p>
 
 <p>Expression Search's features are described below.</p>
@@ -181,9 +182,19 @@ Note 2: In case you also using the normal search filter, the final results is lo
 both filter are effective.
 </p>
 
+<h3>Click 2 Search</h3>
+
+<pre>Replace subject before search.
+Multiple matches are ORed. Example:
+    Match:   \[#(\d*)\]
+    Replace: $1
+    Subject: [#1212][#2323]Some text
+    Result:  (1212 or 2323)</pre>
+
+
 <h3>Version history</h3>
 <ul><li>
-Version 0.8: ???
+Version 0.8: Work with Thunderbird 3.3. Added Click2Search similar to The Bat!
 </li><li>
 Version 0.7: Added 'status/is' search. Added 'before/after' search. Added numerical calculation.
 </li><li>
