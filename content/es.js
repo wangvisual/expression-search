@@ -766,6 +766,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
              break;
            case "tagsCol":
              token = "tag";
+             sCellText = sCellText.replace(/\s+/g, ' and '); //maybe not correct for "To Do"
+             sCellText = "(" + sCellText + ")";
              break;
            default:
              return;
