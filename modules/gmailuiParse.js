@@ -3,6 +3,7 @@
 /* Changed by Opera Wang
     Added status/u/is/i pattern
     Added before/after pattern
+    Added simple pattern
     if ":" seems like within normal string, advance without break.
 */
 
@@ -11,6 +12,17 @@ var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
 ////////// Tokenize
 
 function ADVANCE_TOKEN() {
+  // Added by Opera for simple token
+  var currentToken = this.next_token ? this.next_token.tok : "";
+  if ( currentToken == 'simple' ) {
+    this.next_token = {
+      kind: 'str',
+      tok:this.str
+    }
+    this.str = "";
+    return;
+  }
+
   // skip white
   while (this.str[0] == ' ') {
     this.str = this.str.substr(1);
@@ -70,7 +82,7 @@ function ADVANCE_TOKEN() {
 
   // not a single-char token, so scan it all in.
   var tok = "";
-  let allTokens = /^(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
+  let allTokens = /^(?:simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
@@ -114,8 +126,8 @@ function ADVANCE_TOKEN() {
       };
     } else {
       this.next_token = {
-	kind: 'str',
-	tok: tok+":"
+	    kind: 'str',
+	    tok: tok+":"
       }
     }
   } else if (tok == 'and' || tok == 'or') {
