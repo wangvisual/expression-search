@@ -13,6 +13,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       isEnter: 0,
       
       allTokens: "simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+      textBoxDomId: "expression-search-textbox",
       
       prefs: null, // preference object
       options: {}, // preference results
@@ -62,6 +63,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
           this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
           this.options.c2s_enableMiddleButton = this.prefs.getBoolPref("c2s_enableMiddleButton");
+          this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
+          this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
         } catch ( err ) {
           ExpressionSearchLog.logException(err);
         }
@@ -74,28 +77,24 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
          }
          switch(data) {
            case "hide_normal_filer":
-             this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
-             this.refreshFilterBar();
-             break;
            case "hide_filter_label":
-             this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
-             this.refreshFilterBar();
-             break;
            case "reuse_existing_folder":
-             this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
-             break;
            case "select_msg_on_enter":
-             this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
-             break;
            case "c2s_enableMiddleButton":
-             this.options.c2s_enableMiddleButton = this.prefs.getBoolPref("c2s_enableMiddleButton");
+             this.options[data] = this.prefs.getBoolPref(data);
+             break;
+           case "c2s_regexpMatch":
+           case "c2s_regexpReplace":
+             this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
              break;
          }
+         if ( data=='hide_normal_filer' || data=='hide_filter_label' )
+           this.refreshFilterBar();
       },
 
       unregister: function() {
         ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
-        var aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+        var aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
         if (aNode) {
             aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
             aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
@@ -180,7 +179,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         
         let ExpressionFilter = {
           name: "expression",
-          domId: "expression-search-textbox",
+          domId: ExpressionSearchChrome.textBoxDomId,
 
           appendTerms: function(aTermCreator, aTerms, aFilterValue) {
             if (aFilterValue.text) {
@@ -336,9 +335,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         ExpressionSearchLog.log("select:" + needSelect);
         if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
           ExpressionSearchLog.log("select1");
-          let treeView = gFolderDisplay.tree.treeBoxObject.view; //nsITreeView
+          let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
+          let treeView = treeBox.view; //nsITreeView
           let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
-          let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+          let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
           if ( aNode && treeView && dbViewWrapper && aNode.value != '' && treeView.rowCount > 0 ) {
             ExpressionSearchLog.log("select2");
             if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
@@ -350,7 +350,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               threadPane.focus();
               // ...so explicitly select the currentIndex if avaliable or the 1st one
               //threadPane.view.selection.select(threadPane.currentIndex);
-              treeView.selection.select( treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0 );
+              var row = treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0;
+              treeView.selection.select(row);
+              treeBox.ensureRowIsVisible(row);
             } // needSelect
           } // rowCount > 0
         }
@@ -698,9 +700,26 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         return false;
       },
       
+      //Replace string using user-defined regexp. If not match, return original strings. 
+      //If multiple matches, return all replaces, concatinated with OR operator
+      RegexpReplaceString : function( str ) {
+          if ( ExpressionSearchChrome.options.c2s_regexpMatch.length == 0 ) return str;
+          var regexp = new RegExp(ExpressionSearchChrome.options.c2s_regexpMatch, "gi");
+          var r_match = str.match(regexp);
+          if ( !r_match ) return str;
+          var res = new Array();
+          for (i = 0; i < r_match.length; i++ ) {
+              res.push( r_match[i].replace(regexp, ExpressionSearchChrome.options.c2s_regexpReplace) );
+          }
+          var out = res.join(" or ");
+          if ( res.length > 1)
+            out = "(" + out + ")";
+          return out;
+      },
+      
       onClicked: function(event) {
         if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
-        let aNode = document.getElementById(QuickFilterManager.textBoxDomId);
+        let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
         if ( !aNode ) return;
         if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
         var row = {}; var col = {}; var childElt = {};
@@ -711,7 +730,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
         switch(col.value.id) {
            case "subjectCol":
+             sCellText = ExpressionSearchChrome.RegexpReplaceString( sCellText );
              token = "simple";
+             if ( sCellText.indexOf("(") == 0 )
+               token = "s";
              let oldValue = "";
              while ( oldValue != sCellText ) {
                oldValue = sCellText;
@@ -719,15 +741,24 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                  sCellText = sCellText.replace(element, '$1');
                });
              }
-             //sCellText = gOneClickExtension.RegexpReplaceString( sCellText );
              break;
            case "senderCol":
              token = "f";
              break;
            case "recipientCol":
              token = "t";
+             //break;
+           case "sio_inoutaddressCol": //showInOut support
+             if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
+               let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
+               let treeView = treeBox.view;
+               var property = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+               var atomIn = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
+               treeView.getCellProperties(row.value,col.value,property);
+               token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
+             }
              sCellText = sCellText.replace(/'/g, '');
-             // and, or, 1st, mouse?
+             // and, or, 1st, mouse position?
              if ( sCellText.indexOf(',') != -1 ) {
                sCellText = sCellText.replace(/,/g, ' and');
                sCellText = "(" + sCellText + ")";
@@ -736,19 +767,17 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
            case "tagsCol":
              token = "tag";
              break;
-           case "sio_inoutaddressCol":
-             token = "what";
-             break;
            default:
              return;
         }
         if ( sCellText == "" ) return;
-        ExpressionSearchLog.log(token + ":"+sCellText);
         if ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) {
           QuickFilterBarMuxer._showFilterBar(true);
           aNode.select();
         }
+        ExpressionSearchLog.log(token + ":" + sCellText);
         aNode.value = token + ":" + sCellText;
+        ExpressionSearchChrome.isEnter = true; // So the email can be selected
         aNode._fireCommand(aNode);
         // Stop even bubbling
         event.preventDefault();

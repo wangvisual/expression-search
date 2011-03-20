@@ -12,6 +12,8 @@
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
+    <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
+    <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
   </preferences>
   
   <vbox flex="1">
@@ -24,6 +26,27 @@
         <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
       </vbox>
     </groupbox>
+
+    <groupbox flex="1" id="expressionsearch-pane-c2ssetting">
+      <caption label="&expressionsearch.dialog.c2ssettings;"/>
+        <grid id="c2sRegexpGrid">
+            <columns>
+                <column/>
+                <column/>
+            </columns>
+            <rows>
+                <row>
+                    <label value="Match"/>
+                    <textbox preference="pref_c2s_regexpMatch" id="c2sMatch"/>
+                </row>
+                <row>
+                    <label value="Replace"/>
+                    <textbox preference="pref_c2s_regexpReplace" id="c2sReplace"/>
+                </row>
+            </rows>
+        </grid>
+    </groupbox>
+    
     <groupbox flex="1" id="expressionsearch-pane-help">
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox>
