@@ -12,6 +12,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       // if last key is Enter
       isEnter: 0,
       
+      allTokens: "simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+      
       prefs: null, // preference object
       options: {}, // preference results
 
@@ -130,7 +132,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       
       expression2gloda: function(searchValue) {
         searchValue = searchValue.replace(/^g:\s*/i,'');
-        searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):/g,'');
+        let regExp = new RegExp( "(?:^|\\b)(?:" + this.allTokens + "):", "g");
+        //searchValue = searchValue.replace(/(?:^|\b)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):/g,'');
+        searchValue = searchValue.replace(regExp,'');
         searchValue = searchValue.replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'');
         return searchValue;
       },
@@ -186,8 +190,12 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                 }
                 // first remove trailing specifications if it's empty
                 // then remove trailing ' and' but no remove of "f: and"
-                var aSearchString = aFilterValue.text.replace(/(?:^|\s+)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l):(?:\(|)\s*$/i,'');
-                if ( aSearchString.search(/\b(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l):\s+and\s*$/i) == -1 ) {
+                let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExpressionSearchChrome.allTokens + '):(?:\\(|)\\s*$', "i");
+                let regExpSearch = new RegExp( '\\b(?:' + ExpressionSearchChrome.allTokens + '):\\s+and\\s*$', "i");
+                //var aSearchString = aFilterValue.text.replace(/(?:^|\s+)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):(?:\(|)\s*$/i,'');
+                var aSearchString = aFilterValue.text.replace(regExpReplace,'');
+                //if ( aSearchString.search(/\b(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):\s+and\s*$/i) == -1 ) {
+                if ( !regExpSearch.test(aSearchString) ) {
                   aSearchString = aSearchString.replace(/\s+\and\s*$/i,'');
                 }
                 aSearchString.replace(/\s+$/,'');
@@ -201,6 +209,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                   ExpressionSearchChrome.createQuickFolder(terms);
                   ExpressionSearchChrome.latchQSFolderReq = 0;
                 } else {
+                  ExpressionSearchLog.log("Experssion Search Statements: "+expr_tostring_infix(e));
                   ExpressionSearchChrome.createSearchTermsFromExpression(e,aTermCreator,aTerms);
                 }
                 return;
@@ -496,7 +505,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           var attr;
           if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
           else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
-          else if (e.tok == 'subject') attr = nsMsgSearchAttrib.Subject;
+          else if (e.tok == 'subject' || e.tok == 'simple') attr = nsMsgSearchAttrib.Subject;
           else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
           else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
           else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
@@ -623,7 +632,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           } );
           return condition;
         }
-        ExpressionSearchLog.log("Experssion Search Conditions: "+getSearchTermString(searchTerms));
+        ExpressionSearchLog.log("Experssion Search Terms: "+getSearchTermString(searchTerms));
         return null;
       },
 
@@ -702,7 +711,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
         switch(col.value.id) {
            case "subjectCol":
-             token = "s";
+             token = "simple";
              let oldValue = "";
              while ( oldValue != sCellText ) {
                oldValue = sCellText;
