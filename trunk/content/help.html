@@ -184,15 +184,23 @@ both filter are effective.
 </p>
 
 <h3>Click 2 Search</h3>
-
+<p>
+If Enabled, you can use Ctrl/Shift+Right Click on sender/receipient/subject column to search for the same sender,
+receipient or subject.
+</p>
+<p>
 <a name="c2s_Replace"></a>
+For subject line, if provided regular expression match/replace patterns, the pattern will be first executed
 <pre>Replace subject before search.
 Multiple matches are ORed. Example:
     Match:   \[#(\d*)\]
     Replace: $1
     Subject: [#1212][#2323]Some text
     Result:  (1212 or 2323)</pre>
-
+</p>
+<p>
+Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before search.
+</p>
 
 <h3>Version history</h3>
 <ul><li>
@@ -224,7 +232,19 @@ Version 0.1: First version, changed from GMailUI to make it works for Thunderbir
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=625472'>Bug 625472</a> - Quick search processes input after hiding it with escape
 </li></ul>
 
+<h3>Thanks</h3>
+<ul><li>
+Ken Mixter - Original Author of GMailUI
+</li><li>
+savo_msu - Author of <a href='https://addons.mozilla.org/af/thunderbird/addon/one-click-search/'>One Click Search</a>
+</li><li>
+Olivier - Suggest for Shift/Ctrl+Enter
+</li><li>
+Tom Zhu - Suggest for Enter to focus message pane
+</li></ul>
+
 <h3>Feedback, Suggestions, and on-going Development</h3>
+<p>Home Page: <a href='http://code.google.com/p/expression-search/'>expression-search</a>
 <p>Please send email to <a href='mailto:Opera.Wang+es@gmail.com'>Opera.Wang+es@gmail.com</a> for feedback, suggetions etc</p>
 <p>Compared with original GMailUI 0.6, these features are still missing:
 <ul>
