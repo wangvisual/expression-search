@@ -63,7 +63,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
           this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
           this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
-          this.options.c2s_enableMiddleButton = this.prefs.getBoolPref("c2s_enableMiddleButton");
+          this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
+          this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
           this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
           this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
         } catch ( err ) {
@@ -81,7 +82,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
            case "hide_filter_label":
            case "reuse_existing_folder":
            case "select_msg_on_enter":
-           case "c2s_enableMiddleButton":
+           case "c2s_enableCtrl":
+           case "c2s_enableShift":
              this.options[data] = this.prefs.getBoolPref(data);
              break;
            case "c2s_regexpMatch":
@@ -337,19 +339,15 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       
       // select first message, expand first container if closed
       selectFirstMessage: function(needSelect) {
-        ExpressionSearchLog.log("select:" + needSelect);
         if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
-          ExpressionSearchLog.log("select1");
           let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
           let treeView = treeBox.view; //nsITreeView
           let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
           let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
-          if ( aNode && treeView && dbViewWrapper && aNode.value != '' && treeView.rowCount > 0 ) {
-            ExpressionSearchLog.log("select2");
+          if ( aNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
             if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
               treeView.toggleOpenState(0);
             if ( needSelect ) {
-              ExpressionSearchLog.log("select3");
               let threadPane = document.getElementById("threadTree");
               // focusing does not actually select the row...
               threadPane.focus();
@@ -694,14 +692,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       //Check conditions for search: corresponding modifier is hold on or middle button is pressed
       CheckClickSearchEvent: function( event ) {
         // event.button: 0:left, 1:middle, 2:right
-        if ( ExpressionSearchChrome.options.c2s_enableMiddleButton && event.button == 1 ) return true;
-        var selectionType = ExpressionSearchChrome.options.selectionType;
-        selectionType = "ctrl";
-        // right moust, middle
-        if ( selectionType == "shift" )
-            return event.shiftKey;
-        else if ( selectionType == "ctrl" )
-            return event.ctrlKey;
+        if ( event.button != 2 ) return false;
+        if ( ExpressionSearchChrome.options.c2s_enableCtrl && event.ctrlKey ) return true;
+        if ( ExpressionSearchChrome.options.c2s_enableShift && event.shiftKey ) return true;
         return false;
       },
       
