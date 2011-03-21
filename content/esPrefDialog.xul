@@ -12,6 +12,8 @@
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
+    <preference id="pref_c2s_enableCtrl" name="extensions.expressionsearch.c2s_enableCtrl" type="bool"/>
+    <preference id="pref_c2s_enableShift" name="extensions.expressionsearch.c2s_enableShift" type="bool"/>
     <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
   </preferences>
@@ -29,6 +31,8 @@
 
     <groupbox flex="1" id="expressionsearch-pane-c2ssetting">
       <caption label="&expressionsearch.dialog.c2ssettings;"/>
+        <checkbox preference="pref_c2s_enableCtrl" label="&expressionsearch.option.c2s_enableCtrl;"/>
+        <checkbox preference="pref_c2s_enableShift" label="&expressionsearch.option.c2s_enableShift;"/>
         <grid id="c2sRegexpGrid">
             <columns>
                 <column/>
@@ -36,7 +40,7 @@
             </columns>
             <rows>
                 <row>
-                    <label value="Match"/>
+                    <hbox><label value="Match"/><text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('&expressionsearch.option.helpfile;'+'#c2s_Replace');"/></hbox>
                     <textbox preference="pref_c2s_regexpMatch" id="c2sMatch"/>
                 </row>
                 <row>
@@ -50,22 +54,12 @@
     <groupbox flex="1" id="expressionsearch-pane-help">
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox>
-        <text class='textlink' value="&expressionsearch.option.help;" onclick="loadURL('&expressionsearch.option.helpfile;');"/>
+        <text class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('&expressionsearch.option.helpfile;');"/>
         <text/>
-        <text class='textlink' value="&expressionsearch.option.email;" onclick="sendEmail('mailto:opera.wang+es@gmail.com');"/>
+        <text class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/>
       </vbox>
     </groupbox>
   </vbox>
 </prefpane>
-<script>
-  function loadURL(url) {
-    var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].getService(Components.interfaces.nsIWindowWatcher);
-    ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
-  }
-  function sendEmail(url) {
-    var uri = Components.classes["@mozilla.org/network/simple-uri;1"].getService(Components.interfaces.nsIURI);
-    uri.spec = url;
-    Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].getService(Components.interfaces.nsIExternalProtocolService).loadUrl(uri);
-  }
-</script>  
+<script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
 </prefwindow>

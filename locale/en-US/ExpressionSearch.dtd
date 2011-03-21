@@ -25,6 +25,8 @@
 <!ENTITY expressionsearch.dialog.title "Expression Search options">
 <!ENTITY expressionsearch.dialog.settings "Settings">
 <!ENTITY expressionsearch.dialog.c2ssettings "Click2Search Settings">
+<!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
+<!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
 <!ENTITY expressionsearch.dialog.help "Help">
 
 <!-- If you can localize the help document, please change "content" to "locale" below and put locailized document under locale dir -->
