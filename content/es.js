@@ -4,6 +4,7 @@
 
 if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
     var ExpressionSearchChrome = {
+      // inited, also used as ID for the instance
       isInited:0,
 
       // request to create virtual folder
@@ -22,10 +23,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         try {
           if ( this.isInited == 0 ) {
             ExpressionSearchLog.log("Expression Search: init...");
+            this.isInited = new Date().getTime();
             this.importModules();
             this.initPerf();
             this.initSearchInput();
-            this.isInited = 1;
           } else {
             ExpressionSearchLog.log("Expression Search:Warning, init again",1);
           }
@@ -93,6 +94,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       },
 
       unregister: function() {
+        ExpressionSearchLog.log("Expression Search: unload...");
         ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
         var aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
         if (aNode) {
@@ -100,10 +102,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
         }
         // remove our filter from the QuickFilterManager
-        QuickFilterManager.killFilter('expression'); //Remove a filter from existence by name
+        QuickFilterManager.killFilter('expression'+ExpressionSearchChrome.isInited); //Remove a filter from existence by name
+        QuickFilterManager.textBoxDomId = ExpressionSearchChrome.textBoxDomIdSaved;
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
-          threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
+          threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
         window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
       },
@@ -326,7 +329,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           },
         };
 
+        ExpressionFilter.name += ExpressionSearchChrome.isInited; // for multi window, use different name
         QuickFilterManager.defineFilter(ExpressionFilter);
+        ExpressionSearchChrome.textBoxDomIdSaved = QuickFilterManager.textBoxDomId; // when I'm unloaded, restore the original domID, usually myself ;-)
         QuickFilterManager.textBoxDomId = ExpressionFilter.domId;
       },
       
