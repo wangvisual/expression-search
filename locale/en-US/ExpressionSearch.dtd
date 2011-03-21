@@ -21,13 +21,17 @@
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.help "View help document">
 <!ENTITY expressionsearch.option.email "Send Email to author">
-
-<!ENTITY expressionsearch.dialog.title "Expression Search options">
-<!ENTITY expressionsearch.dialog.settings "Settings">
-<!ENTITY expressionsearch.dialog.c2ssettings "Click2Search Settings">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
 <!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
+
+<!ENTITY expressionsearch.dialog.title "Expression Search Options">
+<!ENTITY expressionsearch.dialog.settings "Settings">
+<!ENTITY expressionsearch.dialog.move2bar "Move Expression Search To (need restart)">
+<!ENTITY expressionsearch.dialog.c2s_settings "Click2Search Settings">
 <!ENTITY expressionsearch.dialog.help "Help">
+<!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
+<!ENTITY expressionsearch.dialog.c2s_match "Match">
+<!ENTITY expressionsearch.dialog.c2s_replace "Replace">
 
 <!-- If you can localize the help document, please change "content" to "locale" below and put locailized document under locale dir -->
 <!ENTITY expressionsearch.option.helpfile "chrome://expressionsearch/content/help.html">

@@ -63,6 +63,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
           this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
           this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+          this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
           this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
           this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
           this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
@@ -85,6 +86,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
            case "c2s_enableCtrl":
            case "c2s_enableShift":
              this.options[data] = this.prefs.getBoolPref(data);
+             break;
+           case "move2bar":
+             this.options[data] = this.prefs.getIntPref(data);
              break;
            case "c2s_regexpMatch":
            case "c2s_regexpReplace":
@@ -811,8 +815,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         //  reflectFiltererState for qfb-show-filter-bar checked
         
         //return;
+        if ( this.options.move2bar == 0 ) return;
         var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
-        var toolbar = document.getElementById('mail-bar3');
+        let dest = this.options.move2bar == 1 ? 'mail-bar3' : 'mail-toolbar-menubar2';
+        var toolbar = document.getElementById(dest);
         var i = 0;
         while ( i < needMoveIds.length ) {
             var needMove = document.getElementById(needMoveIds[i]);
