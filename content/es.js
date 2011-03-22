@@ -133,6 +133,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( spacer ) {
           spacer.flex = this.options.hide_filter_label ? 1 : 200;
         }
+        this.setExpando();
       },
       
       hideUpsellPanel: function() {
@@ -778,10 +779,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
              return;
         }
         if ( sCellText == "" ) return;
-        if ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) {
+        if ( ExpressionSearchChrome.options.move2bar==0 && ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) )
           QuickFilterBarMuxer._showFilterBar(true);
-          aNode.select();
-        }
         ExpressionSearchLog.log(token + ":" + sCellText);
         aNode.value = token + ":" + sCellText;
         ExpressionSearchChrome.isEnter = true; // So the email can be selected
@@ -798,14 +797,29 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
       },
       
+      setExpando: function() {
+        let show = ( this.options.move2bar==0 || !this.options.hide_normal_filer );
+        let mainbar = document.getElementById("quick-filter-bar-main-bar");
+        let checkbutton = document.getElementById("qfb-show-filter-bar");
+        //mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
+        mainbar.collapsed = false;
+        if ( !show ) { //mainbar disabled, so show the filter bar always, and actually only expand bar will show when necessary
+          checkbutton.checked = true; // checkbutton.checked will also be changed by reflectFiltererState in quickFilterBar.js
+          QuickFilterState.visible = true;
+          //checkbutton.disabled = true; // can't click
+        } else {
+          //checkbutton.disabled = false;
+        }
+      },
+      
       moveExpressionSearchBox: function() {
         //thunderbird-private-tabmail-buttons
-        //  qfb-show-filter-bar
+        //  qfb-show-filter-bar  : document.getElementById("qfb-show-filter-bar").checked = aFilterer.visible;
       
         //quick-filter-bar
         //  quick-filter-bar-main-bar
         //  quick-filter-bar-expando
-        //    quick-filter-bar-tab-bar
+        //    quick-filter-bar-tab-bar : it's taG bar
         //    quick-filter-bar-filter-text-bar.collapsed=(aFilterValue.text == null);
         
         //qfb-sticky [quick-filter-bar-collapsible-buttons] [100 results] [search filter]
@@ -833,6 +847,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             i++;
         }
         this.options.savedPosition = this.options.move2bar;
+        this.setExpando();
       }
 
     };
