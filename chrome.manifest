@@ -2,12 +2,9 @@ content   expressionsearch                 content/
 skin      expressionsearch   classic/1.0   skin/
 locale    expressionsearch   en-US         locale/en-US/
 locale    expressionsearch   zh-CN         locale/zh-CN/
-
-#content   expressionsearch                 jar:chrome/expressionsearch.jar!/content/
-#skin      expressionsearch   classic/1.0   jar:chrome/expressionsearch.jar!/skin/
-#locale    expressionsearch   en-US         jar:chrome/expressionsearch.jar!/locale/en-US/
-#locale    expressionsearch   zh-CN         jar:chrome/expressionsearch.jar!/locale/zh-CN/
-
 resource  expressionsearch                 modules/
 
 overlay	chrome://messenger/content/quickFilterBar.xul	chrome://expressionsearch/content/esQuickFilterBar.xul
+#overlay	chrome://messenger/content/mailWindowOverlay.xul	chrome://expressionsearch/content/esMailWindowOverlay.xul
+#overlay	chrome://messenger/content/addressbook/addressbook.xul	chrome://expressionsearch/content/esAddressbook.xul
+#overlay chrome://messenger/content/messenger.xul chrome://expressionsearch/content/csMessenger.xul

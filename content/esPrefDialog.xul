@@ -37,9 +37,9 @@
       <caption label="&expressionsearch.dialog.move2bar;"/>
       <radiogroup id="expressionsearch_move2bar" preference="pref_move2bar">
         <hbox pack="center">
-          <radio id="expressionsearch_move2nowhere" label="No Move" value="0"/>
-          <radio id="expressionsearch_move2toolbar" label="Toolbar" value="1"/>
-          <radio id="expressionsearch_move2menubar" label="Menubar" value="2"/>
+          <radio id="expressionsearch_move2nowhere" label="&expressionsearch.dialog.move2quicksearchbar;" value="0"/>
+          <radio id="expressionsearch_move2toolbar" label="&expressionsearch.dialog.move2toolbar;" value="1"/>
+          <radio id="expressionsearch_move2menubar" label="&expressionsearch.dialog.move2menubar;" value="2"/>
         </hbox>
       </radiogroup>
     </groupbox>
