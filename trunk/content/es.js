@@ -29,6 +29,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             this.importModules();
             this.initPerf();
             this.initSearchInput();
+            this.initFunctionHook();
           } else {
             ExpressionSearchLog.log("Expression Search:Warning, init again",1);
           }
@@ -101,6 +102,18 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
          if ( data=='hide_normal_filer' || data=='hide_filter_label' )
            this.refreshFilterBar();
       },
+      
+      initFunctionHook: function() {
+        if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' )
+          return;
+        this.reflectFiltererStateSaved = QuickFilterBarMuxer.reflectFiltererState;
+        QuickFilterBarMuxer.reflectFiltererState = function(aFilterer, aFolderDisplay, aFilterName) {
+          let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
+          // filter bar not need show, so hide mainbar(in setFilterBar) and show quick filter bar
+          if ( !show ) aFilterer.visible = true;
+          ExpressionSearchChrome.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
+        }
+      },
 
       unregister: function() {
         ExpressionSearchLog.log("Expression Search: unload...");
@@ -116,6 +129,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
+        if ( typeof(ExpressionSearchChrome.reflectFiltererStateSaved) != 'undefined' )
+          QuickFilterBarMuxer.reflectFiltererState = ExpressionSearchChrome.reflectFiltererStateSaved;
         window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
       },
@@ -133,7 +148,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( spacer ) {
           spacer.flex = this.options.hide_filter_label ? 1 : 200;
         }
-        this.setExpando();
+        this.setFilterBar();
       },
       
       hideUpsellPanel: function() {
@@ -797,19 +812,10 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
       },
       
-      setExpando: function() {
+      setFilterBar: function() {
         let show = ( this.options.move2bar==0 || !this.options.hide_normal_filer );
         let mainbar = document.getElementById("quick-filter-bar-main-bar");
-        let checkbutton = document.getElementById("qfb-show-filter-bar");
-        //mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
-        mainbar.collapsed = false;
-        if ( !show ) { //mainbar disabled, so show the filter bar always, and actually only expand bar will show when necessary
-          checkbutton.checked = true; // checkbutton.checked will also be changed by reflectFiltererState in quickFilterBar.js
-          QuickFilterState.visible = true;
-          //checkbutton.disabled = true; // can't click
-        } else {
-          //checkbutton.disabled = false;
-        }
+        mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
       },
       
       moveExpressionSearchBox: function() {
@@ -847,7 +853,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             i++;
         }
         this.options.savedPosition = this.options.move2bar;
-        this.setExpando();
+        this.setFilterBar();
       }
 
     };
