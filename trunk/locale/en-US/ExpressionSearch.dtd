@@ -26,7 +26,10 @@
 
 <!ENTITY expressionsearch.dialog.title "Expression Search Options">
 <!ENTITY expressionsearch.dialog.settings "Settings">
-<!ENTITY expressionsearch.dialog.move2bar "Move Expression Search To (need restart)">
+<!ENTITY expressionsearch.dialog.move2bar "Move Expression Search To">
+<!ENTITY expressionsearch.dialog.move2quicksearchbar "QuickSearchBar">
+<!ENTITY expressionsearch.dialog.move2toolbar "ToolBar">
+<!ENTITY expressionsearch.dialog.move2menubar "Menubar">
 <!ENTITY expressionsearch.dialog.c2s_settings "Click2Search Settings">
 <!ENTITY expressionsearch.dialog.help "Help">
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">

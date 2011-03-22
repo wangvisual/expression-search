@@ -17,7 +17,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       textBoxDomId: "expression-search-textbox",
       
       prefs: null, // preference object
-      options: {}, // preference results
+      options: {   // preference strings
+        savedPosition: 0,
+      },
 
       init: function() {
         try {
@@ -89,6 +91,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
              break;
            case "move2bar":
              this.options[data] = this.prefs.getIntPref(data);
+             this.moveExpressionSearchBox();
              break;
            case "c2s_regexpMatch":
            case "c2s_regexpReplace":
@@ -789,13 +792,13 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       },
       
       initAfterLoad: function() {
-        ExpressionSearchChrome.moveToToolbar();
+        ExpressionSearchChrome.moveExpressionSearchBox();
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
       },
       
-      moveToToolbar: function() {
+      moveExpressionSearchBox: function() {
         //thunderbird-private-tabmail-buttons
         //  qfb-show-filter-bar
       
@@ -814,17 +817,22 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         //  onMakeActive for qfb-show-filter-bar visiable
         //  reflectFiltererState for qfb-show-filter-bar checked
         
-        //return;
-        if ( this.options.move2bar == 0 ) return;
+        if ( this.options.move2bar == this.options.savedPosition ) return;
         var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
-        let dest = this.options.move2bar == 1 ? 'mail-bar3' : 'mail-toolbar-menubar2';
+        let dest= "quick-filter-bar-main-bar";
+        if ( this.options.move2bar == 1 )
+          dest = 'mail-bar3';
+        else if ( this.options.move2bar == 2 )
+          dest = 'mail-toolbar-menubar2';
         var toolbar = document.getElementById(dest);
         var i = 0;
         while ( i < needMoveIds.length ) {
             var needMove = document.getElementById(needMoveIds[i]);
+            // know issue: if reposition to quick search bar, will not be same as the orignial position.
             toolbar.appendChild(needMove.parentNode.removeChild(needMove));
             i++;
         }
+        this.options.savedPosition = this.options.move2bar;
       }
 
     };
