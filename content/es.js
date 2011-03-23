@@ -105,12 +105,37 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       initFunctionHook: function() {
         if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' )
           return;
-        this.reflectFiltererStateSaved = QuickFilterBarMuxer.reflectFiltererState;
+        QuickFilterBarMuxer.reflectFiltererStateSaved = QuickFilterBarMuxer.reflectFiltererState;
         QuickFilterBarMuxer.reflectFiltererState = function(aFilterer, aFolderDisplay, aFilterName) {
           let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
+          let hasFilter = typeof(this.maybeActiveFilterer)=='object';
           // filter bar not need show, so hide mainbar(in refreshFilterBar) and show quick filter bar
-          if ( !show ) aFilterer.visible = true;
-          ExpressionSearchChrome.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
+          if ( !show  && !aFilterer.visible && hasFilter ) aFilterer.visible = true;
+          if ( hasFilter )
+            alert('enable');
+          QuickFilterBarMuxer.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
+        }
+        
+        // onMakeActive && onTabSwitched
+        QuickFilterBarMuxer.onMakeActiveSaved = QuickFilterBarMuxer.onMakeActive;
+        QuickFilterBarMuxer.onMakeActive = function(aFolderDisplay) {
+          let tab = aFolderDisplay._tabInfo;
+          let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
+          if ( !appropriate )
+            alert('disable');
+          QuickFilterBarMuxer.onMakeActiveSaved.apply(this,arguments);
+        }
+        
+        QuickFilterBarMuxer.onTabSwitchedSaved = QuickFilterBarMuxer.onTabSwitched;
+        QuickFilterBarMuxer.onTabSwitched = function(aTab, aOldTab) {
+          let filterer = this.maybeActiveFilterer;
+          if (!filterer) {
+            var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
+            needMoveIds.forEach( function(ID, index, array) {
+              document.getElementById(ID).disabled = true;
+            } );
+          }
+          QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
         }
         
         // work around https://bugzilla.mozilla.org/show_bug.cgi?id=644079
@@ -139,8 +164,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
-        if ( typeof(ExpressionSearchChrome.reflectFiltererStateSaved) != 'undefined' )
-          QuickFilterBarMuxer.reflectFiltererState = ExpressionSearchChrome.reflectFiltererStateSaved;
+        if ( typeof(QuickFilterBarMuxer.reflectFiltererStateSaved) != 'undefined' ) {
+          QuickFilterBarMuxer.reflectFiltererState = QuickFilterBarMuxer.reflectFiltererStateSaved;
+          QuickFilterBarMuxer.onMakeActive = QuickFilterBarMuxer.onMakeActiveSaved;
+          QuickFilterBarMuxer.onTabSwitched = QuickFilterBarMuxer.onTabSwitchedSaved;
+        }
         window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
       },
