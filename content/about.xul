@@ -6,12 +6,7 @@
 <!DOCTYPE dialog SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
 
 <dialog title="&about.about; Expression Search" orient="vertical" autostretch="always" onload="sizeToContent()" buttons="accept" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script>
-    function loadURL(url) {
-      var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].getService(Components.interfaces.nsIWindowWatcher);
-      ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
-    }
-  </script>
+  <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <groupbox align="center" orient="horizontal">
     <vbox>
       <text class='abouthead' value="&about.author;"/>
@@ -20,7 +15,7 @@
       <text class='abouthead' id="contributorsTitle" value="&about.contributors.label;"/>
       <text value="Ken Mixter - original GMailUI"/>
       <text value=""/>
-      <text class='textlink' value="&about.help;" onclick="loadURL('&expressionsearch.option.helpfile;');"/>
+      <text class='textlink' value="&about.help;" onclick="ExpressionSearchCommon.loadURL('&expressionsearch.option.helpfile;');"/>
     </vbox>
   </groupbox>
 </dialog>

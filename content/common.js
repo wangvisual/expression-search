@@ -21,6 +21,7 @@ var ExpressionSearchCommon = {
     if (tabmail)
       tabmail.openTab("contentTab", {contentPage: url});
     else
+      //openDialog will open another top window
       //window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null, { tabType: "contentTab", tabParams: {contentPage: url} });
       this.loadURL(url);
   },

@@ -92,14 +92,13 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
              break;
            case "move2bar":
              this.options[data] = this.prefs.getIntPref(data);
-             this.moveExpressionSearchBox();
              break;
            case "c2s_regexpMatch":
            case "c2s_regexpReplace":
              this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
              break;
          }
-         if ( data=='hide_normal_filer' || data=='hide_filter_label' )
+         if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' )
            this.refreshFilterBar();
       },
       
@@ -109,9 +108,19 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         this.reflectFiltererStateSaved = QuickFilterBarMuxer.reflectFiltererState;
         QuickFilterBarMuxer.reflectFiltererState = function(aFilterer, aFolderDisplay, aFilterName) {
           let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
-          // filter bar not need show, so hide mainbar(in setFilterBar) and show quick filter bar
+          // filter bar not need show, so hide mainbar(in refreshFilterBar) and show quick filter bar
           if ( !show ) aFilterer.visible = true;
           ExpressionSearchChrome.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
+        }
+        
+        // work around https://bugzilla.mozilla.org/show_bug.cgi?id=644079
+        if ( typeof(QuickFilterManager.killFilterSaved) == 'undefined' ) {
+          QuickFilterManager.killFilterSaved = QuickFilterManager.killFilter;
+          QuickFilterManager.killFilter = function MFM_killFilterNew(aName) {
+            let filterDef = this.filterDefsByName[aName];
+            this.filterDefs.splice(this.filterDefs.indexOf(filterDef), 1);
+            delete this.filterDefsByName[aName];
+          }
         }
       },
 
@@ -125,7 +134,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         }
         // remove our filter from the QuickFilterManager
         QuickFilterManager.killFilter('expression'+ExpressionSearchChrome.isInited); //Remove a filter from existence by name
-        QuickFilterManager.textBoxDomId = ExpressionSearchChrome.textBoxDomIdSaved;
+        //comment the below line so I'm still active after 1 window closed
+        //QuickFilterManager.textBoxDomId = ExpressionSearchChrome.textBoxDomIdSaved;
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
@@ -136,6 +146,23 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       },
       
       refreshFilterBar: function() {
+        //thunderbird-private-tabmail-buttons
+        //  qfb-show-filter-bar  : document.getElementById("qfb-show-filter-bar").checked = aFilterer.visible;
+      
+        //quick-filter-bar
+        //  quick-filter-bar-main-bar
+        //  quick-filter-bar-expando
+        //    quick-filter-bar-tab-bar : it's taG bar
+        //    quick-filter-bar-filter-text-bar.collapsed=(aFilterValue.text == null);
+        
+        //qfb-sticky [quick-filter-bar-collapsible-buttons] [100 results] [search filter]
+        //                                          subject ...
+        
+        //QuickFilterState.visible
+        
+        //QuickFilterBarMuxer
+        //  onMakeActive for qfb-show-filter-bar visiable
+        //  reflectFiltererState for qfb-show-filter-bar checked
         let filterNode = document.getElementById('qfb-qs-textbox');
         if ( filterNode && filterNode.style ) {
           filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
@@ -148,7 +175,36 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( spacer ) {
           spacer.flex = this.options.hide_filter_label ? 1 : 200;
         }
-        this.setFilterBar();
+        let show = ( this.options.move2bar==0 || !this.options.hide_normal_filer );
+        let mainbar = document.getElementById("quick-filter-bar-main-bar");
+        mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
+
+        // move expression search box along with other buttons to dest position
+        if ( this.options.move2bar == this.options.savedPosition ) return;
+        var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
+        let dest = "quick-filter-bar-main-bar";
+        let reference = null;
+        if ( this.options.move2bar == 0 )
+          reference = document.getElementById("qfb-filter-label");
+        else if ( this.options.move2bar == 1 )
+          dest = 'mail-bar3';
+        else if ( this.options.move2bar == 2 )
+          dest = 'mail-toolbar-menubar2';
+        var toolbar = document.getElementById(dest);
+        var i = 0;
+        while ( i < needMoveIds.length ) {
+            var needMove = document.getElementById(needMoveIds[i]);
+            toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
+            i++;
+            if ( this.options.move2bar == 0 )
+              if ( i == 1 )
+                reference = document.getElementById("qfb-filter-bar-spacer");
+              else if ( i == 2 )
+                reference = document.getElementById("qfb-qs-textbox");
+              else if ( i == 3 )
+                reference = null;
+        }
+        this.options.savedPosition = this.options.move2bar;
       },
       
       hideUpsellPanel: function() {
@@ -264,7 +320,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               filterNode.setAttribute( attributeName, filterNode.getAttribute("emptytextbase").replace("#1", '') );
               // force to update the message
               filterNode.value = '';
-              ExpressionSearchChrome.refreshFilterBar();
+              //ExpressionSearchChrome.refreshFilterBar();
             }
             aNode.setAttribute( attributeName, aNode.getAttribute("emptytextbase").replace("#1", quickKey) );
             // force an update of the emptytext now that we've updated it.
@@ -356,7 +412,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
 
         ExpressionFilter.name += ExpressionSearchChrome.isInited; // for multi window, use different name
         QuickFilterManager.defineFilter(ExpressionFilter);
-        ExpressionSearchChrome.textBoxDomIdSaved = QuickFilterManager.textBoxDomId; // when I'm unloaded, restore the original domID, usually myself ;-)
+        //ExpressionSearchChrome.textBoxDomIdSaved = QuickFilterManager.textBoxDomId;
         QuickFilterManager.textBoxDomId = ExpressionFilter.domId;
       },
       
@@ -806,55 +862,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       },
       
       initAfterLoad: function() {
-        ExpressionSearchChrome.moveExpressionSearchBox();
+        ExpressionSearchChrome.refreshFilterBar();
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
       },
-      
-      setFilterBar: function() {
-        let show = ( this.options.move2bar==0 || !this.options.hide_normal_filer );
-        let mainbar = document.getElementById("quick-filter-bar-main-bar");
-        mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
-      },
-      
-      moveExpressionSearchBox: function() {
-        //thunderbird-private-tabmail-buttons
-        //  qfb-show-filter-bar  : document.getElementById("qfb-show-filter-bar").checked = aFilterer.visible;
-      
-        //quick-filter-bar
-        //  quick-filter-bar-main-bar
-        //  quick-filter-bar-expando
-        //    quick-filter-bar-tab-bar : it's taG bar
-        //    quick-filter-bar-filter-text-bar.collapsed=(aFilterValue.text == null);
-        
-        //qfb-sticky [quick-filter-bar-collapsible-buttons] [100 results] [search filter]
-        //                                          subject ...
-        
-        //QuickFilterState.visible
-        
-        //QuickFilterBarMuxer
-        //  onMakeActive for qfb-show-filter-bar visiable
-        //  reflectFiltererState for qfb-show-filter-bar checked
-        
-        if ( this.options.move2bar == this.options.savedPosition ) return;
-        var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
-        let dest= "quick-filter-bar-main-bar";
-        if ( this.options.move2bar == 1 )
-          dest = 'mail-bar3';
-        else if ( this.options.move2bar == 2 )
-          dest = 'mail-toolbar-menubar2';
-        var toolbar = document.getElementById(dest);
-        var i = 0;
-        while ( i < needMoveIds.length ) {
-            var needMove = document.getElementById(needMoveIds[i]);
-            // know issue: if reposition to quick search bar, will not be same as the orignial position.
-            toolbar.appendChild(needMove.parentNode.removeChild(needMove));
-            i++;
-        }
-        this.options.savedPosition = this.options.move2bar;
-        this.setFilterBar();
-      }
 
     };
     
