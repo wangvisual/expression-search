@@ -7,6 +7,8 @@ var ExpressionSearchCommon = {
     ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
   },
   loadTab: function(url) {
+    window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null, { tabType: "contentTab", tabParams: {contentPage: url} });
+    return;
     let tabmail = document.getElementById("tabmail");
     if (!tabmail) {
       // Try opening new tabs in an existing 3pane window
