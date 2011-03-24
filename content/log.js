@@ -1,6 +1,9 @@
 // Opera Wang, 2010/1/15
 // GPL V3 / MPL
 // debug utils
+
+var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
+
 var ExpressionSearchLog = {
   popup: function(title, msg) {
     try {
