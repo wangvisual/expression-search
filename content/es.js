@@ -14,6 +14,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
       isEnter: 0,
       
       allTokens: "simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+      needMoveIds: ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"],
+      collapsibleButtons: ["qfb-unread", "qfb-starred", "qfb-inaddrbook", "qfb-tags", "qfb-attachment"],
       textBoxDomId: "expression-search-textbox",
       
       prefs: null, // preference object
@@ -111,31 +113,19 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           let hasFilter = typeof(this.maybeActiveFilterer)=='object';
           // filter bar not need show, so hide mainbar(in refreshFilterBar) and show quick filter bar
           if ( !show  && !aFilterer.visible && hasFilter ) aFilterer.visible = true;
-          if ( hasFilter )
-            alert('enable');
           QuickFilterBarMuxer.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
         }
         
-        // onMakeActive && onTabSwitched
+        // onMakeActive
         QuickFilterBarMuxer.onMakeActiveSaved = QuickFilterBarMuxer.onMakeActive;
         QuickFilterBarMuxer.onMakeActive = function(aFolderDisplay) {
           let tab = aFolderDisplay._tabInfo;
           let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
-          if ( !appropriate )
-            alert('disable');
+          ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
+            //document.getElementById(ID).disabled = appropriate ? false: true;
+            document.getElementById(ID).style.visibility = appropriate ? 'visible': 'hidden';
+          } );
           QuickFilterBarMuxer.onMakeActiveSaved.apply(this,arguments);
-        }
-        
-        QuickFilterBarMuxer.onTabSwitchedSaved = QuickFilterBarMuxer.onTabSwitched;
-        QuickFilterBarMuxer.onTabSwitched = function(aTab, aOldTab) {
-          let filterer = this.maybeActiveFilterer;
-          if (!filterer) {
-            var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
-            needMoveIds.forEach( function(ID, index, array) {
-              document.getElementById(ID).disabled = true;
-            } );
-          }
-          QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
         }
         
         // work around https://bugzilla.mozilla.org/show_bug.cgi?id=644079
@@ -167,7 +157,6 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( typeof(QuickFilterBarMuxer.reflectFiltererStateSaved) != 'undefined' ) {
           QuickFilterBarMuxer.reflectFiltererState = QuickFilterBarMuxer.reflectFiltererStateSaved;
           QuickFilterBarMuxer.onMakeActive = QuickFilterBarMuxer.onMakeActiveSaved;
-          QuickFilterBarMuxer.onTabSwitched = QuickFilterBarMuxer.onTabSwitchedSaved;
         }
         window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
         window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
@@ -195,9 +184,11 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
         if ( filterNode && filterNode.style ) {
           filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
         }
-        let quickFilter = document.getElementById('qfb-filter-label');
-        if ( quickFilter && quickFilter.style ) {
-          quickFilter.style.display = this.options.hide_filter_label ? 'none' : '';
+        if ( filterNode && ExpressionSearchChrome.options.hide_normal_filer ) // hide normal filter, so reset it
+          filterNode.value = '';
+        let filterLabel = document.getElementById('qfb-filter-label');
+        if ( filterLabel && filterLabel.style ) {
+          filterLabel.style.display = this.options.hide_filter_label ? 'none' : '';
         }
         let spacer = document.getElementById('qfb-filter-bar-spacer');
         if ( spacer ) {
@@ -209,7 +200,6 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
 
         // move expression search box along with other buttons to dest position
         if ( this.options.move2bar == this.options.savedPosition ) return;
-        var needMoveIds = ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"];
         let dest = "quick-filter-bar-main-bar";
         let reference = null;
         if ( this.options.move2bar == 0 )
@@ -220,8 +210,8 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
           dest = 'mail-toolbar-menubar2';
         var toolbar = document.getElementById(dest);
         var i = 0;
-        while ( i < needMoveIds.length ) {
-            var needMove = document.getElementById(needMoveIds[i]);
+        while ( i < this.needMoveIds.length ) {
+            var needMove = document.getElementById(this.needMoveIds[i]);
             toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
             i++;
             if ( this.options.move2bar == 0 )
@@ -299,13 +289,25 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
                 if ( aFilterValue.text.toLowerCase().indexOf('g:') == 0 ) { // may get called when init with saved values in searchInput.
                   return;
                 }
+                // check if in normal filter mode
+                if ( 1 && aFilterValue.text ) {
+                  // Use normalFilter's appendTerms to create search term
+                  ExpressionSearchLog.logObject(QuickFilterBarMuxer.activeFilterer.filterValues,'QuickFilterBarMuxer.activeFilterer.filterValues',0);
+                  let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
+                  ExpressionSearchLog.logObject(normalFilterState,'normalFilterState',1);
+                  let originalText = normalFilterState.text;
+                  normalFilterState.text = aFilterValue.text;
+                  let normalFilter = QuickFilterManager.filterDefsByName['text'];
+                  normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
+                  normalFilterState.text = originalText;
+                  return;
+                }
+                
                 // first remove trailing specifications if it's empty
                 // then remove trailing ' and' but no remove of "f: and"
                 let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExpressionSearchChrome.allTokens + '):(?:\\(|)\\s*$', "i");
                 let regExpSearch = new RegExp( '\\b(?:' + ExpressionSearchChrome.allTokens + '):\\s+and\\s*$', "i");
-                //var aSearchString = aFilterValue.text.replace(/(?:^|\s+)(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):(?:\(|)\s*$/i,'');
                 var aSearchString = aFilterValue.text.replace(regExpReplace,'');
-                //if ( aSearchString.search(/\b(?:from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af):\s+and\s*$/i) == -1 ) {
                 if ( !regExpSearch.test(aSearchString) ) {
                   aSearchString = aSearchString.replace(/\s+\and\s*$/i,'');
                 }
@@ -348,7 +350,6 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
               filterNode.setAttribute( attributeName, filterNode.getAttribute("emptytextbase").replace("#1", '') );
               // force to update the message
               filterNode.value = '';
-              //ExpressionSearchChrome.refreshFilterBar();
             }
             aNode.setAttribute( attributeName, aNode.getAttribute("emptytextbase").replace("#1", quickKey) );
             // force an update of the emptytext now that we've updated it.
@@ -403,9 +404,9 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             let desiredValue = "";
             if ( aFilterValue && aFilterValue.text )
               desiredValue = aFilterValue.text;
-            if (aNode.value != desiredValue)
+            if ( aNode.value != desiredValue && !aFromPFP )
               aNode.value = desiredValue;
-            
+
             let panel = aDocument.getElementById("qfb-text-search-upsell");
             if (aFromPFP == "upsell") {
               let searchString = ExpressionSearchChrome.expression2gloda(aFilterValue.text);
@@ -466,6 +467,7 @@ if ( 'undefined' == typeof(ExpressionSearchChrome) ) {
             } // needSelect
           } // rowCount > 0
         }
+        ExpressionSearchChrome.isEnter = false;
       },
       
       // not works well for complex searchTerms. But it's for all folders.
