@@ -37,11 +37,9 @@ let ExperssionSearchFilter = {
           topWin = aTermCreator.window.domWindow;
         else
           topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
-        if ( topWin.ExpressionSearchChrome.isInited ) {
-        }
 
         // check if in normal filter mode
-        if ( /*topWin.ExpressionSearchChrome.options.emulateNormalFilter &&*/ aFilterValue.text.length >= 3 && !/:/.test(aFilterValue.text) ) {
+        if ( /*topWin.ExpressionSearchChrome.options.act_as_normal_filter &&*/ aFilterValue.text.length >= 3 && !/:/.test(aFilterValue.text) ) {
           let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
           // Use normalFilter's appendTerms to create search term
           ExpressionSearchLog.logObject(QuickFilterBarMuxer.activeFilterer.filterValues,'QuickFilterBarMuxer.activeFilterer.filterValues',0);
@@ -52,6 +50,7 @@ let ExperssionSearchFilter = {
           let normalFilter = QuickFilterManager.filterDefsByName['text'];
           normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
           normalFilterState.text = originalText;
+          topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
           return;
         }
         
