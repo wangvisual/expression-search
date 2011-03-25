@@ -7,9 +7,6 @@
       // inited, also used as ID for the instance
       isInited:0,
 
-      // request to create virtual folder
-      latchQSFolderReq: 0,
-      
       // if last key is Enter
       isEnter: 0,
       
@@ -28,7 +25,6 @@
             this.isInited = new Date().getTime();
             this.importModules();
             this.initPerf();
-            this.initSearchInput();
             this.initFunctionHook();
           } else {
             ExpressionSearchLog.log("Expression Search:Warning, init again",1);
@@ -41,12 +37,11 @@
       importModules: function() {
         this.Cu = Components.utils;
         this.Ci = Components.interfaces;
-        //this.Cc = Components.classes;
+        this.Cc = Components.classes;
         //this.Cr = Components.results;
         this.Cu.import("resource://expressionsearch/log.js");
         ExpressionSearchLog.log("Expression Search: init...");
         this.Cu.import("resource://expressionsearch/gmailuiParse.js");
-        this.Cu.import("resource:///modules/quickFilterManager.js");
         this.Cu.import("resource:///modules/StringBundle.js");
         // for create quick search folder
         this.Cu.import("resource:///modules/virtualFolderWrapper.js");
@@ -55,14 +50,11 @@
         this.Cu.import("resource:///modules/gloda/indexer.js");
         // to call gloda search, actually no need
         //Cu.import("resource:///modules/gloda/msg_search.js");
-        ExpressionSearchLog.log("Expression Search: init filter");
         this.Cu.import("resource://expressionsearch/ExpressionSearchFilter.js");
-        ExpressionSearchLog.log("Expression Search: init filter done.");
       },
       
       initPerf: function() {
-        this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-             .getService(Components.interfaces.nsIPrefService)
+        this.prefs = this.Cc["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService)
              .getBranch("extensions.expressionsearch.");
         this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
         this.prefs.addObserver("", this, false);
@@ -131,29 +123,16 @@
           QuickFilterBarMuxer.onMakeActiveSaved.apply(this,arguments);
         }
         
-        // work around https://bugzilla.mozilla.org/show_bug.cgi?id=644079
-        if ( typeof(QuickFilterManager.killFilterSaved) == 'undefined' ) {
-          QuickFilterManager.killFilterSaved = QuickFilterManager.killFilter;
-          QuickFilterManager.killFilter = function MFM_killFilterNew(aName) {
-            let filterDef = this.filterDefsByName[aName];
-            this.filterDefs.splice(this.filterDefs.indexOf(filterDef), 1);
-            delete this.filterDefsByName[aName];
-          }
-        }
       },
 
       unregister: function() {
         ExpressionSearchLog.log("Expression Search: unload...");
         ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
-        var aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+        let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
         if (aNode) {
             aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
             aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
         }
-        // remove our filter from the QuickFilterManager
-        QuickFilterManager.killFilter('expression'+ExpressionSearchChrome.isInited); //Remove a filter from existence by name
-        //comment the below line so I'm still active after 1 window closed
-        //QuickFilterManager.textBoxDomId = ExpressionSearchChrome.textBoxDomIdSaved;
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
           threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
@@ -252,7 +231,7 @@
                 });
               }
             } else if ( event.ctrlKey || event.metaKey ) { // create quick search folder
-              ExpressionSearchChrome.latchQSFolderReq = 1;
+              ExperssionSearchFilter.latchQSFolderReq = ExpressionSearchChrome;
               this._fireCommand(this);
             } else {
               var e = compute_expression(searchValue);
@@ -270,8 +249,73 @@
       },
 
       initSearchInput: function() {
+        let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+        if ( aNode ) {
+          aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too later, 
+          aNode.addEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
+        }
       },
       
+      // not works well for complex searchTerms. But it's for all folders.
+      createQuickFolder: function(searchTerms) {
+        const nsMsgFolderFlags = this.Ci.nsMsgFolderFlags;
+        var currFolder = gFolderDisplay.displayedFolder;
+        var currURI = currFolder.URI;
+        var rootFolder = currFolder.rootFolder;
+        var QSFolderName = "ExpressionSearch";
+        var uriSearchString = "";
+        if (!rootFolder) {
+          alert('Expression Search: Cannot determine root folder of search');
+          return;
+        }
+        var QSFolderURI = rootFolder.URI + "/" + QSFolderName;
+        
+        if ( !rootFolder.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
+          var allFolders = this.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+          rootFolder.ListDescendents(allFolders);
+          var numFolders = allFolders.Count();
+          for (var folderIndex = 0; folderIndex < numFolders; folderIndex++) {
+            var folder = allFolders.GetElementAt(folderIndex).QueryInterface(Components.interfaces.nsIMsgFolder);
+            var uri = folder.URI;
+            // only add non-virtual non-new folders
+            if ( !folder.isSpecialFolder(nsMsgFolderFlags.Newsgroup,false) && !folder.isSpecialFolder(nsMsgFolderFlags.Virtual,false) ) {
+              if (uriSearchString != "") {
+                uriSearchString += "|";
+              }
+              uriSearchString += uri;
+            }
+          }
+        }
+
+        //Check if folder exists already
+        if (rootFolder.containsChildNamed(QSFolderName)) {
+          // modify existing folder
+          var msgFolder = GetMsgFolderFromUri(QSFolderURI);
+          if (!msgFolder.isSpecialFolder(nsMsgFolderFlags.Virtual,false)) {
+            alert('Expression Search: Non search folder '+QSFolderName+' is in the way');
+            return;
+          }
+          // save the settings
+          let virtualFolderWrapper = VirtualFolderHelper.wrapVirtualFolder(msgFolder);
+          virtualFolderWrapper.searchTerms = searchTerms;
+          if ( ! this.options.reuse_existing_folder ) {
+            virtualFolderWrapper.searchFolders = uriSearchString;
+          }
+          virtualFolderWrapper.onlineSearch = false;
+          virtualFolderWrapper.cleanUpMessageDatabase();
+          var accountManager = this.Cc["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
+          accountManager.saveVirtualFolders();
+        } else {
+          VirtualFolderHelper.createNewVirtualFolder(QSFolderName, rootFolder, uriSearchString, searchTerms, false);
+        }
+
+        if (currURI == QSFolderURI) {
+          // select another folder to force reload of our virtual folder
+          SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
+        }
+        SelectFolder(QSFolderURI);
+      },
+
       // select first message, expand first container if closed
       selectFirstMessage: function(needSelect) {
         if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
@@ -406,8 +450,8 @@
              if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
                let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
                let treeView = treeBox.view;
-               var property = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-               var atomIn = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
+               var property = ExpressionSearchChrome.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+               var atomIn = ExpressionSearchChrome.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
                treeView.getCellProperties(row.value,col.value,property);
                token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
              }
@@ -439,6 +483,7 @@
       },
       
       initAfterLoad: function() {
+        ExpressionSearchChrome.initSearchInput();
         ExpressionSearchChrome.refreshFilterBar();
         let threadPane = document.getElementById("threadTree");
         if ( threadPane )
