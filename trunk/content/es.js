@@ -3,7 +3,7 @@
 // GPL V3 / MPL
 
 if ( typeof(ExpressionSearchChrome) != 'undefined' ) {
-  return;
+  throw "Expression Search already defined";
 }
 
 let ExpressionSearchChrome = {
