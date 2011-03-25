@@ -141,12 +141,12 @@ let ExpressionSearchChrome = {
     ExpressionSearchLog.log("Expression Search: unload...");
     ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
-    if (aNode) {
+    if ( aNode && aNode.removeEventListener ) {
         aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
         aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
     }
     let threadPane = document.getElementById("threadTree");
-    if ( threadPane )
+    if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
     if ( typeof(QuickFilterBarMuxer.reflectFiltererStateSaved) != 'undefined' ) {
       QuickFilterBarMuxer.reflectFiltererState = QuickFilterBarMuxer.reflectFiltererStateSaved;

@@ -30,9 +30,19 @@ let ExperssionSearchFilter = {
         if ( aFilterValue.text.toLowerCase().indexOf('g:') == 0 ) { // may get called when init with saved values in searchInput.
           return;
         }
+      
+        // we're in javascript modules, no window object, so first find the top window
+        let topWin = {};
+        if ( aTermCreator && aTermCreator.window && aTermCreator.window.domWindow &&  aTermCreator.window.domWindow.ExpressionSearchChrome )
+          topWin = aTermCreator.window.domWindow;
+        else
+          topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+        if ( topWin.ExpressionSearchChrome.isInited ) {
+        }
 
         // check if in normal filter mode
-        if ( 0 && aFilterValue.text ) {
+        if ( /*topWin.ExpressionSearchChrome.options.emulateNormalFilter &&*/ aFilterValue.text.length >= 3 && !/:/.test(aFilterValue.text) ) {
+          let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
           // Use normalFilter's appendTerms to create search term
           ExpressionSearchLog.logObject(QuickFilterBarMuxer.activeFilterer.filterValues,'QuickFilterBarMuxer.activeFilterer.filterValues',0);
           let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
@@ -141,7 +151,7 @@ let ExperssionSearchFilter = {
     //  text if we're transitioning emptytext to emptytext)
     let desiredValue = "";
     if ( aFilterValue && aFilterValue.text )
-      desiredValue = aFilterValue.text;// || "";
+      desiredValue = aFilterValue.text;
     if ( aNode.value != desiredValue && !aFromPFP )
       aNode.value = desiredValue;
 
