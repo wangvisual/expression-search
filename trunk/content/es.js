@@ -7,8 +7,6 @@ if ( typeof(ExpressionSearchChrome) != 'undefined' ) {
 }
 
 let ExpressionSearchChrome = {
-  // inited, also used as ID for the instance
-  isInited:0,
 
   // if last key is Enter
   isEnter: 0,
@@ -23,18 +21,9 @@ let ExpressionSearchChrome = {
   },
 
   init: function() {
-    //try {
-      if ( this.isInited == 0 ) {
-        this.isInited = new Date().getTime();
         this.importModules();
         this.initPerf();
         this.initFunctionHook();
-      } else {
-        ExpressionSearchLog.log("Expression Search:Warning, init again",1);
-      }
-    //} catch (err) {
-      //ExpressionSearchLog.logException(err);
-    //}
   },
   
   importModules: function() {
@@ -64,6 +53,7 @@ let ExpressionSearchChrome = {
     try {
       this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
       this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
+      this.options.act_as_normal_filter = this.prefs.getBoolPref("act_as_normal_filter");
       this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
       this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
       this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
@@ -84,6 +74,7 @@ let ExpressionSearchChrome = {
      switch(data) {
        case "hide_normal_filer":
        case "hide_filter_label":
+       case "act_as_normal_filter":
        case "reuse_existing_folder":
        case "select_msg_on_enter":
        case "c2s_enableCtrl":
