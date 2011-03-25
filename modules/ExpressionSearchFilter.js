@@ -140,8 +140,8 @@ let ExperssionSearchFilter = {
     // Update the text if it has changed (linux does weird things with empty
     //  text if we're transitioning emptytext to emptytext)
     let desiredValue = "";
-    if ( typeof(aFilterValue) != 'undefined' && typeof(aFilterValue.text) != 'undefined' )
-      desiredValue = aFilterValue.text;
+    if ( aFilterValue && aFilterValue.text )
+      desiredValue = aFilterValue.text;// || "";
     if ( aNode.value != desiredValue && !aFromPFP )
       aNode.value = desiredValue;
 
