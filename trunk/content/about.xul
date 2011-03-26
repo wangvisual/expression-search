@@ -7,6 +7,9 @@
 
 <dialog title="&about.about; Expression Search" orient="vertical" autostretch="always" onload="sizeToContent()" buttons="accept" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
+  <stringbundleset id="stringbundleset">
+    <stringbundle src="chrome://expressionsearch/locale/ExpressionSearch.properties" id="your-extension-strings" />
+  </stringbundleset>
   <groupbox align="center" orient="horizontal">
     <vbox>
       <text class='abouthead' value="&about.author;"/>
