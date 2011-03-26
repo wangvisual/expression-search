@@ -34,7 +34,6 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource://expressionsearch/log.js");
     ExpressionSearchLog.log("Expression Search: init...");
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
-    this.Cu.import("resource:///modules/StringBundle.js");
     // for create quick search folder
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
@@ -61,6 +60,7 @@ let ExpressionSearchChrome = {
       this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
       this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
       this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
+      this.options.installed_version = this.prefs.getComplexValue('installed_version',this.Ci.nsISupportsString).data;
     } catch ( err ) {
       ExpressionSearchLog.logException(err);
     }
@@ -477,7 +477,6 @@ let ExpressionSearchChrome = {
     if ( sCellText == "" ) return;
     if ( ExpressionSearchChrome.options.move2bar==0 && ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) )
       QuickFilterBarMuxer._showFilterBar(true);
-    ExpressionSearchLog.log(token + ":" + sCellText);
     aNode.value = token + ":" + sCellText;
     ExpressionSearchChrome.isEnter = true; // So the email can be selected
     aNode._fireCommand(aNode);
@@ -486,12 +485,40 @@ let ExpressionSearchChrome = {
     event.stopPropagation();
   },
   
+  firstRunAction: function() {
+    let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
+    str.data = this.options.current_version; 
+    this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str); // must before loadTab
+    let firstRun = this.Cc["@mozilla.org/xpcom/version-comparator;1"].getService(this.Ci.nsIVersionComparator)
+                      .compare( this.options.current_version, this.options.installed_version );
+    if ( firstRun > 0 ) { // first for this version
+      ExpressionSearchCommon.loadTab('chrome://expressionsearch/content/help.html');
+    }
+  },
+  
   initAfterLoad: function() {
     ExpressionSearchChrome.initSearchInput();
     ExpressionSearchChrome.refreshFilterBar();
     let threadPane = document.getElementById("threadTree");
     if ( threadPane )
       threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
+      
+    // first get my own version
+    ExpressionSearchChrome.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
+    try {
+        // Gecko 2 and later
+        ExpressionSearchChrome.Cu.import("resource://gre/modules/AddonManager.jsm");
+        // Async call!
+        AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}", function(addon) {
+          ExpressionSearchChrome.options.current_version = addon.version;
+          ExpressionSearchChrome.firstRunAction.apply(ExpressionSearchChrome);
+      });
+    } catch (ex) {
+        // Gecko 1.9.2 and before
+        var em = ExpressionSearchChrome.Cc["@mozilla.org/extensions/manager;1"].getService(ExpressionSearchChrome.Ci.nsIExtensionManager);
+        ExpressionSearchChrome.options.current_version = em.getItemForID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}").version;
+        ExpressionSearchChrome.firstRunAction.apply(ExpressionSearchChrome);
+    }
   },
 
 };
