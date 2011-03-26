@@ -6,9 +6,11 @@ var ExpressionSearchCommon = {
     var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].getService(Components.interfaces.nsIWindowWatcher);
     ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
   },
-  loadTab: function(url) {
+  loadInTopWindow: function(url) {
+    //openDialog will open another top window
     window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null, { tabType: "contentTab", tabParams: {contentPage: url} });
-    return;
+  },
+  loadTab: function(url) {
     let tabmail = document.getElementById("tabmail");
     if (!tabmail) {
       // Try opening new tabs in an existing 3pane window
@@ -23,8 +25,6 @@ var ExpressionSearchCommon = {
     if (tabmail)
       tabmail.openTab("contentTab", {contentPage: url});
     else
-      //openDialog will open another top window
-      //window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null, { tabType: "contentTab", tabParams: {contentPage: url} });
       this.loadURL(url);
   },
   sendEmail: function(url) {

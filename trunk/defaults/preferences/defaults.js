@@ -1,3 +1,4 @@
+pref("extensions.expressionsearch.installed_version", "0.1");
 pref("extensions.expressionsearch.hide_normal_filer", true);
 pref("extensions.expressionsearch.hide_filter_label", false);
 pref("extensions.expressionsearch.act_as_normal_filter", true);

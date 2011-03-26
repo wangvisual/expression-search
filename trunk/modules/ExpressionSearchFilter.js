@@ -12,9 +12,91 @@ Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
 Cu.import("resource:///modules/gloda/indexer.js");
+Cu.import("resource:///modules/StringBundle.js");
 let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
 let nsMsgSearchOp = Ci.nsMsgSearchOp;
-let Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication);
+let Application = null;
+try {
+  Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
+} catch (e) {}
+
+if (!Application) {
+  try {
+    Application = Cc["@mozilla.org/smile/application;1"].getService(Ci.extIApplication); // SeaMonkey
+  } catch (e) {}
+}
+
+let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"); 
+
+(function ExperssionSearchCustomerFilters() {
+  // search subject with regular expression, from FiltaQuilla by Kent James
+  let Matches = nsMsgSearchOp.Matches;
+  let DoesntMatch = nsMsgSearchOp.DoesntMatch;
+  let subjectRegex = {
+    id: "expressionsearch#subjectRegex",
+    name: strings.get("subjectRegex"),
+    needsBody: false,
+    getEnabled: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailable: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailableOperators: function(scope, length) {
+      if (!_isLocalSearch(scope)) {
+        length.value = 0;
+        return [];
+      }
+      length.value = 2;
+      return [Matches, DoesntMatch];
+    },
+    match: function(aMsgHdr, aSearchValue, aSearchOp) {
+      var subject = aMsgHdr.subject; //date = dateInSeconds*1M
+      let searchValue;
+      let searchFlags;
+      [searchValue, searchFlags] = _getRegEx(aSearchValue);
+      switch (aSearchOp) {
+        case Matches:
+          return RegExp(searchValue, searchFlags).test(subject);
+        case DoesntMatch:
+          return !RegExp(searchValue, searchFlags).test(subject);
+      }
+    }
+  };
+  
+  // is this search scope local, and therefore valid for db-based terms?
+  function _isLocalSearch(aSearchScope) {
+  return true;
+    switch (aSearchScope) {
+      case Ci.nsMsgSearchScope.offlineMail:
+      case Ci.nsMsgSearchScope.offlineMailFilter:
+      case Ci.nsMsgSearchScope.onlineMailFilter:
+      case Ci.nsMsgSearchScope.localNews:
+        return true;
+      default:
+        return false;
+    }
+  }
+  function _getRegEx(aSearchValue) {
+    /*
+     * If there are no flags added, you can add a regex expression without
+     * / delimiters. If we detect a / though, we will look for flags and
+     * add them to the regex search. See bug m165.
+     */
+    let searchValue = aSearchValue;
+    let searchFlags = "";
+    if (aSearchValue.charAt(0) == "/")
+    {
+      let lastSlashIndex = aSearchValue.lastIndexOf("/");
+      searchValue = aSearchValue.substring(1, lastSlashIndex);
+      searchFlags = aSearchValue.substring(lastSlashIndex + 1);
+    }
+    return [searchValue, searchFlags];
+  }
+
+  let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
+  filterService.addCustomTerm(subjectRegex);
+})();
 
 let ExperssionSearchFilter = {
   name: "expression",
@@ -39,12 +121,10 @@ let ExperssionSearchFilter = {
           topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
 
         // check if in normal filter mode
-        if ( /*topWin.ExpressionSearchChrome.options.act_as_normal_filter &&*/ aFilterValue.text.length >= 3 && !/:/.test(aFilterValue.text) ) {
+        if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter && !/:/.test(aFilterValue.text) ) {
           let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
           // Use normalFilter's appendTerms to create search term
-          ExpressionSearchLog.logObject(QuickFilterBarMuxer.activeFilterer.filterValues,'QuickFilterBarMuxer.activeFilterer.filterValues',0);
           let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
-          ExpressionSearchLog.logObject(normalFilterState,'normalFilterState',1);
           let originalText = normalFilterState.text;
           normalFilterState.text = aFilterValue.text;
           let normalFilter = QuickFilterManager.filterDefsByName['text'];
@@ -407,7 +487,10 @@ let ExperssionSearchFilter = {
           condition += searchTerm.booleanAnd ? "AND" : "OR";
           condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " (" : "";
         }
-        condition += " (" + searchTerm.termAsString + ")";
+        let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        converter.charset = 'UTF-8';
+        let termString = converter.ConvertToUnicode(searchTerm.termAsString); // termAsString is ACString
+        condition += " (" + termString + ")"; 
         // ")" may not balanced with "(", but who cares
         condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " )" : "";
       } );
