@@ -64,6 +64,38 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
     }
   };
   
+  let dayTime = {
+    id: "expressionsearch#dayTime",
+    name: strings.get("DayTime"),
+    needsBody: false,
+    getEnabled: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailable: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailableOperators: function(scope, length) {
+      if (!_isLocalSearch(scope)) {
+        length.value = 0;
+        return [];
+      }
+      length.value = 2;
+      return [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter];
+    },
+    match: function(aMsgHdr, aSearchValue, aSearchOp) {
+      let msgDate = aMsgHdr.date; // = dateInSeconds*1M
+      let searchValue;
+      let searchFlags;
+      //[searchValue, searchFlags] = _getRegEx(aSearchValue);
+      switch (aSearchOp) {
+        case nsMsgSearchOp.IsBefore:
+          return true;
+        case nsMsgSearchOp.IsAfter:
+          return false;
+      }
+    }
+  };
+  
   // is this search scope local, and therefore valid for db-based terms?
   function _isLocalSearch(aSearchScope) {
   return true;
@@ -96,6 +128,7 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
 
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
+  filterService.addCustomTerm(dayTime);
 })();
 
 let ExperssionSearchFilter = {
