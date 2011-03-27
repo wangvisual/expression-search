@@ -28,7 +28,7 @@ if (!Application) {
 
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"); 
 
-(function ExperssionSearchCustomerFilters() {
+(function ExperssionSearchCustomerTerms() {
   // search subject with regular expression, from FiltaQuilla by Kent James
   let Matches = nsMsgSearchOp.Matches;
   let DoesntMatch = nsMsgSearchOp.DoesntMatch;
@@ -51,7 +51,10 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
       return [Matches, DoesntMatch];
     },
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      var subject = aMsgHdr.subject; //date = dateInSeconds*1M
+      // =?GB18030?B?y9G6/NPKvP7W0NDEuPjE+rDdxOrAsqOh?=
+      // =?big5?B?vMam7LX4s6W5caRss/gtvMam7LX4s6W5caRss/ggssQzNDm0wS2o5bautF+lag==?=
+      // =?big5?B?tEmkaFgxMDClv6ahpFelqw==?=
+      var subject = aMsgHdr.subject;
       let searchValue;
       let searchFlags;
       [searchValue, searchFlags] = _getRegEx(aSearchValue);
