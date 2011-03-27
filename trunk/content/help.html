@@ -32,77 +32,97 @@ using "operators".  Operators are just short words followed by a colon, such as 
 </p>
 
 Here are some examples:
-
-<p>
-<b>weekend plans</b>
-</p>
+<ol><li>
+<p><b>weekend plans</b></p>
 <p>This expression searches all messages in the current folder or view for 
 'weekend plans' in the <i>from</i>, <i>to</i>, <i>cc</i>, or <i>subject</i>
 fields.</p>
-<p>
+<p>If "Act as normal filter" enabled, the "Sender", "Recipients", "Subject" and "Body" buttons will
+determine to search in which fields.
+</p></li><li><p>
 
 <b>from:mike</b> or <b>f:mike</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'mike' in the <i>from</i>
-field.</p>
-<p>
+field.
+</p></li><li><p>
+
 <b>to:bill</b> or <b>t:bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'bill' in the
 <i>to</i> or <i>cc</i> fields of the message.
-</p>
-<p>
+</p></li><li><p>
+
 <b>subject:electric bill</b> or <b>s:electric bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'electric bill' 
 in the <i>subject</i> fields of the message.
+</p></li><li><p>
+
+<b>simple:this subject contains special characters like ( ) ' " - etc</b>
 </p>
-<p>
+<p>This expression searches all messages in the current folder or view in the <i>subject</i>
+fields of the message. And the pattern can contain special characters.
+</p><p>This pattern must be the last pattern.
+</p></li><li><p>
+
+<b>regex:/^begin/i</b> or <b>re:end$</b> or <b>r:/\d+\s*\d+/</b>
+</p>
+<p>This expression searches all messages in the current folder or view with <a href='https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions'>Regular Expressions</a>
+in the <i>subject</i> fields of the message.
+</p><p>This pattern must be the last pattern.
+</p></li><li><p>
+
 <b>attachment:yes</b> or <b>a:yes</b>
 </p>
 <p>This expression searches all messages in the current folder or view for an attachment,
 Notice that it does not search for attachments named "yes".  You can also use "y" or "1" for 
 "yes".  You can use "no", "n", or "0" to search for messages without attachments.
-</p>
-<p>
+</p></li><li><p>
+
 <b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b>
 </p>
 <p>This expression searches all messages in the current folder or view for status, The
 status can be one of Replied, Read, Marked, Forwarded, UnRead or Attachment.
-</p>
+</p></li><li><p>
 
-<p>
 <b>before:2011/03/09 07:12:00</b> or <b>be:09 Mar 2011 05:00:00</b> or <b>after:Mar 10, 2011</b> or <b>af:(2011/03/01 -2011/03/09)</b>
 </p>
-<p>This expression searches all messages in the current folder or view within the date range, The
+<p>This expression searches all messages in the current folder or view within the <i>date</i> range, The
 date format can be checked <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse'>Here<a>.
-</p>
+</p></li><li><p>
 
-<p>
+<b>before:07:12:00</b> or <b>be:5:9</b> or <b>after:03:07:05</b> or <b>af:(3:0 -4:0)</b>
+</p>
+<p>This expression searches all messages in the current folder or view within the time range.
+af:(3:0 -4:0) will search for messages in current view that <i>date</i> between 3am to 4am EVERY day. 
+</p></li><li><p>
+
 <b>body:electric bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'electric bill' 
 in the body of the message. On large or remote folders it may take some time. Also, if you 
 combine this with other search operators like "from:", "subject:" or "to:" this will speed 
 things up considerably. 
-</p>
-<p>
+</p></li><li><p>
+
 <b>all: weekend plans</b>
 </p>
 <p>This expression searches all messages in the current folder or view for
 'weekend plans' anywhere in the message, including the <i>from</i>, <i>to</i>, <i>cc</i>, or <i>subject</i>
 fields, and the <i>body</i>.
-</p>
-<p>
+</p></li><li><p>
+
 <b>g: weather</b>
 </p>
 <p>This will call gloda (faceted) search if gloda enabled. This mode can't be used toghter will other specifications like 'f:' or 't:'.
-</p>
-<p>
+</p></li><li><p>
+
 <b>3+2</b>
 </p>
 <p>If the expression looks like an arithmetic one, when you press enter, it will be calculated and the result will be shown in the search box.
-</p>
+</p></li></ol>
+
 <h3>Hot Key</h3>
 <p>
 By default, Press Ctrl+F, your cursor will appear in the quick search bar, and
