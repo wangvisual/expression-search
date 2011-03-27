@@ -4,7 +4,9 @@
     Added status/u/is/i pattern
     Added before/after pattern
     Added simple pattern
+    Added regex pattern
     if ":" seems like within normal string, advance without break.
+    removed toLowerCase
 */
 
 var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
@@ -12,9 +14,10 @@ var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
 ////////// Tokenize
 
 function ADVANCE_TOKEN() {
-  // Added by Opera for simple token
+  // Added by Opera for simple/regex token, the remaining str will be treated as one str
+  // For simple/regex, there's no '-' operation
   var currentToken = this.next_token ? this.next_token.tok : "";
-  if ( currentToken == 'simple' ) {
+  if ( currentToken == 'simple' || currentToken == 'regex' ) {
     this.next_token = {
       kind: 'str',
       tok:this.str
@@ -82,7 +85,7 @@ function ADVANCE_TOKEN() {
 
   // not a single-char token, so scan it all in.
   var tok = "";
-  let allTokens = /^(?:simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
+  let allTokens = /^(?:simple|regex|re|r|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
@@ -120,6 +123,7 @@ function ADVANCE_TOKEN() {
       if (tok == 'be') tok = 'before';
       if (tok == 'af') tok = 'after';
       if (tok == 'u' || tok == 'is' || tok == 'i' ) tok = 'status';
+      if (tok == 're' || tok == 'r') tok = 'regex';
       this.next_token = {
         kind: 'spec',
         tok: tok
@@ -157,7 +161,8 @@ function TokenizerFactory()
     f_advance_token: ADVANCE_TOKEN,
     advance_token: function() { this.f_advance_token(); },
 
-    set_string: function(s) { this.str = s.toLowerCase(); this.advance_token(); },
+    //set_string: function(s) { this.str = s.toLowerCase(); this.advance_token(); },
+    set_string: function(s) { this.str = s; this.advance_token(); },
     set_calc_tokenization: function(v) { this.calc = v; },
 
     peek_token: function() { return this.next_token; },

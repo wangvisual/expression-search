@@ -26,7 +26,24 @@ if (!Application) {
   } catch (e) {}
 }
 
-let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"); 
+let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
+
+function _getRegEx(aSearchValue) {
+  /*
+   * If there are no flags added, you can add a regex expression without
+   * / delimiters. If we detect a / though, we will look for flags and
+   * add them to the regex search. See bug m165.
+   */
+  let searchValue = aSearchValue;
+  let searchFlags = "";
+  if (aSearchValue.charAt(0) == "/")
+  {
+    let lastSlashIndex = aSearchValue.lastIndexOf("/");
+    searchValue = aSearchValue.substring(1, lastSlashIndex);
+    searchFlags = aSearchValue.substring(lastSlashIndex + 1);
+  }
+  return [searchValue, searchFlags];
+}
 
 (function ExperssionSearchCustomerTerms() {
   // search subject with regular expression, from FiltaQuilla by Kent James
@@ -51,19 +68,14 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
       return [Matches, DoesntMatch];
     },
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      // =?GB18030?B?y9G6/NPKvP7W0NDEuPjE+rDdxOrAsqOh?=
-      // =?big5?B?vMam7LX4s6W5caRss/gtvMam7LX4s6W5caRss/ggssQzNDm0wS2o5bautF+lag==?=
-      // =?big5?B?tEmkaFgxMDClv6ahpFelqw==?=
-      var subject = aMsgHdr.subject;
+      var subject = aMsgHdr.mime2DecodedSubject; // aMsgHdr.subject is mime encoded
       let searchValue;
       let searchFlags;
       [searchValue, searchFlags] = _getRegEx(aSearchValue);
-      switch (aSearchOp) {
-        case Matches:
-          return RegExp(searchValue, searchFlags).test(subject);
-        case DoesntMatch:
-          return !RegExp(searchValue, searchFlags).test(subject);
-      }
+      let regexp = new RegExp(searchValue, searchFlags);
+      let res = regexp.test(subject);
+      if ( aSearchOp == Matches ) return res;
+      return !res;
     }
   };
   
@@ -112,22 +124,6 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
         return false;
     }
   }
-  function _getRegEx(aSearchValue) {
-    /*
-     * If there are no flags added, you can add a regex expression without
-     * / delimiters. If we detect a / though, we will look for flags and
-     * add them to the regex search. See bug m165.
-     */
-    let searchValue = aSearchValue;
-    let searchFlags = "";
-    if (aSearchValue.charAt(0) == "/")
-    {
-      let lastSlashIndex = aSearchValue.lastIndexOf("/");
-      searchValue = aSearchValue.substring(1, lastSlashIndex);
-      searchFlags = aSearchValue.substring(lastSlashIndex + 1);
-    }
-    return [searchValue, searchFlags];
-  }
 
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
@@ -140,7 +136,7 @@ let ExperssionSearchFilter = {
   
   // request to create virtual folder, set to the ExpressionSearchChrome when need to create
   latchQSFolderReq: 0,
-  allTokens: "simple|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+  allTokens: "simple|regex|re|r|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
 
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
     if (aFilterValue.text) {
@@ -306,6 +302,11 @@ let ExperssionSearchFilter = {
   },
   
   addSearchTerm: function(aTermCreator, searchTerms, str, attr, op, is_or, grouping) {
+    let aCustomId;
+    if ( typeof(attr) == 'object' && attr.type == nsMsgSearchAttrib.Custom ) {
+      aCustomId = attr.customId;
+      attr = nsMsgSearchAttrib.Custom;
+    }
     var term,value;
     term = aTermCreator.createTerm();
     term.attrib = attr;
@@ -400,10 +401,11 @@ let ExperssionSearchFilter = {
       is_not = true;
     }
     if (e.kind == 'spec') {
-      var attr;
+      let attr;
       if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
       else if (e.tok == 'subject' || e.tok == 'simple') attr = nsMsgSearchAttrib.Subject;
+      else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
@@ -466,6 +468,19 @@ let ExperssionSearchFilter = {
       }
       if (e.tok == 'attachment' || e.tok == 'status') {
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
+      }
+      if (e.tok == 'regex') {
+        op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches; // actually only has Matches
+        // check regex
+        let searchValue, searchFlags;
+        [searchValue, searchFlags] = _getRegEx(e.left.tok);
+        try {
+          let regexp = new RegExp(searchValue, searchFlags);
+        } catch (err) {
+          ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex " + e.left.tok,1);
+          ExpressionSearchLog.logException(err);
+          e.left.tok = '.*'; // just match all
+        }
       }
       
       this.addSearchTerm(aTermCreator, searchTerms, e.left.tok, attr, op, was_or);
