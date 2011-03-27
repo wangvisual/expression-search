@@ -98,16 +98,10 @@ function _getRegEx(aSearchValue) {
       return [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter];
     },
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      let msgDate = aMsgHdr.date; // = dateInSeconds*1M
-      let searchValue;
-      let searchFlags;
-      //[searchValue, searchFlags] = _getRegEx(aSearchValue);
-      switch (aSearchOp) {
-        case nsMsgSearchOp.IsBefore:
-          return true;
-        case nsMsgSearchOp.IsAfter:
-          return false;
-      }
+      let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
+      let msgTime = msgDate.toLocaleTimeString();
+      if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
+      return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
     }
   };
   
@@ -153,17 +147,23 @@ let ExperssionSearchFilter = {
           topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
 
         // check if in normal filter mode
-        if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter && !/:/.test(aFilterValue.text) ) {
-          let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
-          // Use normalFilter's appendTerms to create search term
-          let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
-          let originalText = normalFilterState.text;
-          normalFilterState.text = aFilterValue.text;
-          let normalFilter = QuickFilterManager.filterDefsByName['text'];
-          normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
-          normalFilterState.text = originalText;
-          topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
-          return;
+        if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
+          if ( !/:/.test(aFilterValue.text) ) {
+            let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
+            // Use normalFilter's appendTerms to create search term
+            let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
+            let originalText = normalFilterState.text;
+            normalFilterState.text = aFilterValue.text;
+            let normalFilter = QuickFilterManager.filterDefsByName['text'];
+            normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
+            normalFilterState.text = originalText;
+            topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
+            return;
+          } else {
+            let normalFilterBox = topWin.document.getElementById("qfb-qs-textbox");
+            if ( normalFilterBox && normalFilterBox.value == "" )
+              topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = true;
+          }
         }
         
         // first remove trailing specifications if it's empty
@@ -433,10 +433,30 @@ let ExperssionSearchFilter = {
         // isnot before: after => true, ture: false
         // isnot after: before => true, false: true
         op = (is_not^(e.tok=='before')) ? nsMsgSearchOp.IsBefore : nsMsgSearchOp.IsAfter;
-        var date;
-        try {
-          var inValue = e.left.tok;
-          date = new Date(inValue);
+        let inValue = e.left.tok;
+        let dayTimeRe = /^\s*((\d{1,2}):(\d{1,2})(:(\d{1,2})){0,1})\s*$/;
+        if ( dayTimeRe.test(inValue) ) { // dayTime
+          let newTime = inValue.replace(dayTimeRe, '$2:$3:$5');
+          if ( /:$/.test(newTime) ) newTime += '0';
+          let timeArray = newTime.split(':');
+          let invalidTime = false;
+          timeArray.forEach( function(item, index, array) {
+            // change to 00:00:00 format
+            if ( item.length == 1 ) {
+              item = "0" + item;
+              array[index] = item;
+            }
+            if ( ( index == 0 && item > '23' ) || ( index > 0 && item > '59' ) ) {
+              if ( !invalidTime )
+                ExpressionSearchLog.log('Expression Search: dayTime '+ inValue + " is not valid",1);
+              invalidTime = true;
+            }
+          })
+          if ( invalidTime ) return;
+          e.left.tok = timeArray.join(":");
+          attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dayTime' };
+        } else try { // normal date
+          let date = new Date(inValue);
           e.left.tok = date.getTime()*1000; // why need *1000, I don't know ;-)
           if ( isNaN(e.left.tok) ) {
             ExpressionSearchLog.log('Expression Search: date '+ inValue + " is not valid",1);
@@ -479,7 +499,7 @@ let ExperssionSearchFilter = {
         } catch (err) {
           ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex " + e.left.tok,1);
           ExpressionSearchLog.logException(err);
-          e.left.tok = '.*'; // just match all
+          return;
         }
       }
       
