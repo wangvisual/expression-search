@@ -7,6 +7,8 @@ if ( typeof(ExpressionSearchChrome) != 'undefined' ) {
 }
 
 let ExpressionSearchChrome = {
+  // inited, also used as ID for the instance
+  isInited:0,
 
   // if last key is Enter
   isEnter: 0,
@@ -21,18 +23,26 @@ let ExpressionSearchChrome = {
   },
 
   init: function() {
+    this.Cu = Components.utils;
+    this.Cu.import("resource://expressionsearch/log.js"); // load log first
+    try {
+      if ( this.isInited == 0 ) {
+        ExpressionSearchLog.log("Expression Search: init...");
+        this.isInited = new Date().getTime();
         this.importModules();
         this.initPerf();
         this.initFunctionHook();
+      } else ExpressionSearchLog.log("Expression Search:Warning, init again",1);
+    } catch (err) {
+      ExpressionSearchLog.logException(err);
+    }
   },
   
   importModules: function() {
-    this.Cu = Components.utils;
     this.Ci = Components.interfaces;
     this.Cc = Components.classes;
     //this.Cr = Components.results;
     this.Cu.import("resource://expressionsearch/log.js");
-    ExpressionSearchLog.log("Expression Search: init...");
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
     // for create quick search folder
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
@@ -248,7 +258,7 @@ let ExpressionSearchChrome = {
     } // end of IsEnter
     ExpressionSearchChrome.hideUpsellPanel(); // hide the panel when key press
     // -- Keypresses for focus transferral
-    if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) )
+    if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) && !event.altKey )
       ExpressionSearchChrome.selectFirstMessage(true);
   },
 

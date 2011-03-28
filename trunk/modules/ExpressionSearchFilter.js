@@ -68,7 +68,8 @@ function _getRegEx(aSearchValue) {
       return [Matches, DoesntMatch];
     },
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      var subject = aMsgHdr.mime2DecodedSubject; // aMsgHdr.subject is mime encoded
+      // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
+      var subject = aMsgHdr.mime2DecodedSubject;
       let searchValue;
       let searchFlags;
       [searchValue, searchFlags] = _getRegEx(aSearchValue);
@@ -144,7 +145,7 @@ let ExperssionSearchFilter = {
         if ( aTermCreator && aTermCreator.window && aTermCreator.window.domWindow &&  aTermCreator.window.domWindow.ExpressionSearchChrome )
           topWin = aTermCreator.window.domWindow;
         else
-          topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+          topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
 
         // check if in normal filter mode
         if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
@@ -497,8 +498,7 @@ let ExperssionSearchFilter = {
         try {
           let regexp = new RegExp(searchValue, searchFlags);
         } catch (err) {
-          ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex " + e.left.tok,1);
-          ExpressionSearchLog.logException(err);
+          ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex '" + e.left.tok,1 + "'");
           return;
         }
       }
