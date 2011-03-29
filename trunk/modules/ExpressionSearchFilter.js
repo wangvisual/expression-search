@@ -12,7 +12,7 @@ Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
 Cu.import("resource:///modules/gloda/indexer.js");
-//Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
+Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
 Cu.import("resource:///modules/StringBundle.js");
 let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
 let nsMsgSearchOp = Ci.nsMsgSearchOp;
@@ -125,40 +125,55 @@ function _getRegEx(aSearchValue) {
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
       // no matter Contains or DoesntContain, return false if no attachement
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
-      /*let complete = false;
-      let res = false;
+      let found = false;
+      let haveAttachment = false;
+      /*
+      let complete = false;
       MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back functions, so can't make it work
-        ExpressionSearchLog.logObject(aMimeMsg, "aMimeMsg",0);
         ExpressionSearchLog.logObject(aMimeMsg.allAttachments, "aMimeMsg.allAttachments",0);
-        res = true;
+        for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
+          if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
+            haveAttachment = true;
+            ExpressionSearchLog.logObject(attachment, "attachment",0);
+            if ( attachment.name.indexOf(aSearchValue) != -1 ) {
+              found = true;
+              break;
+            }
+          }
+        }
         complete = true;
       });
       // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
       let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
       while (!complete)
-        //thread.processNextEvent(true);
+        thread.processNextEvent(true);
+      if (!haveAttachment) return false;
+      return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
       */
-  	  /*function getMessageBody(aMessageHeader) {
-  	    let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
-  	    let listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
-  	    let uri = aMessageHeader.folder.getUriForMsg(aMessageHeader);
-  	    messenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
-  	    let folder = aMessageHeader.folder;
-  	    return folder.getMsgTextFromStream(listener.inputStream,
-  	                                       aMessageHeader.Charset,
-  	                                       65536,
-  	                                       32768,
-  	                                       false,
-  	                                       true,
-  	                                       { });
+      
+  	  function getMessageBody(aMessageHeader) {
+         let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+         let uri = aMessageHeader.folder.getUriForMsg(aMessageHeader);
+        
+        let messageService = messenger.messageServiceFromURI(uri);
+        let messageStream = Components.classes["@mozilla.org/network/sync-stream-listener;1"].createInstance().QueryInterface(Components.interfaces.nsIInputStream);
+        let inputStream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance().QueryInterface(Components.interfaces.nsIScriptableInputStream);
+        inputStream.init(messageStream);
+        messageService.streamMessage(uri, messageStream, {}, null, false, null);
+
+        let body = "";
+        inputStream.available();
+        while (inputStream.available()) {
+           body = body + inputStream.read(512);
+        }
+
+        messageStream.close();
+        inputStream.close();
+        return body;
   	  }
-      try {
       let body = getMessageBody(aMsgHdr);
       ExpressionSearchLog.logObject(body, "body",0);
-      return /filename="diff"/.test(body);
-      } catch (e) {
-        ExpressionSearchLog.logException(e);
-      }*/
+      return /filename="doc"/.test(body);
     }
   };
   
@@ -179,7 +194,7 @@ function _getRegEx(aSearchValue) {
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(dayTime);
-  //filterService.addCustomTerm(attachmentName);
+  filterService.addCustomTerm(attachmentName);
 })();
 
 let ExperssionSearchFilter = {
