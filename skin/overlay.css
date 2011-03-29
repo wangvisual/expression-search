@@ -16,3 +16,7 @@
 .search-value-custom[searchAttribute="expressionsearch#dayTime"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }
+
+.search-value-custom[searchAttribute="expressionsearch#attachmentName"] {
+  -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
+}

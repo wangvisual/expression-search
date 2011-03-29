@@ -12,19 +12,15 @@ Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
 Cu.import("resource:///modules/gloda/indexer.js");
+//Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
 Cu.import("resource:///modules/StringBundle.js");
 let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
 let nsMsgSearchOp = Ci.nsMsgSearchOp;
+let nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
 } catch (e) {}
-
-if (!Application) {
-  try {
-    Application = Cc["@mozilla.org/smile/application;1"].getService(Ci.extIApplication); // SeaMonkey
-  } catch (e) {}
-}
 
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 
@@ -106,6 +102,66 @@ function _getRegEx(aSearchValue) {
     }
   };
   
+  let attachmentName = {
+    id: "expressionsearch#attachmentName",
+    name: strings.get("attachmentName"),
+    needsBody: true,
+    getEnabled: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailable: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailableOperators: function(scope, length) {
+      if (!_isLocalSearch(scope)) {
+        length.value = 0;
+        return [];
+      }
+      length.value = 2;
+      return [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain];
+    },
+    
+    
+    match: function(aMsgHdr, aSearchValue, aSearchOp) {
+      // no matter Contains or DoesntContain, return false if no attachement
+      if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
+      /*let complete = false;
+      let res = false;
+      MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back functions, so can't make it work
+        ExpressionSearchLog.logObject(aMimeMsg, "aMimeMsg",0);
+        ExpressionSearchLog.logObject(aMimeMsg.allAttachments, "aMimeMsg.allAttachments",0);
+        res = true;
+        complete = true;
+      });
+      // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
+      let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
+      while (!complete)
+        //thread.processNextEvent(true);
+      */
+  	  /*function getMessageBody(aMessageHeader) {
+  	    let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+  	    let listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
+  	    let uri = aMessageHeader.folder.getUriForMsg(aMessageHeader);
+  	    messenger.messageServiceFromURI(uri).streamMessage(uri, listener, null, null, false, "");
+  	    let folder = aMessageHeader.folder;
+  	    return folder.getMsgTextFromStream(listener.inputStream,
+  	                                       aMessageHeader.Charset,
+  	                                       65536,
+  	                                       32768,
+  	                                       false,
+  	                                       true,
+  	                                       { });
+  	  }
+      try {
+      let body = getMessageBody(aMsgHdr);
+      ExpressionSearchLog.logObject(body, "body",0);
+      return /filename="diff"/.test(body);
+      } catch (e) {
+        ExpressionSearchLog.logException(e);
+      }*/
+    }
+  };
+  
   // is this search scope local, and therefore valid for db-based terms?
   function _isLocalSearch(aSearchScope) {
   return true;
@@ -123,6 +179,7 @@ function _getRegEx(aSearchValue) {
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(dayTime);
+  //filterService.addCustomTerm(attachmentName);
 })();
 
 let ExperssionSearchFilter = {
@@ -423,6 +480,7 @@ let ExperssionSearchFilter = {
         return;
       }
       if (e.tok == 'attachment') {
+        //attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentName' };
         if (!/^[Yy1]/.test(e.left.tok)) {
           // looking for no attachment; reverse is_noto.
           is_not = !is_not;
