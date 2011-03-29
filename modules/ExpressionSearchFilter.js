@@ -127,7 +127,6 @@ function _getRegEx(aSearchValue) {
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
       let found = false;
       let haveAttachment = false;
-      /*
       let complete = false;
       MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back functions, so can't make it work
         ExpressionSearchLog.logObject(aMimeMsg.allAttachments, "aMimeMsg.allAttachments",0);
@@ -149,31 +148,6 @@ function _getRegEx(aSearchValue) {
         thread.processNextEvent(true);
       if (!haveAttachment) return false;
       return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
-      */
-      
-  	  function getMessageBody(aMessageHeader) {
-         let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
-         let uri = aMessageHeader.folder.getUriForMsg(aMessageHeader);
-        
-        let messageService = messenger.messageServiceFromURI(uri);
-        let messageStream = Components.classes["@mozilla.org/network/sync-stream-listener;1"].createInstance().QueryInterface(Components.interfaces.nsIInputStream);
-        let inputStream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance().QueryInterface(Components.interfaces.nsIScriptableInputStream);
-        inputStream.init(messageStream);
-        messageService.streamMessage(uri, messageStream, {}, null, false, null);
-
-        let body = "";
-        inputStream.available();
-        while (inputStream.available()) {
-           body = body + inputStream.read(512);
-        }
-
-        messageStream.close();
-        inputStream.close();
-        return body;
-  	  }
-      let body = getMessageBody(aMsgHdr);
-      ExpressionSearchLog.logObject(body, "body",0);
-      return /filename="doc"/.test(body);
     }
   };
   
