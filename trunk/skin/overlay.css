@@ -17,6 +17,6 @@
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }
 
-.search-value-custom[searchAttribute="expressionsearch#attachmentName"] {
+.search-value-custom[searchAttribute="expressionsearch#attachmentNameOrType"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }

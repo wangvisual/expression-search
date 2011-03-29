@@ -102,9 +102,9 @@ function _getRegEx(aSearchValue) {
     }
   };
   
-  let attachmentName = {
-    id: "expressionsearch#attachmentName",
-    name: strings.get("attachmentName"),
+  let attachmentNameOrType = {
+    id: "expressionsearch#attachmentNameOrType",
+    name: strings.get("attachmentNameOrType"),
     needsBody: true,
     getEnabled: function(scope, op) {
       return _isLocalSearch(scope);
@@ -120,21 +120,18 @@ function _getRegEx(aSearchValue) {
       length.value = 2;
       return [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain];
     },
-    
-    
+
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
       // no matter Contains or DoesntContain, return false if no attachement
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
       let found = false;
       let haveAttachment = false;
       let complete = false;
-      MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back functions, so can't make it work
-        ExpressionSearchLog.logObject(aMimeMsg.allAttachments, "aMimeMsg.allAttachments",0);
+      MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
         for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
           if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
             haveAttachment = true;
-            ExpressionSearchLog.logObject(attachment, "attachment",0);
-            if ( attachment.name.indexOf(aSearchValue) != -1 ) {
+            if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
               found = true;
               break;
             }
@@ -168,7 +165,7 @@ function _getRegEx(aSearchValue) {
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(dayTime);
-  filterService.addCustomTerm(attachmentName);
+  filterService.addCustomTerm(attachmentNameOrType);
 })();
 
 let ExperssionSearchFilter = {
@@ -469,7 +466,7 @@ let ExperssionSearchFilter = {
         return;
       }
       if (e.tok == 'attachment') {
-        //attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentName' };
+        //attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
         if (!/^[Yy1]/.test(e.left.tok)) {
           // looking for no attachment; reverse is_noto.
           is_not = !is_not;
