@@ -6,6 +6,7 @@
     Added simple pattern
     Added regex pattern
     Added filename pattern
+    Added date pattern
     if ":" seems like within normal string, advance without break.
     removed toLowerCase
 */
@@ -86,7 +87,7 @@ function ADVANCE_TOKEN() {
 
   // not a single-char token, so scan it all in.
   var tok = "";
-  let allTokens = /^(?:simple|regex|re|r|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
+  let allTokens = /^(?:simple|regex|re|r|date|d|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
@@ -123,6 +124,7 @@ function ADVANCE_TOKEN() {
       if (tok == 'l') tok = 'tag';
       if (tok == 'be') tok = 'before';
       if (tok == 'af') tok = 'after';
+      if (tok == 'd') tok = 'date';
       if (tok == 'u' || tok == 'is' || tok == 'i' ) tok = 'status';
       if (tok == 're' || tok == 'r') tok = 'regex';
       if (tok == 'fi' || tok == 'fn') tok = 'filename';

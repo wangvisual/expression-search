@@ -96,12 +96,38 @@ function _getRegEx(aSearchValue) {
     },
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
       let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
-      let msgTime = msgDate.toLocaleTimeString();
+      let msgTime = msgDate.toLocaleTimeString(); // TODO: toLocaleFormat
       if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
       return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
     }
   };
-  
+
+  let dateMatch = {
+    id: "expressionsearch#dateMatch",
+    name: strings.get("dateMatch"),
+    needsBody: false,
+    getEnabled: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailable: function(scope, op) {
+      return _isLocalSearch(scope);
+    },
+    getAvailableOperators: function(scope, length) {
+      if (!_isLocalSearch(scope)) {
+        length.value = 0;
+        return [];
+      }
+      length.value = 2;
+      return [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain];
+    },
+    match: function(aMsgHdr, aSearchValue, aSearchOp) {
+      let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
+      let msgTime = msgDate.toLocaleTimeString();
+      if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
+      return (msgTime.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+    }
+  };
+
   let attachmentNameOrType = {
     timer: null, // for setTimeout
     id: "expressionsearch#attachmentNameOrType",
@@ -208,6 +234,7 @@ function _getRegEx(aSearchValue) {
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(dayTime);
+  filterService.addCustomTerm(dateMatch);
   filterService.addCustomTerm(attachmentNameOrType);
 })();
 
@@ -217,7 +244,7 @@ let ExperssionSearchFilter = {
   
   // request to create virtual folder, set to the ExpressionSearchChrome when need to create
   latchQSFolderReq: 0,
-  allTokens: "simple|regex|re|r|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+  allTokens: "simple|regex|re|r|date|d|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
 
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
     if (aFilterValue.text) {
@@ -493,6 +520,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
       else if (e.tok == 'subject' || e.tok == 'simple') attr = nsMsgSearchAttrib.Subject;
       else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
+      else if (e.tok == 'date') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dateMatch' };
       else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
@@ -584,6 +612,8 @@ let ExperssionSearchFilter = {
       if (e.tok == 'attachment' || e.tok == 'status') {
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
       }
+      if (e.tok == 'date' )
+        op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches;
       if (e.tok == 'regex') {
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches; // actually only has Matches
         // check regex
