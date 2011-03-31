@@ -6,6 +6,9 @@
   #helpcontent {
     max-width: 1000px;
   }
+  .notice {
+    color: red;
+  }
 </style>
 </head>
 
@@ -80,10 +83,16 @@ Notice that it does not search for attachments named "yes".  You can also use "y
 "yes".  You can use "no", "n", or "0" to search for messages without attachments.
 </p></li><li><p>
 
-<b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b>
+<b>filename:foo.doc</b> or <b>fi:image</b> or <b>fn:msword</b> or <b>attachment:html</b>
+</p>
+<p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
+This expression searches all messages in the current folder or view for an attachment name or type.
+</p></li><li><p>
+
+<b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b> or <b>status:F</b>
 </p>
 <p>This expression searches all messages in the current folder or view for status, The
-status can be one of Replied, Read, Marked, Forwarded, UnRead or Attachment.
+status can be one of Replied, Read, Marked, Forwarded, UnRead, New, ImapDeleted or Attachment.
 </p></li><li><p>
 
 <b>before:2011/03/09 07:12:00</b> or <b>be:09 Mar 2011 05:00:00</b> or <b>after:Mar 10, 2011</b> or <b>af:(2011/03/01 -2011/03/09)</b>

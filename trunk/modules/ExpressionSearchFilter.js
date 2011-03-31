@@ -135,30 +135,28 @@ function _getRegEx(aSearchValue) {
            2. pauseSearch
            3. setup a timer to resumeSearch after current timeSlice finished
         */
-        let topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mailnews:search");
-/*let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
-while (topWins.hasMoreElements()) {
-  let topWin = topWins.getNext();
-  topWin.QueryInterface(Ci.nsIDOMWindowInternal);
-  if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session ) {
-    let curSession = topWin.gFolderDisplay.view.search.session;
-    if ( curSession.numSearchTerms > 0 ) {
-      curSession.searchTerms;
-    }
-    break;
-  }
-}*/
+        let topWin = {};
         let searchSession = {};
-        if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session )
-          searchSession = topWin.gFolderDisplay.view.search.session;
-        //ExpressionSearchLog.logObject(searchSession,"searchSession",0);
-        //ExpressionSearchLog.logObject(searchSession.searchTerms.Count(),"count",0);
+        let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
+        while (topWins.hasMoreElements()) {
+          topWin = topWins.getNext();
+          topWin.QueryInterface(Ci.nsIDOMWindowInternal);
+          if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session ) {
+            let curSession = topWin.gFolderDisplay.view.search.session;
+            for ( let i=0; i<curSession.numSearchTerms; i++ ) {
+              let term = curSession.searchTerms.GetElementAt(i);
+              if ( term && term.customId == attachmentNameOrType.id ) {
+                searchSession = curSession;
+                break;
+              }
+            }
+          }
+        }
         if ( typeof(timer) != 'undefined' )
           topWin.clearTimeout(timer);
         searchSession.pauseSearch(); // may call many times
         timer = topWin.setTimeout(searchSession.resumeSearch, 20); // wait 20ms for messages without attachment
 
-        //ExpressionSearchLog.log(aMsgHdr.mime2DecodedSubject);
         // no matter Contains or DoesntContain, return false if no attachement
         if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
         topWin.clearTimeout(timer); // reset timer when need to check attachment
@@ -219,7 +217,7 @@ let ExperssionSearchFilter = {
   
   // request to create virtual folder, set to the ExpressionSearchChrome when need to create
   latchQSFolderReq: 0,
-  allTokens: "simple|regex|re|r|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+  allTokens: "simple|regex|re|r|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
 
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
     if (aFilterValue.text) {
@@ -495,6 +493,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
       else if (e.tok == 'subject' || e.tok == 'simple') attr = nsMsgSearchAttrib.Subject;
       else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
+      else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
@@ -511,8 +510,10 @@ let ExperssionSearchFilter = {
         return;
       }
       if (e.tok == 'attachment') {
-        //attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
-        if (!/^[Yy1]/.test(e.left.tok)) {
+        if ( !/^(?:y|1|n|0|yes|no)$/i.test(e.left.tok)) { // treat as filename
+          e.tok = 'filename';
+          attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
+        } else if (!/^[Yy1]/.test(e.left.tok)) {
           // looking for no attachment; reverse is_noto.
           is_not = !is_not;
         }
@@ -566,6 +567,10 @@ let ExperssionSearchFilter = {
           e.left.tok = nsMsgMessageFlags.Marked;
         else if (/^F/i.test(e.left.tok))
           e.left.tok = nsMsgMessageFlags.Forwarded;
+        else if (/^N/i.test(e.left.tok))
+          e.left.tok = nsMsgMessageFlags.New;
+        else if (/^(?:I|D)/i.test(e.left.tok))
+          e.left.tok = nsMsgMessageFlags.ImapDeleted;          
         else if (/^A/i.test(e.left.tok))
           e.left.tok = nsMsgMessageFlags.Attachment;
         else if (/^UnR/i.test(e.left.tok)) {
