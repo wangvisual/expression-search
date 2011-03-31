@@ -103,6 +103,7 @@ function _getRegEx(aSearchValue) {
   };
   
   let attachmentNameOrType = {
+    timer: null, // for setTimeout
     id: "expressionsearch#attachmentNameOrType",
     name: strings.get("attachmentNameOrType"),
     needsBody: true,
@@ -122,29 +123,73 @@ function _getRegEx(aSearchValue) {
     },
 
     match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      // no matter Contains or DoesntContain, return false if no attachement
-      if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
-      let found = false;
-      let haveAttachment = false;
-      let complete = false;
-      MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
-        for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
-          if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
-            haveAttachment = true;
-            if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
-              found = true;
-              break;
+      try {
+        /* OK, this is tricky and experimental, to get the attachment list, I need to call MsgHdrToMimeMessage, which is async.
+           So, I need to call thread.processNextEvent to wait for it. However, this may lead to reenter issue and crash Thunderbird.
+           Normally crash @ http://mxr.mozilla.org/comm-central/source/mailnews/base/search/src/nsMsgLocalSearch.cpp#752
+           dbErr = m_listContext->GetNext(getter_AddRefs(currentItem)); // @nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
+           I guess reenter will happen after CleanUpScope().
+
+           Thus before https://bugzilla.mozilla.org/show_bug.cgi?id=224392 is implemented, My solution is:
+           1. find the searchSession, which is tricky
+           2. pauseSearch
+           3. setup a timer to resumeSearch after current timeSlice finished
+        */
+        let topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mailnews:search");
+/*let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
+while (topWins.hasMoreElements()) {
+  let topWin = topWins.getNext();
+  topWin.QueryInterface(Ci.nsIDOMWindowInternal);
+  if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session ) {
+    let curSession = topWin.gFolderDisplay.view.search.session;
+    if ( curSession.numSearchTerms > 0 ) {
+      curSession.searchTerms;
+    }
+    break;
+  }
+}*/
+        let searchSession = {};
+        if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session )
+          searchSession = topWin.gFolderDisplay.view.search.session;
+        //ExpressionSearchLog.logObject(searchSession,"searchSession",0);
+        //ExpressionSearchLog.logObject(searchSession.searchTerms.Count(),"count",0);
+        if ( typeof(timer) != 'undefined' )
+          topWin.clearTimeout(timer);
+        searchSession.pauseSearch(); // may call many times
+        timer = topWin.setTimeout(searchSession.resumeSearch, 20); // wait 20ms for messages without attachment
+
+        //ExpressionSearchLog.log(aMsgHdr.mime2DecodedSubject);
+        // no matter Contains or DoesntContain, return false if no attachement
+        if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
+        topWin.clearTimeout(timer); // reset timer when need to check attachment
+        timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
+        let found = false;
+        let haveAttachment = false;
+        let complete = false;
+
+        MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
+          for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
+            if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
+              haveAttachment = true;
+              if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
+                found = true;
+                break;
+              }
             }
           }
-        }
-        complete = true;
-      });
-      // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
-      let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
-      while (!complete)
-        thread.processNextEvent(true);
-      if (!haveAttachment) return false;
-      return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
+          complete = true;
+        });
+        // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
+        let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
+        while (!complete)
+          thread.processNextEvent(true);
+
+        if (!haveAttachment) return false;
+        return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
+      } catch ( err ) {
+        ExpressionSearchLog.logException(err);
+        return false;
+      }
     }
   };
   
