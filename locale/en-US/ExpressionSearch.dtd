@@ -13,7 +13,7 @@
 <!ENTITY expressionsearch.textbox.emptyText.base "Expression Search... #1">
 
 <!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
-<!ENTITY expressionsearch.option.act_as_normal_filter "Act as Normal Filter when no ':' in search string">
+<!ENTITY expressionsearch.option.act_as_normal_filter "Act as Normal Filter when no tokens found in search string">
 <!ENTITY expressionsearch.option.hidelabel "Hide string 'Quick Filter' to get more space">
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">

@@ -217,7 +217,8 @@ let ExperssionSearchFilter = {
 
         // check if in normal filter mode
         if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
-          if ( !/:/.test(aFilterValue.text) ) {
+          let checkColon = new RegExp('(?:^|\\b)(?:' + ExperssionSearchFilter.allTokens + '):', 'g');
+          if ( !checkColon.test(aFilterValue.text) ) { // can't find any my token
             let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
             // Use normalFilter's appendTerms to create search term
             let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
