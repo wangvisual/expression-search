@@ -5,7 +5,8 @@
 <!ENTITY expressionsearch.previousMsg.key        "k">
 -->
 
-<!ENTITY expressionsearch.focusSearch.key        "/">
+<!ENTITY expressionsearch.focusSearch.key        "b">
+<!ENTITY expressionsearch.focusSearch.mod        "accel">
 
 <!ENTITY about.about "About">
 <!ENTITY about.author "Author:">

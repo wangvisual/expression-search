@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE window [
+  <!-- too much conflicts with TB's built-in hotkeys
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+  %messengerDTD;
+  -->
+  <!ENTITY % ExpressionSearchDTD SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
+  %ExpressionSearchDTD;
+]>
+
+<overlay id="esMailWindowOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <keyset id="mailKeys">
+    <!-- too much conflicts with TB's built-in hotkeys
+    <key id="key_markJunk" key="&expressionsearch.markJunk.key;" modifiers="&expressionsearch.markJunk.mod;" oncommand="goDoCommand('cmd_markAsJunk');"/>
+    <key id="key_nextMsg_addon" key="&expressionsearch.nextMsg.key;" oncommand="goDoCommand('cmd_nextMsg')"/>
+    <key id="key_previousMsg" key="&expressionsearch.previousMsg.key;" oncommand="goDoCommand('cmd_previousMsg')"/>
+    <key id="key_previousMsg_original" key="&prevMsgCmd.key;" oncommand="goDoCommand('cmd_previousMsg')"/>
+    -->
+    <key id="key_find_expression_search" key="&expressionsearch.focusSearch.key;" modifiers="&expressionsearch.focusSearch.mod;" oncommand="ExpressionSearchChrome.setFocus();"/>
+  </keyset>
+</overlay>
