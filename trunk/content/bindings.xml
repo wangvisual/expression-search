@@ -10,7 +10,7 @@
     </resources>
     <content>
       <xul:textbox flex="1" class="search-value-textbox" xbl:inherits="disabled"
-                   onchange="this.parentNode.setAttribute('value', this.value);"/>
+                   oninput="this.parentNode.setAttribute('value', this.value);"/>
     </content>
     <implementation>
       <constructor>
