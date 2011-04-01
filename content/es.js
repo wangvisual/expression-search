@@ -531,6 +531,10 @@ let ExpressionSearchChrome = {
     }
   },
 
+  setFocus: function() {
+    document.getElementById(ExpressionSearchChrome.textBoxDomId).focus();
+  },
+
 };
 
 //onload is too late for me to init
