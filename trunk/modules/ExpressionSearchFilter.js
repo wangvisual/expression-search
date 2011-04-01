@@ -64,6 +64,7 @@ function _getRegEx(aSearchValue) {
   }
 
   // search subject with regular expression, reference FiltaQuilla by Kent James
+  // case sensitive
   let subjectRegex = new customerTermBase("subjectRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   subjectRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
@@ -78,6 +79,7 @@ function _getRegEx(aSearchValue) {
   };
 
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
+  // case sensitive, not like normal subject search
   let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
@@ -100,6 +102,7 @@ function _getRegEx(aSearchValue) {
     return ( msgTimeUser.indexOf(aSearchValue) != -1 || msgTimeStandard.indexOf(aSearchValue) != -1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
   };
 
+  // case insensitive
   let attachmentNameOrType = new customerTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   attachmentNameOrType.needsBody = true;
   attachmentNameOrType.timer = null; // for setTimeout
@@ -142,6 +145,7 @@ function _getRegEx(aSearchValue) {
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
       topWin.clearTimeout(timer); // reset timer when need to check attachment
       timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
+      let newSearchValue = aSearchValue.toLowerCase();
       let found = false;
       let haveAttachment = false;
       let complete = false;
@@ -150,7 +154,7 @@ function _getRegEx(aSearchValue) {
         for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
           if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
             haveAttachment = true;
-            if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
+            if ( attachment.name.toLowerCase().indexOf(newSearchValue) != -1 || attachment.contentType.toLowerCase().indexOf(newSearchValue) != -1 ) {
               found = true;
               break;
             }
