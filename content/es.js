@@ -230,10 +230,10 @@ let ExpressionSearchChrome = {
 
   onSearchKeyPress: function(event){
     ExpressionSearchChrome.isEnter = 0;
+    let searchValue = this.value; // this is aNode/my search text box
     if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
       ExpressionSearchChrome.isEnter = 1;
       let panel = document.getElementById("qfb-text-search-upsell");
-      let searchValue = this.value; // this is aNode/my search text box
       if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
         if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
           searchValue = ExperssionSearchFilter.expression2gloda(searchValue);
@@ -260,6 +260,8 @@ let ExpressionSearchChrome = {
     // -- Keypresses for focus transferral
     if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) && !event.altKey )
       ExpressionSearchChrome.selectFirstMessage(true);
+    else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
+      ExpressionSearchChrome.selectFirstMessage(); // no select message, but select pane
   },
 
   initSearchInput: function() {
@@ -331,7 +333,7 @@ let ExpressionSearchChrome = {
   },
 
   // select first message, expand first container if closed
-  selectFirstMessage: function(needSelect) {
+  selectFirstMessage: function(needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
     if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
       let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
       let treeView = treeBox.view; //nsITreeView
@@ -340,16 +342,18 @@ let ExpressionSearchChrome = {
       if ( aNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
         if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
           treeView.toggleOpenState(0);
-        if ( needSelect ) {
+        if ( typeof(needSelect) == 'undefined' || needSelect ) {
           let threadPane = document.getElementById("threadTree");
           // focusing does not actually select the row...
           threadPane.focus();
-          // ...so explicitly select the currentIndex if avaliable or the 1st one
-          //threadPane.view.selection.select(threadPane.currentIndex);
-          var row = treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0;
-          treeView.selection.select(row);
-          treeBox.ensureRowIsVisible(row);
-        } // needSelect
+          if ( needSelect ) {
+            // ...so explicitly select the currentIndex if avaliable or the 1st one
+            //threadPane.view.selection.select(threadPane.currentIndex);
+            var row = treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0;
+            treeView.selection.select(row);
+            treeBox.ensureRowIsVisible(row);
+          } // needSelect
+        } // undefined or needSelect
       } // rowCount > 0
     }
     ExpressionSearchChrome.isEnter = false;
@@ -532,7 +536,10 @@ let ExpressionSearchChrome = {
   },
 
   setFocus: function() {
-    document.getElementById(ExpressionSearchChrome.textBoxDomId).focus();
+    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    if ( ExpressionSearchChrome.options.move2bar==0 && !QuickFilterBarMuxer.activeFilterer.visible )
+      QuickFilterBarMuxer._showFilterBar(true);
+    aNode.focus();
   },
 
 };
