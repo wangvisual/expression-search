@@ -9,14 +9,6 @@
   font-size: large;
 }
 
-.search-value-custom[searchAttribute="expressionsearch#subjectRegex"] {
-  -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
-}
-
-.search-value-custom[searchAttribute="expressionsearch#dayTime"] {
-  -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
-}
-
-.search-value-custom[searchAttribute="expressionsearch#attachmentNameOrType"] {
+.search-value-custom[searchAttribute^="expressionsearch#"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }

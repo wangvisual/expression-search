@@ -42,178 +42,132 @@ function _getRegEx(aSearchValue) {
 }
 
 (function ExperssionSearchCustomerTerms() {
-  // search subject with regular expression, from FiltaQuilla by Kent James
-  let Matches = nsMsgSearchOp.Matches;
-  let DoesntMatch = nsMsgSearchOp.DoesntMatch;
-  let subjectRegex = {
-    id: "expressionsearch#subjectRegex",
-    name: strings.get("subjectRegex"),
-    needsBody: false,
-    getEnabled: function(scope, op) {
+
+  function customerTermBase(nameId, Operators){
+    this.id = "expressionsearch#" + nameId;
+    this.name = strings.get(nameId);
+    this.needsBody = false;
+    this.getEnabled = function _getEnabled(scope, op) {
       return _isLocalSearch(scope);
-    },
-    getAvailable: function(scope, op) {
+    };
+    this.getAvailable = function _getAvailable(scope, op) {
       return _isLocalSearch(scope);
-    },
-    getAvailableOperators: function(scope, length) {
+    };
+    this.getAvailableOperators = function _getAvailableOperators(scope, length) {
       if (!_isLocalSearch(scope)) {
         length.value = 0;
         return [];
       }
       length.value = 2;
-      return [Matches, DoesntMatch];
-    },
-    match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
-      var subject = aMsgHdr.mime2DecodedSubject;
-      let searchValue;
-      let searchFlags;
-      [searchValue, searchFlags] = _getRegEx(aSearchValue);
-      let regexp = new RegExp(searchValue, searchFlags);
-      let res = regexp.test(subject);
-      if ( aSearchOp == Matches ) return res;
-      return !res;
-    }
-  };
-  
-  let dayTime = {
-    id: "expressionsearch#dayTime",
-    name: strings.get("DayTime"),
-    needsBody: false,
-    getEnabled: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailable: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailableOperators: function(scope, length) {
-      if (!_isLocalSearch(scope)) {
-        length.value = 0;
-        return [];
-      }
-      length.value = 2;
-      return [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter];
-    },
-    match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
-      let msgTime = msgDate.toLocaleTimeString(); // TODO: toLocaleFormat
-      if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
-      return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
-    }
+      return Operators;
+    };
+  }
+
+  // search subject with regular expression, reference FiltaQuilla by Kent James
+  let subjectRegex = new customerTermBase("subjectRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  subjectRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
+    var subject = aMsgHdr.mime2DecodedSubject;
+    let searchValue;
+    let searchFlags;
+    [searchValue, searchFlags] = _getRegEx(aSearchValue);
+    let regexp = new RegExp(searchValue, searchFlags);
+    let res = regexp.test(subject);
+    if ( aSearchOp == nsMsgSearchOp.Matches ) return res;
+    return !res;
   };
 
-  let dateMatch = {
-    id: "expressionsearch#dateMatch",
-    name: strings.get("dateMatch"),
-    needsBody: false,
-    getEnabled: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailable: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailableOperators: function(scope, length) {
-      if (!_isLocalSearch(scope)) {
-        length.value = 0;
-        return [];
-      }
-      length.value = 2;
-      return [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain];
-    },
-    match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
-      let msgTime = msgDate.toLocaleTimeString();
-      if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
-      return (msgTime.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
-    }
+  // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
+  let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+    return !res;
   };
 
-  let attachmentNameOrType = {
-    timer: null, // for setTimeout
-    id: "expressionsearch#attachmentNameOrType",
-    name: strings.get("attachmentNameOrType"),
-    needsBody: true,
-    getEnabled: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailable: function(scope, op) {
-      return _isLocalSearch(scope);
-    },
-    getAvailableOperators: function(scope, length) {
-      if (!_isLocalSearch(scope)) {
-        length.value = 0;
-        return [];
-      }
-      length.value = 2;
-      return [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain];
-    },
+  let dayTime = new customerTermBase("dayTime", [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter]);
+  dayTime.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
+    let msgTime = msgDate.toLocaleFormat("%H:%M:%S"); // toLocaleTimeString depend on user settings
+    //if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
+    return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
+  };
 
-    match: function(aMsgHdr, aSearchValue, aSearchOp) {
-      try {
-        /* OK, this is tricky and experimental, to get the attachment list, I need to call MsgHdrToMimeMessage, which is async.
-           So, I need to call thread.processNextEvent to wait for it. However, this may lead to reenter issue and crash Thunderbird.
-           Normally crash @ http://mxr.mozilla.org/comm-central/source/mailnews/base/search/src/nsMsgLocalSearch.cpp#752
-           dbErr = m_listContext->GetNext(getter_AddRefs(currentItem)); // @nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
-           I guess reenter will happen after CleanUpScope().
+  let dateMatch = new customerTermBase("dateMatch", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  dateMatch.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    let msgDate = new Date(aMsgHdr.date/1000);
+    let msgTimeUser = msgDate.toLocaleString();
+    let msgTimeStandard = msgDate.toLocaleFormat("%Y/%m/%d %H:%M:%S");
+    return ( msgTimeUser.indexOf(aSearchValue) != -1 || msgTimeStandard.indexOf(aSearchValue) != -1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+  };
 
-           Thus before https://bugzilla.mozilla.org/show_bug.cgi?id=224392 is implemented, My solution is:
-           1. find the searchSession, which is tricky
-           2. pauseSearch
-           3. setup a timer to resumeSearch after current timeSlice finished
-        */
-        let topWin = {};
-        let searchSession = {};
-        let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
-        while (topWins.hasMoreElements()) {
-          topWin = topWins.getNext();
-          topWin.QueryInterface(Ci.nsIDOMWindowInternal);
-          if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session ) {
-            let curSession = topWin.gFolderDisplay.view.search.session;
-            for ( let i=0; i<curSession.numSearchTerms; i++ ) {
-              let term = curSession.searchTerms.GetElementAt(i);
-              if ( term && term.customId == attachmentNameOrType.id ) {
-                searchSession = curSession;
-                break;
-              }
+  let attachmentNameOrType = new customerTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  attachmentNameOrType.needsBody = true;
+  attachmentNameOrType.timer = null; // for setTimeout
+  attachmentNameOrType.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    try {
+      /* OK, this is tricky and experimental, to get the attachment list, I need to call MsgHdrToMimeMessage, which is async.
+         So, I need to call thread.processNextEvent to wait for it. However, this may lead to reenter issue and crash Thunderbird.
+         Normally crash @ http://mxr.mozilla.org/comm-central/source/mailnews/base/search/src/nsMsgLocalSearch.cpp#752
+         dbErr = m_listContext->GetNext(getter_AddRefs(currentItem)); // @nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
+         I guess reenter will happen after CleanUpScope().
+
+         Thus before https://bugzilla.mozilla.org/show_bug.cgi?id=224392 is implemented, My solution is:
+         1. find the searchSession, which is tricky
+         2. pauseSearch
+         3. setup a timer to resumeSearch after current timeSlice finished
+      */
+      let topWin = {};
+      let searchSession = {};
+      let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
+      while (topWins.hasMoreElements()) {
+        topWin = topWins.getNext();
+        topWin.QueryInterface(Ci.nsIDOMWindowInternal);
+        if ( topWin.gFolderDisplay && topWin.gFolderDisplay.view && topWin.gFolderDisplay.view.search && topWin.gFolderDisplay.view.search.session ) {
+          let curSession = topWin.gFolderDisplay.view.search.session;
+          for ( let i=0; i<curSession.numSearchTerms; i++ ) {
+            let term = curSession.searchTerms.GetElementAt(i);
+            if ( term && term.customId == attachmentNameOrType.id ) {
+              searchSession = curSession;
+              break;
             }
           }
         }
-        if ( typeof(timer) != 'undefined' )
-          topWin.clearTimeout(timer);
-        searchSession.pauseSearch(); // may call many times
-        timer = topWin.setTimeout(searchSession.resumeSearch, 20); // wait 20ms for messages without attachment
+      }
+      if ( typeof(timer) != 'undefined' )
+        topWin.clearTimeout(timer);
+      searchSession.pauseSearch(); // may call many times
+      timer = topWin.setTimeout(searchSession.resumeSearch, 20); // wait 20ms for messages without attachment
 
-        // no matter Contains or DoesntContain, return false if no attachement
-        if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
-        topWin.clearTimeout(timer); // reset timer when need to check attachment
-        timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
-        let found = false;
-        let haveAttachment = false;
-        let complete = false;
+      // no matter Contains or DoesntContain, return false if no attachement
+      if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
+      topWin.clearTimeout(timer); // reset timer when need to check attachment
+      timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
+      let found = false;
+      let haveAttachment = false;
+      let complete = false;
 
-        MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
-          for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
-            if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
-              haveAttachment = true;
-              if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
-                found = true;
-                break;
-              }
+      MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
+        for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
+          if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
+            haveAttachment = true;
+            if ( attachment.name.indexOf(aSearchValue) != -1 || attachment.contentType.indexOf(aSearchValue) != -1 ) {
+              found = true;
+              break;
             }
           }
-          complete = true;
-        });
-        // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
-        let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
-        while (!complete)
-          thread.processNextEvent(true);
+        }
+        complete = true;
+      });
+      // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
+      let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
+      while (!complete)
+        thread.processNextEvent(true);
 
-        if (!haveAttachment) return false;
-        return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
-      } catch ( err ) {
-        ExpressionSearchLog.logException(err);
-        return false;
-      }
+      if (!haveAttachment) return false;
+      return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
+    } catch ( err ) {
+      ExpressionSearchLog.logException(err);
+      return false;
     }
   };
   
@@ -233,6 +187,7 @@ function _getRegEx(aSearchValue) {
 
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
   filterService.addCustomTerm(subjectRegex);
+  filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
   filterService.addCustomTerm(attachmentNameOrType);
@@ -518,7 +473,8 @@ let ExperssionSearchFilter = {
       let attr;
       if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
-      else if (e.tok == 'subject' || e.tok == 'simple') attr = nsMsgSearchAttrib.Subject;
+      else if (e.tok == 'subject') attr = nsMsgSearchAttrib.Subject;
+      else if (e.tok == 'simple') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectSimple' };
       else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
       else if (e.tok == 'date') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dateMatch' };
       else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
@@ -565,7 +521,7 @@ let ExperssionSearchFilter = {
               item = "0" + item;
               array[index] = item;
             }
-            if ( ( index == 0 && item > '23' ) || ( index > 0 && item > '59' ) ) {
+            if ( ( index == 0 && item > '23' ) || ( index > 0 && item > '61' ) ) { // 61 is for leap seconds ;-)
               if ( !invalidTime )
                 ExpressionSearchLog.log('Expression Search: dayTime '+ inValue + " is not valid",1);
               invalidTime = true;
