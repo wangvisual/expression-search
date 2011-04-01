@@ -59,21 +59,21 @@ field.
 <b>subject:electric bill</b> or <b>s:electric bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'electric bill' 
-in the <i>subject</i> fields of the message.
+in the <i>subject</i> fields of the message. Case insensitive.
 </p></li><li><p>
 
 <b>simple:this subject contains special characters like ( ) ' " - etc</b>
 </p>
 <p>This expression searches all messages in the current folder or view in the <i>subject</i>
 fields of the message. And the pattern can contain special characters. unlike "subject" search, this search won't suffer from <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=124641'>Bug 124641</a>.
-</p><p>This pattern must be the last pattern.
+</p><p>This pattern must be the last pattern. Case <b>sensitive</b>.
 </p></li><li><p>
 
 <b>regex:/^begin/i</b> or <b>re:end$</b> or <b>r:/\d+\s*\d+/</b>
 </p>
 <p>This expression searches all messages in the current folder or view with <a href='https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions'>Regular Expressions</a>
 in the <i>subject</i> fields of the message.
-</p><p>This pattern must be the last pattern.
+</p><p>This pattern must be the last pattern. Case <b>sensitive</b> unless you have //i.
 </p></li><li><p>
 
 <b>attachment:yes</b> or <b>a:yes</b>
@@ -86,7 +86,7 @@ Notice that it does not search for attachments named "yes".  You can also use "y
 <b>filename:foo.doc</b> or <b>fi:image</b> or <b>fn:msword</b> or <b>attachment:html</b>
 </p>
 <p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
-This expression searches all messages in the current folder or view for an attachment name or type.
+This expression searches all messages in the current folder or view for an attachment name or type. Case insensitive.
 </p></li><li><p>
 
 <b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b> or <b>status:F</b>
