@@ -29,7 +29,7 @@
         <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
         <hbox>
           <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
-          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('&expressionsearch.option.helpfile;'+'#keep_saved_search');"/>
+          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
         </hbox>
         <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
       </vbox>
@@ -53,7 +53,7 @@
         <text/>
         <hbox>
           <text value="&expressionsearch.dialog.c2s_replace_title;"/>
-          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('&expressionsearch.option.helpfile;'+'#c2s_Replace');"/>
+          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#c2s_Replace');"/>
         </hbox>
         <grid id="c2sRegexpGrid">
             <columns>
@@ -76,7 +76,7 @@
     <groupbox flex="1" id="expressionsearch-pane-help">
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox>
-        <text class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('&expressionsearch.option.helpfile;');"/>
+        <text class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
         <text/>
         <text class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/>
       </vbox>

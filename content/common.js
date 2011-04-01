@@ -1,16 +1,30 @@
 // Common functions
 // MPL/GPL
 // Opera.Wang 2011/03/21
+Components.utils.import("resource:///modules/StringBundle.js");
 var ExpressionSearchCommon = {
+  strings: new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"),
+  translateURL: function(url,anchor) {
+    if ( typeof(anchor) == 'undefined' ) anchor = '';
+    if ( url.indexOf(':') != -1 )
+      return url+anchor;
+    try {
+      return ExpressionSearchCommon.strings.get(url)+anchor;
+      alert(1);
+    } catch (e) {
+      return url+anchor;
+    }
+  },
   loadURL: function(url) { // not support html anchor
     var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].getService(Components.interfaces.nsIWindowWatcher);
-    ww.openWindow(null, url,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
+    ww.openWindow(null, ExpressionSearchCommon.translateURL(url) ,"Help", "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
   },
-  loadInTopWindow: function(url) {
+  loadInTopWindow: function(url,anchor) {
     //openDialog will open another top window
-    window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null, { tabType: "contentTab", tabParams: {contentPage: url} });
+    window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null,
+      { tabType: "contentTab", tabParams: {contentPage: ExpressionSearchCommon.translateURL(url,anchor) } });
   },
-  loadTab: function(url) {
+  loadTab: function(url,anchor) {
     let tabmail = document.getElementById("tabmail");
     if (!tabmail) {
       // Try opening new tabs in an existing 3pane window
@@ -23,7 +37,7 @@ var ExpressionSearchCommon = {
       }
     }
     if (tabmail)
-      tabmail.openTab("contentTab", {contentPage: url});
+      tabmail.openTab("contentTab", {contentPage: ExpressionSearchCommon.translateURL(url,anchor)});
     else
       this.loadURL(url);
   },
