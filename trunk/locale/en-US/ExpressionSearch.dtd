@@ -36,6 +36,3 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
-
-<!-- If you can localize the help document, please change "content" to "locale" below and put locailized document under locale dir -->
-<!ENTITY expressionsearch.option.helpfile "chrome://expressionsearch/content/help.html">

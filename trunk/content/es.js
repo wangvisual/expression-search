@@ -502,7 +502,7 @@ let ExpressionSearchChrome = {
     let firstRun = this.Cc["@mozilla.org/xpcom/version-comparator;1"].getService(this.Ci.nsIVersionComparator)
                       .compare( this.options.current_version, this.options.installed_version );
     if ( firstRun > 0 ) { // first for this version
-      ExpressionSearchCommon.loadTab('chrome://expressionsearch/content/help.html');
+      ExpressionSearchCommon.loadTab('expressionsearch.helpfile');
     }
   },
   
