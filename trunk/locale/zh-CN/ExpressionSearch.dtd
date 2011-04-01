@@ -13,7 +13,7 @@
 <!ENTITY expressionsearch.textbox.emptyText.base "表达式搜索... #1">
 
 <!ENTITY expressionsearch.option.hidenormal "隐藏'过滤这些消息...'输入框">
-<!ENTITY expressionsearch.option.act_as_normal_filter "当被搜索字符串中没有':'时，和普通搜索框一样">
+<!ENTITY expressionsearch.option.act_as_normal_filter "当被搜索字符串中没有表达式搜索的命令时，弹出选择框">
 <!ENTITY expressionsearch.option.hidelabel "隐藏 '快速过滤' 字符串以得到更多空间">
 <!ENTITY expressionsearch.option.reusefolder "重新生成保存搜索时不改变选其中的文件夹选择">
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
