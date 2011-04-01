@@ -1,6 +1,9 @@
 <!ENTITY expressionsearch.focusSearch.key        "b">
 <!ENTITY expressionsearch.focusSearch.mod        "accel">
 
+<!ENTITY expressionsearch.focusPeopleSearch.key  "f">
+<!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
+
 <!ENTITY about.about "关于">
 <!ENTITY about.author "作者:">
 <!ENTITY about.help "帮助">
