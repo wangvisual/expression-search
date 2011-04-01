@@ -8,7 +8,7 @@
     <em:version>0.8beta</em:version>
     <em:creator>Opera Wang</em:creator>
     <em:contributor>Ken Mixter</em:contributor>
-    <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view. Lite version of G-MailUI.</em:description>
+    <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view.</em:description>
     <em:aboutURL>chrome://expressionsearch/content/about.xul</em:aboutURL>
     <em:optionsURL>chrome://expressionsearch/content/esPrefDialog.xul</em:optionsURL>
     <em:targetApplication>
