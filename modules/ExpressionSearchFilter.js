@@ -3,7 +3,7 @@
 // Expression Search Filter
 // MessageTextFilter didn't want me to extend it much, so I have to define mine.
 
-var EXPORTED_SYMBOLS = ["ExperssionSearchFilter"];
+var EXPORTED_SYMBOLS = ["ExperssionSearchFilter", "ExpressionSearchVariable"];
 
 let Cu = Components.utils;
 let Ci = Components.interfaces;
@@ -21,6 +21,11 @@ let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
 } catch (e) {}
+
+var ExpressionSearchVariable = {
+  stopped: false,
+  searching: 0,
+};
 
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 
@@ -136,15 +141,90 @@ function _getRegEx(aSearchValue) {
           }
         }
       }
+      
+      //ExpressionSearchLog.logObject(topWin,"win",0);
+      //Components.utils.
+      ExpressionSearchVariable.stopped = false;
+      //ExpressionSearchVariable.searching = 0;
+      if ( typeof(topWin.onSearchStopSavedByES)=='undefined' ) {
+        topWin.onSearchStopSavedByES = topWin.onSearchStop;
+        topWin.onSearchStop = function () {
+          //Components.utils.import("resource://expressionsearch/ExpressionSearchVariable.js");
+          ExpressionSearchVariable.stopped = true;
+          ExpressionSearchLog.log("stop1 "+new Date().getTime());
+          retryStop();
+        }
+      }
+      
+      function retryStop() {
+        if ( ExpressionSearchVariable.searching ) {
+          topWin.setTimeout(retryStop,200);
+        } else {
+          ExpressionSearchLog.log("stop2 "+new Date().getTime());
+          topWin.onSearchStopSavedByES.apply(topWin, arguments);
+          ExpressionSearchLog.log("stop3 "+new Date().getTime());
+        }
+      }
+      
+      function retry() {
+        //Components.utils.import("resource://expressionsearch/ExpressionSearchVariable.js");
+        try {
+          if ( ExpressionSearchVariable.stopped ) return;
+          ExpressionSearchLog.log("searching... "+new Date().getTime());
+          let mainThread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).mainThread;
+          // thread.isOnCurrentThread
+          //mainThread.dispatch({
+          //  run: function() {
+              try {
+                //Components.utils.import("resource://expressionsearch/ExpressionSearchVariable.js");
+                if ( ExpressionSearchVariable.stopped ) return;
+                ExpressionSearchLog.log("searching2... "+new Date().getTime());
+                searchSession.pauseSearch();
+                ExpressionSearchLog.log("searching3... "+new Date().getTime());
+                ExpressionSearchVariable.searching++;
+                ExpressionSearchLog.log("searching4... "+new Date().getTime());
+                searchSession.resumeSearch();
+                ExpressionSearchVariable.searching--;
+                ExpressionSearchLog.log("finish2 " + new Date().getTime());
+              } catch (err) {
+                ExpressionSearchVariable.stopped = true;
+                ExpressionSearchLog.log("can't pause2"); // no timer at all, interrupted
+              }
+            //}
+          //}, Ci.nsIThread.DISPATCH_NORMAL|Ci.nsIThread.DISPATCH_SYNC); // DISPATCH_SYNC, HIGHEST, LOWEST...
+          //searchSession.resumeSearch(); // resumeSearch will call timerCallback=>timeSlice
+          ExpressionSearchLog.log("finish " + new Date().getTime());
+        } catch (err) {
+          ExpressionSearchVariable.stopped = true;
+          ExpressionSearchLog.log("can't pause"); // no timer at all, interrupted
+        }
+      }
+      function waittime() {
+        ExpressionSearchLog.log("waiting...");
+        let start = new Date().getTime();
+        while (true) {
+          let now = new Date().getTime();
+          if ( now - start > 200 )
+            break;
+        }
+      }
+      
       if ( typeof(timer) != 'undefined' )
         topWin.clearTimeout(timer);
-      searchSession.pauseSearch(); // may call many times
-      timer = topWin.setTimeout(searchSession.resumeSearch, 20); // wait 20ms for messages without attachment
+      try {
+        searchSession.pauseSearch(); // may call many times
+      } catch (err) {
+        ExpressionSearchVariable.stopped = true;
+        ExpressionSearchLog.log("can't pause normal"); // no timer at all, interrupted
+      }
+      //ExpressionSearchLog.log(aMsgHdr.mime2DecodedSubject);
+      if ( ExpressionSearchVariable.stopped ) { waittime(); return false };
+      timer = topWin.setTimeout(retry, 200); // wait 20ms for messages without attachment
 
       // no matter Contains or DoesntContain, return false if no attachement
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
       topWin.clearTimeout(timer); // reset timer when need to check attachment
-      timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
+      //timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
       let newSearchValue = aSearchValue.toLowerCase();
       let found = false;
       let haveAttachment = false;
@@ -164,9 +244,21 @@ function _getRegEx(aSearchValue) {
       });
       // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
       let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
-      while (!complete)
-        thread.processNextEvent(true);
+      //ExpressionSearchLog.logObject(thread,"thread",0);
+      //ExpressionSearchLog.log("thread:" + Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).isMainThread);
+      while (!complete && !ExpressionSearchVariable.stopped) {
+        if ( thread.hasPendingEvents() )
+          thread.processNextEvent(true); // may wait
+        else try {
+          searchSession.pauseSearch();
+        } catch (err) {
+          ExpressionSearchVariable.stopped = true;
+          ExpressionSearchLog.log("can't pause in while")
+        }
+      }
 
+      if ( ExpressionSearchVariable.stopped ) { waittime(); return false };
+      timer = topWin.setTimeout(retry, 200); // 200ms for one timeSlice, so this will double the search time
       if (!haveAttachment) return false;
       return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
     } catch ( err ) {
