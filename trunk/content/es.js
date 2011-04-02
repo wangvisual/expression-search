@@ -115,7 +115,7 @@ let ExpressionSearchChrome = {
       QuickFilterBarMuxer.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
     }
     
-    // onMakeActive && onTabSwitched
+    // onMakeActive && onTabSwitched: show or hide the buttons & search box
     QuickFilterBarMuxer.onMakeActiveSaved = QuickFilterBarMuxer.onMakeActive;
     QuickFilterBarMuxer.onMakeActive = function(aFolderDisplay) {
       let tab = aFolderDisplay._tabInfo;
