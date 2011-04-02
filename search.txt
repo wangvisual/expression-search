@@ -1,0 +1,70 @@
+SearchDialog.js:
+function onSearchStop() {
+  gFolderDisplay.view.search.session.interruptSearch();
+}
+onSearch() {
+  DBViewWrapper...
+}
+
+quickFilterBar.js:
+  updateSearch
+    filterer.createSearchTerms(tab.folderDisplay.view.search.session);
+    new QuickFilterSearchListener
+      (onSearchHit... msg)
+    tab.folderDisplay.view.search.userTerms = terms; //==>_applyViewChanges
+
+FilterListDialog.js
+  runSelectedFilters
+    filterService = nsIMsgFilterService
+    filterService.applyFiltersToFolders
+      
+module dbViewWrapper
+function DBViewWrapper(aListener) {
+_applyViewChanges
+  if (this._viewUpdateDepth)
+      return;
+    // make the d
+    this.listener.onDestroyingView(true); // we will re-create it!
+    this.search.dissociateView(this.dbView);
+    ...
+    
+    this.listener.onCreatedView();
+
+    // this ends up being a no-op if there are no search terms
+    this.search.associateView(this.dbView);
+    if (!this.searching && !this.folderLoading)
+      this.listener.onAllMessagesLoaded();
+      
+      
+module searchSpec:
+  get session()
+    if (this._session == null) {
+      this._session =Cc["@mozilla.org/messenger/searchSession;1"].createInstance(Ci.nsIMsgSearchSession);
+    }
+  associateView
+    updateSession
+      session.appendTerm(term);
+      customTerm.getAvailable
+      session.addScopeTerm(scope, folder);
+    registerListener
+    this.session.search(this.owner.listener.msgWindow);
+  dissociateView
+    if (this.owner.searching)
+      this.session.interruptSearch();
+      this._session.unregisterListener(aDBView);
+      
+  set virtualFolderTerms
+  set userTerms
+  set viewTerms
+  clear
+    owner._applyViewChanges
+
+search.xml
+  gloda
+messenger.css
+  .quick-search-button {
+    -moz-binding: url("chrome://messenger/content/search.xml#searchBarDropMarker");
+    cursor: default;
+    -moz-user-focus: none;
+  }
+  
