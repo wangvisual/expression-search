@@ -19,6 +19,7 @@
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.help "View help document">
 <!ENTITY expressionsearch.option.email "Send Email to author">
+<!ENTITY expressionsearch.option.crash "Thunderbird Crash Reports">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
 <!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
 

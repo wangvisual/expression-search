@@ -76,9 +76,11 @@
     <groupbox flex="1" id="expressionsearch-pane-help">
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox>
-        <text class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
-        <text/>
-        <text class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/>
+        <hbox><label class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/><label/></hbox>
+        <label/>
+        <hbox><label class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/><label/></hbox>
+        <label/>
+        <hbox><label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/><label/></hbox>
       </vbox>
     </groupbox>
   </vbox>

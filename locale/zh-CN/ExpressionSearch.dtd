@@ -19,6 +19,7 @@
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
 <!ENTITY expressionsearch.option.help "查看帮助">
 <!ENTITY expressionsearch.option.email "给作者发邮件">
+<!ENTITY expressionsearch.option.crash "查看雷鸟崩溃报告">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "邮件列表中按 Ctrl+鼠标右键 执行搜索">
 <!ENTITY expressionsearch.option.c2s_enableShift "邮件列表中按 Shift+鼠标右键 执行搜索">
 
