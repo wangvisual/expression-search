@@ -44,6 +44,8 @@ let ExpressionSearchChrome = {
     //this.Cr = Components.results;
     this.Cu.import("resource://expressionsearch/log.js");
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
+    // for hook functions for attachment search
+    this.Cu.import("resource:///modules/searchSpec.js");
     // for create quick search folder
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
@@ -134,6 +136,46 @@ let ExpressionSearchChrome = {
       } );
       }
       QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
+    }
+    
+    // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
+    if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' )
+      return;
+    SearchSpec.prototype.associateViewSaved = SearchSpec.prototype.associateView;
+    SearchSpec.prototype.associateView = function _savedAssociateView() {
+      let self = this;
+      let args = arguments;
+      ExpressionSearchLog.log("associateView0");
+      if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
+        ExpressionSearchVariable.startreq = new Date().getTime();
+      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
+        ExpressionSearchLog.log("associateView retry");
+        window.setTimeout( function(){self.associateView.apply(self,args);}, 100  );
+        return;
+      }
+      ExpressionSearchLog.log("REAL starting");
+      ExpressionSearchVariable.starting = true;
+      this.associateViewSaved.apply(self,arguments);
+      ExpressionSearchVariable.starting = false;
+      ExpressionSearchVariable.startreq = Number.MAX_VALUE;
+    }
+    SearchSpec.prototype.dissociateViewSaved = SearchSpec.prototype.dissociateView;
+    SearchSpec.prototype.dissociateView = function _savedDissociateView() {
+      let self = this;
+      let args = arguments;
+      ExpressionSearchLog.log("dissociateView0");
+      if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
+        ExpressionSearchVariable.stopreq = new Date().getTime();
+      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
+        ExpressionSearchLog.log("dissociateView retry");
+        window.setTimeout( function(){self.dissociateView.apply(self,args);}, 100  );
+        return;
+      }
+      ExpressionSearchLog.log("REAL dissociateView");
+      ExpressionSearchVariable.stopping = true;
+      this.dissociateViewSaved.apply(this,arguments);
+      ExpressionSearchVariable.stopping = false;
+      ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
     }
     
   },

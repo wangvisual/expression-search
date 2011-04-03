@@ -41,6 +41,9 @@ module searchSpec:
     if (this._session == null) {
       this._session =Cc["@mozilla.org/messenger/searchSession;1"].createInstance(Ci.nsIMsgSearchSession);
     }
+  onSearchDone: function SearchSpecListener_onSearchDone(aStatus) {
+    this.searchSpec.owner.searching = false;
+  }
   associateView
     updateSession
       session.appendTerm(term);
