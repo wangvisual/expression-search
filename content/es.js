@@ -150,11 +150,12 @@ let ExpressionSearchChrome = {
         ExpressionSearchVariable.startreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
         ExpressionSearchLog.log("associateView retry");
-        window.setTimeout( function(){self.associateView.apply(self,args);}, 100  );
+        window.setTimeout( function(){self.associateView.apply(self,args);}, 10  );
         return;
       }
       ExpressionSearchLog.log("REAL starting");
       ExpressionSearchVariable.starting = true;
+      ExpressionSearchVariable.stopped = false;
       this.associateViewSaved.apply(self,arguments);
       ExpressionSearchVariable.starting = false;
       ExpressionSearchVariable.startreq = Number.MAX_VALUE;
@@ -168,12 +169,13 @@ let ExpressionSearchChrome = {
         ExpressionSearchVariable.stopreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
         ExpressionSearchLog.log("dissociateView retry");
-        window.setTimeout( function(){self.dissociateView.apply(self,args);}, 100  );
+        window.setTimeout( function(){self.dissociateView.apply(self,args);}, 10  );
         return;
       }
       ExpressionSearchLog.log("REAL dissociateView");
       ExpressionSearchVariable.stopping = true;
       this.dissociateViewSaved.apply(this,arguments);
+      ExpressionSearchVariable.stopped = true;
       ExpressionSearchVariable.stopping = false;
       ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
     }

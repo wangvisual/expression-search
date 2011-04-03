@@ -128,7 +128,7 @@ function _getRegEx(aSearchValue) {
          2. pauseSearch
          3. setup a timer to resumeSearch after current timeSlice finished
          4. hook onSearchStop to prevent interruptSearch when resumeSearch called
-         5. hook onSearch also
+         5. hook associateView & dissociateView also
       */
       let topWin = {};
       let searchSession = {};
@@ -150,72 +150,41 @@ function _getRegEx(aSearchValue) {
       
       //ExpressionSearchLog.logObject(topWin,"win",0);
       ExpressionSearchVariable.stopped = false;
+      // searchDialog.onSearchStop call interruptsearch directly, need to handle it
       if ( typeof(topWin.onSearchStopSavedByES)=='undefined' && topWin.onSearchStop ) {
         topWin.onSearchStopSavedByES = topWin.onSearchStop;
         ExpressionSearchLog.log("set onSearchStop");
         topWin.onSearchStop = function () {
-          ExpressionSearchVariable.stopped = true;
-          ExpressionSearchLog.log("stop1 "+new Date().getTime());
+          ExpressionSearchVariable.stopreq = new Date().getTime();
+          ExpressionSearchLog.log("stopreq "+new Date().getTime());
           retryStop();
         }
       }
 
-      if ( typeof(topWin.onSearchStopSavedByES)=='undefined' && topWin.onSearch ) {
-        topWin.onSearchSavedByES = topWin.onSearch;
-        ExpressionSearchLog.log("set onSearch");
-        topWin.onSearch = function () {
-          ExpressionSearchLog.log("start1 "+new Date().getTime());
-          retryStart();
-        }
-      }
-
       function retryStop() {
-        if ( ExpressionSearchVariable.resuming ) {
-          topWin.setTimeout(retryStop,200);
+        if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
+          ExpressionSearchLog.log("retry stop "+new Date().getTime());
+          topWin.setTimeout(retryStop,10);
         } else {
-          ExpressionSearchLog.log("stop2 "+new Date().getTime());
+          ExpressionSearchLog.log("REAL stopping "+new Date().getTime());
+          ExpressionSearchVariable.stopping = true;
           topWin.onSearchStopSavedByES.apply(topWin, arguments);
-          ExpressionSearchLog.log("stop3 "+new Date().getTime());
-        }
-      }
-      
-      function retryStart() {
-        if ( ExpressionSearchVariable.resuming ) {
-          topWin.setTimeout(retryStart,200);
-        } else {
-          ExpressionSearchLog.log("start2 "+new Date().getTime());
-          topWin.onSearchSavedByES.apply(topWin, arguments);
-          ExpressionSearchLog.log("start3 "+new Date().getTime());
-        }
-      }
-      
-      function retry() {
-        try {
-          if ( ExpressionSearchVariable.stopped ) return;
-           ExpressionSearchLog.log("resuming... "+new Date().getTime());
-           searchSession.pauseSearch();
-           ExpressionSearchLog.log("searching3... "+new Date().getTime());
-           ExpressionSearchVariable.resuming++;
-           ExpressionSearchLog.log("searching4... "+new Date().getTime());
-           searchSession.resumeSearch();
-           ExpressionSearchVariable.resuming--;
-           ExpressionSearchLog.log("finish" + new Date().getTime());
-        } catch (err) {
           ExpressionSearchVariable.stopped = true;
-          ExpressionSearchLog.log("can't pause"); // no timer at all, interrupted
+          ExpressionSearchVariable.stopping = false;
+          ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
+          ExpressionSearchLog.log("stop END "+new Date().getTime());
         }
+      }
+      
+      function tryResume() {
+        if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
+        ExpressionSearchLog.log("resuming... "+new Date().getTime());
+        ExpressionSearchVariable.resuming++;
+        searchSession.resumeSearch();
+        ExpressionSearchVariable.resuming--;
+        ExpressionSearchLog.log("finish " + new Date().getTime());
       }
 
-      function waittime() {
-        ExpressionSearchLog.log("waiting...");
-        let start = new Date().getTime();
-        while (true) {
-          let now = new Date().getTime();
-          if ( now - start > 200 )
-            break;
-        }
-      }
-      
       if ( typeof(timer) != 'undefined' )
         topWin.clearTimeout(timer);
       try {
@@ -224,14 +193,12 @@ function _getRegEx(aSearchValue) {
         ExpressionSearchVariable.stopped = true;
         ExpressionSearchLog.log("can't pause normal"); // no timer at all, interrupted
       }
-      //ExpressionSearchLog.log(aMsgHdr.mime2DecodedSubject);
-      if ( ExpressionSearchVariable.stopped ) { waittime(); return false };
-      timer = topWin.setTimeout(retry, 200); // wait 20ms for messages without attachment
+      if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
+      timer = topWin.setTimeout(tryResume, 20); // wait 20ms for messages without attachment
 
       // no matter Contains or DoesntContain, return false if no attachement
       if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
       topWin.clearTimeout(timer); // reset timer when need to check attachment
-      //timer = topWin.setTimeout(searchSession.resumeSearch, 200); // 200ms for one timeSlice, so this will double the search time
       let newSearchValue = aSearchValue.toLowerCase();
       let found = false;
       let haveAttachment = false;
@@ -251,21 +218,12 @@ function _getRegEx(aSearchValue) {
       });
       // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
       let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
-      //ExpressionSearchLog.logObject(thread,"thread",0);
-      //ExpressionSearchLog.log("thread:" + Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).isMainThread);
-      while (!complete && !ExpressionSearchVariable.stopped) {
-        if ( thread.hasPendingEvents() )
+      while (!complete && !ExpressionSearchVariable.stopped && ExpressionSearchVariable.stopreq == Number.MAX_VALUE && !ExpressionSearchVariable.stopping ) {
           thread.processNextEvent(true); // may wait
-        else try {
-          searchSession.pauseSearch();
-        } catch (err) {
-          ExpressionSearchVariable.stopped = true;
-          ExpressionSearchLog.log("can't pause in while")
-        }
       }
 
-      if ( ExpressionSearchVariable.stopped ) { waittime(); return false };
-      timer = topWin.setTimeout(retry, 200); // 200ms for one timeSlice, so this will double the search time
+      if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
+      timer = topWin.setTimeout(tryResume, 20); // 200ms for one timeSlice
       if (!haveAttachment) return false;
       return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
     } catch ( err ) {
