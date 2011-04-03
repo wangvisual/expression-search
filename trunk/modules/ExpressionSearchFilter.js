@@ -180,7 +180,12 @@ function _getRegEx(aSearchValue) {
         if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
         ExpressionSearchLog.log("resuming... "+new Date().getTime());
         ExpressionSearchVariable.resuming++;
-        searchSession.resumeSearch();
+        try {
+          if ( typeof(searchSession.resumeSearch) == 'function' )
+            searchSession.resumeSearch();
+        } catch ( err ) {
+          ExpressionSearchLog.log("resuming failed "+new Date().getTime());
+        }
         ExpressionSearchVariable.resuming--;
         ExpressionSearchLog.log("finish " + new Date().getTime());
       }
@@ -190,7 +195,7 @@ function _getRegEx(aSearchValue) {
       try {
         searchSession.pauseSearch(); // may call many times
       } catch (err) {
-        ExpressionSearchVariable.stopped = true;
+        //ExpressionSearchVariable.stopped = true;
         ExpressionSearchLog.log("can't pause normal"); // no timer at all, interrupted
       }
       if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
