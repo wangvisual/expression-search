@@ -99,7 +99,6 @@ function _getRegEx(aSearchValue) {
   dayTime.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
     let msgTime = msgDate.toLocaleFormat("%H:%M:%S"); // toLocaleTimeString depend on user settings
-    //if ( /^\d:/.test(msgTime) ) msgTime = "0" + msgTime;
     return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
   };
 
@@ -148,46 +147,38 @@ function _getRegEx(aSearchValue) {
         }
       }
       
-      //ExpressionSearchLog.logObject(topWin,"win",0);
       ExpressionSearchVariable.stopped = false;
       // searchDialog.onSearchStop call interruptsearch directly, need to handle it
       if ( typeof(topWin.onSearchStopSavedByES)=='undefined' && topWin.onSearchStop ) {
         topWin.onSearchStopSavedByES = topWin.onSearchStop;
-        ExpressionSearchLog.log("set onSearchStop");
         topWin.onSearchStop = function () {
           ExpressionSearchVariable.stopreq = new Date().getTime();
-          ExpressionSearchLog.log("stopreq "+new Date().getTime());
           retryStop();
         }
       }
 
       function retryStop() {
         if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
-          ExpressionSearchLog.log("retry stop "+new Date().getTime());
           topWin.setTimeout(retryStop,10);
         } else {
-          ExpressionSearchLog.log("REAL stopping "+new Date().getTime());
+
           ExpressionSearchVariable.stopping = true;
           topWin.onSearchStopSavedByES.apply(topWin, arguments);
           ExpressionSearchVariable.stopped = true;
           ExpressionSearchVariable.stopping = false;
           ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
-          ExpressionSearchLog.log("stop END "+new Date().getTime());
         }
       }
       
       function tryResume() {
         if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
-        ExpressionSearchLog.log("resuming... "+new Date().getTime());
         ExpressionSearchVariable.resuming++;
         try {
           if ( typeof(searchSession.resumeSearch) == 'function' )
             searchSession.resumeSearch();
         } catch ( err ) {
-          ExpressionSearchLog.log("resuming failed "+new Date().getTime());
         }
         ExpressionSearchVariable.resuming--;
-        ExpressionSearchLog.log("finish " + new Date().getTime());
       }
 
       if ( typeof(timer) != 'undefined' )
@@ -195,8 +186,6 @@ function _getRegEx(aSearchValue) {
       try {
         searchSession.pauseSearch(); // may call many times
       } catch (err) {
-        //ExpressionSearchVariable.stopped = true;
-        ExpressionSearchLog.log("can't pause normal"); // no timer at all, interrupted
       }
       if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
       timer = topWin.setTimeout(tryResume, 20); // wait 20ms for messages without attachment

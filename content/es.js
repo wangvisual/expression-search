@@ -145,15 +145,12 @@ let ExpressionSearchChrome = {
     SearchSpec.prototype.associateView = function _savedAssociateView() {
       let self = this;
       let args = arguments;
-      ExpressionSearchLog.log("associateView0");
       if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
         ExpressionSearchVariable.startreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
-        ExpressionSearchLog.log("associateView retry");
         window.setTimeout( function(){self.associateView.apply(self,args);}, 10  );
         return;
       }
-      ExpressionSearchLog.log("REAL starting");
       ExpressionSearchVariable.starting = true;
       ExpressionSearchVariable.stopped = false;
       this.associateViewSaved.apply(self,arguments);
@@ -164,15 +161,12 @@ let ExpressionSearchChrome = {
     SearchSpec.prototype.dissociateView = function _savedDissociateView() {
       let self = this;
       let args = arguments;
-      ExpressionSearchLog.log("dissociateView0");
       if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
         ExpressionSearchVariable.stopreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
-        ExpressionSearchLog.log("dissociateView retry");
         window.setTimeout( function(){self.dissociateView.apply(self,args);}, 10  );
         return;
       }
-      ExpressionSearchLog.log("REAL dissociateView");
       ExpressionSearchVariable.stopping = true;
       this.dissociateViewSaved.apply(this,arguments);
       ExpressionSearchVariable.stopped = true;
