@@ -476,35 +476,28 @@ let ExperssionSearchFilter = {
     else if (attr == nsMsgSearchAttrib.HdrProperty || attr == nsMsgSearchAttrib.Uint32HdrProperty)
       term.hdrProperty = aHdrProperty;
 
-    //ExpressionSearchLog.log("Expression Search: "+term.termAsString);
     searchTerms.push(term);
   },
 
   get_key_from_tag: function(myTag) {
-    var tagService = Cc["@mozilla.org/messenger/tagservice;1"].getService(Components.interfaces.nsIMsgTagService); 
+    var tagService = Cc["@mozilla.org/messenger/tagservice;1"].getService(Ci.nsIMsgTagService); 
     var tagArray = tagService.getAllTags({});
-    var unique = undefined;
     // consider two tags, one is "ABC", the other is "ABCD", when searching for "AB", perfect is return both.
     // however, that need change the token tree.
     // so here I just return the best fit "ABC".
-    var myTagLen = myTag.length;
-    var lenDiff = 10000000; // big enough?
+    let uniqueKey = '';
+    let myTagLen = myTag.length;
+    let lenDiff = 10000000; // big enough?
     for (var i = 0; i < tagArray.length; ++i) {
-        var tag = tagArray[i].tag;
-        var key = tagArray[i].key;
-        tag = tag.toLowerCase();
-        if (tag.indexOf(myTag) >= 0 && ( tag.length-myTagLen < lenDiff ) ) {
-          unique = key;
-          lenDiff = tag.length-myTagLen;
-          if ( lenDiff == 0 ) {
-            break;
-          }
-        }
+      let tag = tagArray[i].tag.toLowerCase();
+      if (tag.indexOf(myTag) >= 0 && ( tag.length-myTagLen < lenDiff ) ) {
+        uniqueKey = tagArray[i].key;
+        lenDiff = tag.length-myTagLen;
+        if ( lenDiff == 0 ) break;
+      }
     }
-    if (unique != undefined) 
-        return unique;
-    else
-        return "..unknown..";
+    if (uniqueKey != '') return uniqueKey;
+    return "..unknown..";
   },
   
   
@@ -540,7 +533,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
       else if (e.tok == 'before' || e.tok == 'after') attr = nsMsgSearchAttrib.Date;
       else if (e.tok == 'tag') {
-        e.left.tok = this.get_key_from_tag(e.left.tok);
+        e.left.tok = this.get_key_from_tag(e.left.tok.toLowerCase());
         attr = nsMsgSearchAttrib.Keywords;
       } else if (e.tok == 'calc' ) {
         return;
@@ -695,7 +688,7 @@ let ExperssionSearchFilter = {
           condition += searchTerm.booleanAnd ? "AND" : "OR";
           condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " (" : "";
         }
-        let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Ci.nsIScriptableUnicodeConverter);
         converter.charset = 'UTF-8';
         let termString = converter.ConvertToUnicode(searchTerm.termAsString); // termAsString is ACString
         condition += " (" + termString + ")"; 
