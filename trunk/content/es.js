@@ -491,7 +491,8 @@ let ExpressionSearchChrome = {
          let oldValue = "";
          while ( oldValue != sCellText ) {
            oldValue = sCellText;
-           [/^\s*\S{2,3}(?::|：)\s*(.*)$/, /^\s*\[.+\]:*\s*(.*)$/, /^\s+(.*)$/].forEach( function(element, index, array) {
+           // \uFF1A is chinese colon
+           [/^\s*\S{2,3}(?::|\uFF1A)\s*(.*)$/, /^\s*\[.+\]:*\s*(.*)$/, /^\s+(.*)$/].forEach( function(element, index, array) {
              sCellText = sCellText.replace(element, '$1');
            });
          }
