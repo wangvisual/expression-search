@@ -5,7 +5,7 @@
     <em:type>2</em:type>
     <em:name>Expression Search / Google Mail UI</em:name>
     <em:homepageURL>http://code.google.com/p/expression-search/</em:homepageURL>
-    <em:version>0.8beta</em:version>
+    <em:version>0.8</em:version>
     <em:creator>Opera Wang</em:creator>
     <em:contributor>Ken Mixter</em:contributor>
     <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view.</em:description>
