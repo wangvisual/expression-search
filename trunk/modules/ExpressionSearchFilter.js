@@ -420,9 +420,10 @@ let ExperssionSearchFilter = {
     //  keeps us safe from weird stuff.)
     if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
+      
+    if ( ExpressionSearchVariable.startreq ) return [aState, "nosale", false]; // remove me later
 
-    // since we're filtering, filtering on text, and there are no results, tell
-    //  the upsell code to get bizzay
+    // since we're filtering, filtering on text, and there are no results, tell the upsell code to get bizzay
     return [aState, "upsell", false];
   },
   
