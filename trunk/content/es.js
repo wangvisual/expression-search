@@ -139,7 +139,7 @@ let ExpressionSearchChrome = {
     }
     
     // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
-    if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' )
+    if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' || typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' )
       return;
     SearchSpec.prototype.associateViewSaved = SearchSpec.prototype.associateView;
     SearchSpec.prototype.associateView = function _savedAssociateView() {
@@ -191,6 +191,12 @@ let ExpressionSearchChrome = {
       QuickFilterBarMuxer.reflectFiltererState = QuickFilterBarMuxer.reflectFiltererStateSaved;
       QuickFilterBarMuxer.onMakeActive = QuickFilterBarMuxer.onMakeActiveSaved;
       QuickFilterBarMuxer.onTabSwitched = QuickFilterBarMuxer.onTabSwitchedSaved;
+    }
+    if ( typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' ) { // remove me later
+      SearchSpec.prototype.associateView = SearchSpec.prototype.associateViewSaved;
+      SearchSpec.prototype.dissociateView = SearchSpec.prototype.dissociateViewSaved;
+      SearchSpec.prototype.associateViewSaved = undefined;
+      SearchSpec.prototype.dissociateViewSaved = undefined;
     }
     window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
   },
