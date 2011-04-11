@@ -192,7 +192,6 @@ let ExpressionSearchChrome = {
       QuickFilterBarMuxer.onMakeActive = QuickFilterBarMuxer.onMakeActiveSaved;
       QuickFilterBarMuxer.onTabSwitched = QuickFilterBarMuxer.onTabSwitchedSaved;
     }
-    window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
     window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
   },
   
@@ -550,6 +549,7 @@ let ExpressionSearchChrome = {
   },
   
   initAfterLoad: function() {
+    window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
     ExpressionSearchChrome.initSearchInput();
     ExpressionSearchChrome.refreshFilterBar();
     let threadPane = document.getElementById("threadTree");
@@ -584,10 +584,8 @@ let ExpressionSearchChrome = {
 };
 
 //onload is too late for me to init
-// this is much complex than 'ExpressionSearchChrome.init();' and both works ;-)
-(function() { this.init(); }).apply(ExpressionSearchChrome);
+// this is much complex and both works ;-)
+//(function() { this.init(); }).apply(ExpressionSearchChrome);
+ExpressionSearchChrome.init();
 window.addEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
 window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
-
-// TODO:
-// use https://developer.mozilla.org/en/STEEL ? maybe not
