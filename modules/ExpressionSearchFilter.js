@@ -380,7 +380,7 @@ let ExperssionSearchFilter = {
 
   // change DOM status, eg disabled, checked, etc.
   // by AMuxer.onActiveAllMessagesLoaded or reflectFiltererState
-  reflectInDOM: function(aNode, aFilterValue,
+  reflectInDOM: function(aNode, aFilterValue, // aFilterValue is the 1st value PFT returns
                         aDocument, aMuxer,
                         aFromPFP) { //PFP: PostFilterProcess, the second value PFP returns
     // Update the text if it has changed (linux does weird things with empty
@@ -418,10 +418,10 @@ let ExperssionSearchFilter = {
     // (Currently we always return "nosale" to make sure our panel is closed;
     //  this might be overkill but unless it becomes a performance problem, it
     //  keeps us safe from weird stuff.)
-    if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || !GlodaIndexer.enabled)
+    if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || aViewWrapper.dbView.rowCount /* Bug 574799 */ || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
       
-    if ( ExpressionSearchVariable.startreq ) return [aState, "nosale", false]; // remove me later
+    if ( ExpressionSearchVariable.startreq != Number.MAX_VALUE ) return [aState, "nosale", false]; // remove me later
 
     // since we're filtering, filtering on text, and there are no results, tell the upsell code to get bizzay
     return [aState, "upsell", false];
