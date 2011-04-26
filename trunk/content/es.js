@@ -130,11 +130,9 @@ let ExpressionSearchChrome = {
     QuickFilterBarMuxer.onTabSwitchedSaved = QuickFilterBarMuxer.onTabSwitched;
     QuickFilterBarMuxer.onTabSwitched = function(aTab, aOldTab) {
       let filterer = this.maybeActiveFilterer;
-      if (!filterer) {
-        ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
-          document.getElementById(ID).style.visibility = 'hidden';
+      ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
+        document.getElementById(ID).style.visibility = filterer && filterer.visible ? 'visible': 'hidden';
       } );
-      }
       QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
     }
     
