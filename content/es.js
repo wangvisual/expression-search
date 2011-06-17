@@ -131,7 +131,9 @@ let ExpressionSearchChrome = {
     QuickFilterBarMuxer.onTabSwitched = function(aTab, aOldTab) {
       let filterer = this.maybeActiveFilterer;
       ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
-        document.getElementById(ID).style.visibility = filterer && filterer.visible ? 'visible': 'hidden';
+        // filterer means if the tab can use quick filter
+        // filterer.visible means if the quick search bar is visible
+        document.getElementById(ID).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
       } );
       QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
     }
@@ -531,8 +533,7 @@ let ExpressionSearchChrome = {
          return;
     }
     if ( sCellText == "" ) return;
-    if ( ExpressionSearchChrome.options.move2bar==0 && ( !QuickFilterBarMuxer.activeFilterer.visible || document.commandDispatcher.focusedElement != aNode.inputField ) )
-      QuickFilterBarMuxer._showFilterBar(true);
+    QuickFilterBarMuxer._showFilterBar(true);
     aNode.value = token + ":" + sCellText;
     ExpressionSearchChrome.isEnter = true; // So the email can be selected
     aNode._fireCommand(aNode);
