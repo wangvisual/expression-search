@@ -138,6 +138,34 @@ let ExpressionSearchChrome = {
       } );
     })[0] );
     
+    // hook _flattenGroupifyTerms to avoid being flatten
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
+      let aTerms = invocation.arguments[0];
+      let aCloneTerms = invocation.arguments[1];
+      let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+      if ( !aNode || !aNode.value ) return invocation.proceed();
+      let outTerms = aCloneTerms ? [] : aTerms;
+      let term;
+      if ( aCloneTerms ) {
+        for (term in fixIterator(aTerms, Components.interfaces.nsIMsgSearchTerm)) {
+          let cloneTerm = this.session.createTerm();
+          cloneTerm.attrib = term.attrib;
+          cloneTerm.value = term.value;
+          cloneTerm.arbitraryHeader = term.arbitraryHeader;
+          cloneTerm.hdrProperty = term.hdrProperty;
+          cloneTerm.customId = term.customId;
+          cloneTerm.op = term.op;
+          cloneTerm.booleanAnd = term.booleanAnd;
+          cloneTerm.matchAll = term.matchAll;
+          cloneTerm.beginsGrouping = term.beginsGrouping;
+          cloneTerm.endsGrouping = term.endsGrouping;
+          term = cloneTerm;
+          outTerms.push(term);
+        }
+      }
+      return outTerms;
+    })[0] );
+    
     // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
     if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' || typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' )
       return;
