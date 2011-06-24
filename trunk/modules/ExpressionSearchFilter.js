@@ -418,6 +418,7 @@ let ExperssionSearchFilter = {
     // (Currently we always return "nosale" to make sure our panel is closed;
     //  this might be overkill but unless it becomes a performance problem, it
     //  keeps us safe from weird stuff.)
+    //ExpressionSearchLog.log('aViewWrapper.dbView:'+aViewWrapper.dbView.viewType+":"+aViewWrapper.dbView.numMsgsInView+":"+aViewWrapper.dbView.rowCount+":"+aViewWrapper.dbView.viewFlags);
     if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || aViewWrapper.dbView.rowCount /* Bug 574799 */ || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
       
@@ -686,14 +687,14 @@ let ExperssionSearchFilter = {
           condition += "ALL";
         else {
           condition += searchTerm.booleanAnd ? "AND" : "OR";
-          condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " (" : "";
+          condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " {" : "";
         }
         let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Ci.nsIScriptableUnicodeConverter);
         converter.charset = 'UTF-8';
         let termString = converter.ConvertToUnicode(searchTerm.termAsString); // termAsString is ACString
         condition += " (" + termString + ")"; 
-        // ")" may not balanced with "(", but who cares
-        condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " )" : "";
+        // "}" may not balanced with "{", but who cares
+        condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " }" : "";
       } );
       return condition;
     }
