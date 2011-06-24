@@ -210,12 +210,12 @@ let ExpressionSearchChrome = {
     if ( aNode && aNode.removeEventListener ) {
         aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
         aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
+        aNode.removeEventListener("click", ExpressionSearchChrome.onSearchBarFocus, true);
     }
     let threadPane = document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
     ExpressionSearchChrome.hookedFunctions.forEach( function(hooked, index, array) {
-      ExpressionSearchLog.log("unweave...");
       hooked.unweave();
     } );
     window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
@@ -290,7 +290,6 @@ let ExpressionSearchChrome = {
       panel.hidePopup();
   },
   
-
   onSearchKeyPress: function(event){
     ExpressionSearchChrome.isEnter = 0;
     let searchValue = this.value; // this is aNode/my search text box
@@ -326,12 +325,20 @@ let ExpressionSearchChrome = {
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
       ExpressionSearchChrome.selectFirstMessage(); // no select message, but select pane
   },
+  
+  onSearchBarFocus: function(event) {
+    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    if ( aNode && aNode.value == '' ) {
+      QuickFilterBarMuxer._showFilterBar(true);
+    }
+  },
 
   initSearchInput: function() {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode ) {
       aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too later, 
       aNode.addEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
+      aNode.addEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
     }
   },
   
