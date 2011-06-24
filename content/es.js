@@ -104,47 +104,46 @@ let ExpressionSearchChrome = {
      if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' )
        this.refreshFilterBar();
   },
-  
+
+  hookedFunctions: [],
   initFunctionHook: function() {
     if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' )
       return;
-    QuickFilterBarMuxer.reflectFiltererStateSaved = QuickFilterBarMuxer.reflectFiltererState;
-    QuickFilterBarMuxer.reflectFiltererState = function(aFilterer, aFolderDisplay, aFilterName) {
-      let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
-      let hasFilter = typeof(this.maybeActiveFilterer)=='object';
-      // filter bar not need show, so hide mainbar(in refreshFilterBar) and show quick filter bar
-      if ( !show  && !aFilterer.visible && hasFilter ) aFilterer.visible = true;
-      QuickFilterBarMuxer.reflectFiltererStateSaved.apply(QuickFilterBarMuxer,arguments);
-    }
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
+        let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
+        let hasFilter = typeof(this.maybeActiveFilterer)=='object';
+        let aFilterer = invocation.arguments[0];
+        // filter bar not need show, so hide mainbar(in refreshFilterBar) and show quick filter bar
+        if ( !show  && !aFilterer.visible && hasFilter ) aFilterer.visible = true;
+        return invocation.proceed();
+    })[0] );
     
     // onMakeActive && onTabSwitched: show or hide the buttons & search box
-    QuickFilterBarMuxer.onMakeActiveSaved = QuickFilterBarMuxer.onMakeActive;
-    QuickFilterBarMuxer.onMakeActive = function(aFolderDisplay) {
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: QuickFilterBarMuxer, method: 'onMakeActive'}, function(invocation) {
+      let aFolderDisplay = invocation.arguments[0];
       let tab = aFolderDisplay._tabInfo;
       let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
       ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
         document.getElementById(ID).style.visibility = appropriate ? 'visible': 'hidden';
       } );
-      QuickFilterBarMuxer.onMakeActiveSaved.apply(this,arguments);
-    }
-    QuickFilterBarMuxer.onTabSwitchedSaved = QuickFilterBarMuxer.onTabSwitched;
-    QuickFilterBarMuxer.onTabSwitched = function(aTab, aOldTab) {
+      return invocation.proceed();
+    })[0] );
+    
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.before( {target: QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
       let filterer = this.maybeActiveFilterer;
       ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
         // filterer means if the tab can use quick filter
         // filterer.visible means if the quick search bar is visible
         document.getElementById(ID).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
       } );
-      QuickFilterBarMuxer.onTabSwitchedSaved.apply(this,arguments);
-    }
+    })[0] );
     
     // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
     if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' || typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' )
       return;
-    SearchSpec.prototype.associateViewSaved = SearchSpec.prototype.associateView;
-    SearchSpec.prototype.associateView = function _savedAssociateView() {
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
       let self = this;
-      let args = arguments;
+      let args = invocation.arguments;
       if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
         ExpressionSearchVariable.startreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
@@ -153,14 +152,14 @@ let ExpressionSearchChrome = {
       }
       ExpressionSearchVariable.starting = true;
       ExpressionSearchVariable.stopped = false;
-      this.associateViewSaved.apply(self,arguments);
+      invocation.proceed();
       ExpressionSearchVariable.starting = false;
       ExpressionSearchVariable.startreq = Number.MAX_VALUE;
-    }
-    SearchSpec.prototype.dissociateViewSaved = SearchSpec.prototype.dissociateView;
-    SearchSpec.prototype.dissociateView = function _savedDissociateView() {
+    })[0] );
+    
+    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
       let self = this;
-      let args = arguments;
+      let args = invocation.arguments;
       if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
         ExpressionSearchVariable.stopreq = new Date().getTime();
       if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
@@ -168,11 +167,11 @@ let ExpressionSearchChrome = {
         return;
       }
       ExpressionSearchVariable.stopping = true;
-      this.dissociateViewSaved.apply(this,arguments);
+      invocation.proceed();
       ExpressionSearchVariable.stopped = true;
       ExpressionSearchVariable.stopping = false;
       ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
-    }
+    })[0] );
     
   },
 
@@ -187,17 +186,10 @@ let ExpressionSearchChrome = {
     let threadPane = document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
-    if ( typeof(QuickFilterBarMuxer.reflectFiltererStateSaved) != 'undefined' ) {
-      QuickFilterBarMuxer.reflectFiltererState = QuickFilterBarMuxer.reflectFiltererStateSaved;
-      QuickFilterBarMuxer.onMakeActive = QuickFilterBarMuxer.onMakeActiveSaved;
-      QuickFilterBarMuxer.onTabSwitched = QuickFilterBarMuxer.onTabSwitchedSaved;
-    }
-    if ( typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' ) { // remove me later
-      SearchSpec.prototype.associateView = SearchSpec.prototype.associateViewSaved;
-      SearchSpec.prototype.dissociateView = SearchSpec.prototype.dissociateViewSaved;
-      SearchSpec.prototype.associateViewSaved = undefined;
-      SearchSpec.prototype.dissociateViewSaved = undefined;
-    }
+    ExpressionSearchChrome.hookedFunctions.forEach( function(hooked, index, array) {
+      ExpressionSearchLog.log("unweave...");
+      hooked.unweave();
+    } );
     window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
   },
   
