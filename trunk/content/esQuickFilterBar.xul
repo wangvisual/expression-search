@@ -3,8 +3,6 @@
 <!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
 
 <overlay id="gmailuiQuickFilterBarOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script type="application/x-javascript" src="chrome://messenger/content/jquery.js"/>
-  <script type="application/x-javascript" src="chrome://expressionsearch/content/aop.pack.js"/>
   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <script type="application/x-javascript" src="chrome://expressionsearch/content/es.js"/>
   <hbox id="quick-filter-bar-main-bar">

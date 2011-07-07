@@ -44,6 +44,7 @@ let ExpressionSearchChrome = {
     //this.Cr = Components.results;
     this.Cu.import("resource://expressionsearch/log.js");
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
+    this.Cu.import("resource://expressionsearch/aop.js");
     // for hook functions for attachment search
     this.Cu.import("resource:///modules/searchSpec.js");
     // for create quick search folder
@@ -107,9 +108,8 @@ let ExpressionSearchChrome = {
 
   hookedFunctions: [],
   initFunctionHook: function() {
-    if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' )
-      return;
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
+    if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' ) return;
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
         let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
         let hasFilter = typeof(this.maybeActiveFilterer)=='object';
         let aFilterer = invocation.arguments[0];
@@ -119,7 +119,7 @@ let ExpressionSearchChrome = {
     })[0] );
     
     // onMakeActive && onTabSwitched: show or hide the buttons & search box
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: QuickFilterBarMuxer, method: 'onMakeActive'}, function(invocation) {
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: QuickFilterBarMuxer, method: 'onMakeActive'}, function(invocation) {
       let aFolderDisplay = invocation.arguments[0];
       let tab = aFolderDisplay._tabInfo;
       let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
@@ -129,7 +129,7 @@ let ExpressionSearchChrome = {
       return invocation.proceed();
     })[0] );
     
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.before( {target: QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.before( {target: QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
       let filterer = this.maybeActiveFilterer;
       ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
         // filterer means if the tab can use quick filter
@@ -139,7 +139,7 @@ let ExpressionSearchChrome = {
     })[0] );
     
     // hook _flattenGroupifyTerms to avoid being flatten
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
       let aTerms = invocation.arguments[0];
       let aCloneTerms = invocation.arguments[1];
       let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
@@ -169,7 +169,7 @@ let ExpressionSearchChrome = {
     // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
     if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' || typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' )
       return;
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
       let self = this;
       let args = invocation.arguments;
       if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
@@ -185,7 +185,7 @@ let ExpressionSearchChrome = {
       ExpressionSearchVariable.startreq = Number.MAX_VALUE;
     })[0] );
     
-    ExpressionSearchChrome.hookedFunctions.push( jQuery.aop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
       let self = this;
       let args = invocation.arguments;
       if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
