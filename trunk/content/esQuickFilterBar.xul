@@ -10,6 +10,7 @@
              type="search"
              emptytextbase="&expressionsearch.textbox.emptyText.base;"
              timeout="1000"
+             maxlength="192"
              width="320"
              maxwidth="480"
              minwidth="280">
