@@ -29,9 +29,7 @@ function ADVANCE_TOKEN() {
   }
 
   // skip white
-  while (this.str[0] == ' ') {
-    this.str = this.str.substr(1);
-  }
+  this.str = this.str.replace(/^\s+(.*)/,"$1");
   if (!this.str.length) {
     // end reached (possibly again)
     this.next_token = { kind: "", tok: "" };
