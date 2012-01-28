@@ -11,6 +11,7 @@ let Cc = Components.classes;
 Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
+Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
 Cu.import("resource:///modules/StringBundle.js");
@@ -51,23 +52,32 @@ function _getRegEx(aSearchValue) {
 }
 
 (function ExperssionSearchCustomerTerms() {
-
+  
   function customerTermBase(nameId, Operators){
-    this.id = "expressionsearch#" + nameId;
-    this.name = strings.get(nameId);
-    this.needsBody = false;
-    this.getEnabled = function _getEnabled(scope, op) {
-      return _isLocalSearch(scope);
+    let self = this; // In constructors, this is always your instance. Just for safe.
+    self.id = "expressionsearch#" + nameId;
+    self.name = strings.get(nameId);
+    self.needsBody = false;
+    self._isValid = function _isValid(aSearchScope) {
+      if ( aSearchScope==Ci.nsMsgSearchScope.LDAP || aSearchScope==Ci.nsMsgSearchScope.LDAPAnd || aSearchScope==Ci.nsMsgSearchScope.LocalAB|| aSearchScope==Ci.nsMsgSearchScope.LocalABAnd ) return false;
+      if ( ! self.needsBody ) return true;
+      if ( aSearchScope==Ci.nsMsgSearchScope.offlineMail || aSearchScope==Ci.nsMsgSearchScope.offlineMailFilter || aSearchScope==Ci.nsMsgSearchScope.localNewsBody || aSearchScope==Ci.nsMsgSearchScope.localNewsJunkBody ) return true;
+      return false;
     };
-    this.getAvailable = function _getAvailable(scope, op) {
-      return _isLocalSearch(scope);
+    self.getEnabled = function _getEnabled(scope, op) {
+      return self._isValid(scope);
     };
-    this.getAvailableOperators = function _getAvailableOperators(scope, length) {
-      if (!_isLocalSearch(scope)) {
+    // called by searchSpec.js to check if avaliable for offlineScope and serverScope
+    // or in addressbook search
+    self.getAvailable = function _getAvailable(scope, op) {
+      return self._isValid(scope);
+    };
+    self.getAvailableOperators = function _getAvailableOperators(scope, length) {
+      if (!self._isValid(scope)) {
         length.value = 0;
         return [];
       }
-      length.value = 2;
+      length.value = Operators.length;
       return Operators;
     };
   }
@@ -89,6 +99,7 @@ function _getRegEx(aSearchValue) {
 
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
   // case sensitive, not like normal subject search
+  // TODO: remove this as this bug was fixed
   let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
@@ -110,6 +121,16 @@ function _getRegEx(aSearchValue) {
     return ( msgTimeUser.indexOf(aSearchValue) != -1 || msgTimeStandard.indexOf(aSearchValue) != -1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
   };
 
+  let bccSearch = new customerTermBase("Bcc", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  bccSearch.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    return (GlodaUtils.deMime(aMsgHdr.bccList).toLowerCase().indexOf(aSearchValue.toLowerCase()) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+  };
+
+  let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  toSomebodyOnly.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    return ( aMsgHdr.mime2DecodedRecipients.toLowerCase().indexOf(aSearchValue.toLowerCase()) != -1 && GlodaUtils.parseMailAddresses(aMsgHdr.mime2DecodedRecipients).count == 1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+  };
+  
   // case insensitive
   let attachmentNameOrType = new customerTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   attachmentNameOrType.needsBody = true;
@@ -225,22 +246,10 @@ function _getRegEx(aSearchValue) {
       return false;
     }
   };
-  
-  // is this search scope local, and therefore valid for db-based terms?
-  function _isLocalSearch(aSearchScope) {
-  return true;
-    switch (aSearchScope) {
-      case Ci.nsMsgSearchScope.offlineMail:
-      case Ci.nsMsgSearchScope.offlineMailFilter:
-      case Ci.nsMsgSearchScope.onlineMailFilter:
-      case Ci.nsMsgSearchScope.localNews:
-        return true;
-      default:
-        return false;
-    }
-  }
 
   let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
+  filterService.addCustomTerm(bccSearch);
+  filterService.addCustomTerm(toSomebodyOnly);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(dayTime);
@@ -254,7 +263,7 @@ let ExperssionSearchFilter = {
   
   // request to create virtual folder, set to the ExpressionSearchChrome when need to create
   latchQSFolderReq: 0,
-  allTokens: "simple|regex|re|r|date|d|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af",
+  allTokens: 'simple|regex|re|r|date|d|filename|fi|fn|from|f|toorcc|to|t|tonocc|tn|bcc|bc|cc|c|only|o|subject|s|all|a|age|ag|days|da|body|b|attachment|tag|label|l|status|u|is|i|before|be|after|af',
 
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
     if (aFilterValue.text) {
@@ -310,7 +319,7 @@ let ExperssionSearchFilter = {
           ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [terms]);
           ExperssionSearchFilter.latchQSFolderReq = 0;
         } else {
-          ExpressionSearchLog.log("Experssion Search Statements: "+expr_tostring_infix(e));
+          ExpressionSearchLog.info("Experssion Search Statements: "+expr_tostring_infix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
         }
         return;
@@ -455,8 +464,6 @@ let ExperssionSearchFilter = {
       value.size = str;
     else if (attr == nsMsgSearchAttrib.AgeInDays)
       value.age = str;
-    else if (attr == nsMsgSearchAttrib.Size)
-      value.size = str;
     else if (attr == nsMsgSearchAttrib.Label)
       value.label = str;
     else if (attr == nsMsgSearchAttrib.JunkStatus)
@@ -524,7 +531,13 @@ let ExperssionSearchFilter = {
       let attr;
       if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
+      else if (e.tok == 'tonocc') attr = nsMsgSearchAttrib.To;
+      else if (e.tok == 'cc') attr = nsMsgSearchAttrib.CC;
+      else if (e.tok == 'days') attr = nsMsgSearchAttrib.AgeInDays;
+      // AllAddresses,AnyText,Size,Name,DisplayName,Nickname,ScreenName,Email,AdditionalEmail
       else if (e.tok == 'subject') attr = nsMsgSearchAttrib.Subject;
+      else if (e.tok == 'bcc') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#Bcc' };
+      else if (e.tok == 'only') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#toSomebodyOnly' };
       else if (e.tok == 'simple') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectSimple' };
       else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
       else if (e.tok == 'date') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dateMatch' };
@@ -616,12 +629,13 @@ let ExperssionSearchFilter = {
           return;
         }
       }
-      if (e.tok == 'attachment' || e.tok == 'status') {
+      if (e.tok == 'attachment' || e.tok == 'status')
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
-      }
-      if (e.tok == 'date' )
+      else if (e.tok == 'date' )
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches;
-      if (e.tok == 'regex') {
+      else if (e.tok == 'days')
+        op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;
+      else if (e.tok == 'regex') {
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches; // actually only has Matches
         // check regex
         let searchValue, searchFlags;
@@ -698,7 +712,7 @@ let ExperssionSearchFilter = {
       } );
       return condition;
     }
-    ExpressionSearchLog.log("Experssion Search Terms: "+getSearchTermString(searchTerms));
+    ExpressionSearchLog.info("Experssion Search Terms: "+getSearchTermString(searchTerms));
     return null;
   },
   

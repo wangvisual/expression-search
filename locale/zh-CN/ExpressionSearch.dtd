@@ -17,6 +17,7 @@
 <!ENTITY expressionsearch.option.hidelabel "隐藏 '快速过滤' 字符串以得到更多空间">
 <!ENTITY expressionsearch.option.reusefolder "重新生成保存搜索时不改变选其中的文件夹选择">
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
+<!ENTITY expressionsearch.option.enable_verbose_info "在控制台中显示详细信息">
 <!ENTITY expressionsearch.option.help "查看帮助">
 <!ENTITY expressionsearch.option.email "给作者发邮件">
 <!ENTITY expressionsearch.option.crash "查看雷鸟崩溃报告">

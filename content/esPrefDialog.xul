@@ -18,6 +18,7 @@
     <preference id="pref_c2s_enableShift" name="extensions.expressionsearch.c2s_enableShift" type="bool"/>
     <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
+    <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
   </preferences>
   
   <vbox flex="1">
@@ -32,6 +33,7 @@
           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
         </hbox>
         <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
+        <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
       </vbox>
     </groupbox>
     

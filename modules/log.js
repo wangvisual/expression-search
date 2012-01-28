@@ -14,6 +14,17 @@ var ExpressionSearchLog = {
       // prevents runtime error on platforms that don't implement nsIAlertsService
     }
   },
+  
+  info: function(msg,popup) {
+    let verbose = true;
+    try {
+      let prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService)
+         .getBranch("extensions.expressionsearch.");
+      prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+      verbose = prefs.getBoolPref("enable_verbose_info");
+    } catch(e){}
+    if (verbose) this.log(msg,popup);
+  },
 
   log: function(msg,popup) {
     var console = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
@@ -84,7 +95,7 @@ var ExpressionSearchLog = {
   
   logObject: function(obj, name, maxDepth, curDepth)
   {
-    this.log(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
+    this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
   },
   
   logException: function(e) {
