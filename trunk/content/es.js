@@ -561,7 +561,7 @@ let ExpressionSearchChrome = {
          sCellText = sCellText.replace(/'/g, '');
          // and, or, 1st, mouse position?
          if ( sCellText.indexOf(',') != -1 ) {
-           sCellText = sCellText.replace(/,/g, ' and');
+           sCellText = sCellText.replace(/,/g, ' and ');
            sCellText = "(" + sCellText + ")";
          }
          break;
