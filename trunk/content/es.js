@@ -27,7 +27,7 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource://expressionsearch/log.js"); // load log first
     try {
       if ( this.isInited == 0 ) {
-        ExpressionSearchLog.log("Expression Search: init...");
+        ExpressionSearchLog.info("Expression Search: init...");
         this.isInited = new Date().getTime();
         this.importModules();
         this.initPerf();
@@ -204,7 +204,7 @@ let ExpressionSearchChrome = {
   },
 
   unregister: function() {
-    ExpressionSearchLog.log("Expression Search: unload...");
+    ExpressionSearchLog.info("Expression Search: unload...");
     ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode && aNode.removeEventListener ) {
@@ -514,6 +514,11 @@ let ExpressionSearchChrome = {
     // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
     let token = "";
     let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
+    
+    let dbView = gFolderDisplay.view.dbView;
+    let msgKey = dbView.getKeyAt(row.value);
+    let msgHdr = dbView.db.GetMsgHdrForKey(msgKey);
+    
     switch(col.value.id) {
        case "subjectCol":
          sCellText = ExpressionSearchChrome.RegexpReplaceString( sCellText );
@@ -531,9 +536,18 @@ let ExpressionSearchChrome = {
          break;
        case "senderCol":
          token = "f";
+         let newText = msgHdr.mime2DecodedAuthor;
+         if ( newText.indexOf(sCellText) == -1 ) { // mail address is in address book, and mail address has no alias
+           sCellText = newText.replace(/^.*<(.*)@.*>$/, '$1');
+         }
+         // start/end with <>
+         if ( /^<.*>$/.test(sCellText) ) {
+           sCellText = sCellText.replace(/^<(.*)@.*>$/, '$1');
+         }
          break;
        case "recipientCol":
          token = "t";
+         //sCellText = msgHdr.mime2DecodedRecipients;
          //break;
        case "sio_inoutaddressCol": //showInOut support
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol

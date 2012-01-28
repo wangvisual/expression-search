@@ -7,8 +7,10 @@
     Added regex pattern
     Added filename pattern
     Added date pattern
+    Added tonocc/bcc/cc/only/age pattern
     if ":" seems like within normal string, advance without break.
     removed toLowerCase
+    delete all white spaces including ' ', \t etc.
 */
 
 var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
@@ -85,14 +87,29 @@ function ADVANCE_TOKEN() {
 
   // not a single-char token, so scan it all in.
   var tok = "";
-  let allTokens = /^(?:simple|regex|re|r|date|d|filename|fi|fn|from|f|to|t|subject|s|all|body|b|attachment|a|tag|label|l|status|u|is|i|before|be|after|af)$/;
+  let allTokens = 'simple|regex|re|r|date|d|filename|fi|fn|from|f|toorcc|to|t|tonocc|tn|bcc|bc|cc|c|only|o|subject|s|all|a|age|ag|days|da|body|b|attachment|tag|label|l|status|u|is|i|before|be|after|af';
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
-    while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
+    /*while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
       if ( this.str[0] == ':' && allTokens.test(tok) ) break;
       tok+=this.str[0];
       this.str = this.str.substr(1);
+    }*/
+    let splitTokens = new RegExp('^('+allTokens+")(:.*)");
+    let splitResult = splitTokens.exec(this.str);
+    if ( splitResult != null ) {
+      tok = splitResult[1];
+      this.str = splitResult[2];
+    } else {
+      splitResult = /^([^\s\(\)]+)([\s\(\)].*)/.exec(this.str);
+      if ( splitResult != null ) {
+        tok = splitResult[1];
+        this.str = splitResult[2];
+      } else {
+        tok = this.str;
+        this.str = "";
+      }
     }
     if (this.cant_be_calc) {
       // don't bother autodetecting calculator expr if disqualified already
@@ -112,20 +129,25 @@ function ADVANCE_TOKEN() {
 
   if (this.str[0] == ':') {
     this.str = this.str.substr(1);
-    if ( allTokens.test(tok) ) {
+    let testToken = new RegExp('^(?:' + allTokens + ')$');
+    if ( testToken.test(tok) ) {
       if (tok == 'f') tok = 'from';
-      if (tok == 't') tok = 'to';
-      if (tok == 's') tok = 'subject';
-      if (tok == 'b') tok = 'body';
-      if (tok == 'a') tok = 'attachment';
-      if (tok == 'label') tok = 'tag';
-      if (tok == 'l') tok = 'tag';
-      if (tok == 'be') tok = 'before';
-      if (tok == 'af') tok = 'after';
-      if (tok == 'd') tok = 'date';
-      if (tok == 'u' || tok == 'is' || tok == 'i' ) tok = 'status';
-      if (tok == 're' || tok == 'r') tok = 'regex';
-      if (tok == 'fi' || tok == 'fn') tok = 'filename';
+      else if (tok == 't' || tok == 'toorcc') tok = 'to'; // to or cc
+      else if (tok == 'tn') tok = 'tonocc'; // to, no cc, no bcc
+      else if (tok == 'c') tok = 'cc'; // cc, no bcc
+      else if (tok == 'bc') tok = 'bcc';
+      else if (tok == 'o') tok = 'only'; // to somebody only
+      else if (tok == 's') tok = 'subject';
+      else if (tok == 'b') tok = 'body';
+      else if (tok == 'a') tok = 'attachment';
+      else if (tok == 'l' || tok == 'label') tok = 'tag';
+      else if (tok == 'be') tok = 'before';
+      else if (tok == 'af') tok = 'after';
+      else if (tok == 'd') tok = 'date';
+      else if (tok == 'da' || tok == 'age' || tok == 'ag') tok = 'days';
+      else if (tok == 'u' || tok == 'is' || tok == 'i' ) tok = 'status';
+      else if (tok == 're' || tok == 'r') tok = 'regex';
+      else if (tok == 'fi' || tok == 'fn') tok = 'filename';
       this.next_token = {
         kind: 'spec',
         tok: tok
