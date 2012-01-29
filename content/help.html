@@ -21,11 +21,11 @@
 <p>Expression Search is an extension to Thunderbird (versions 3.0+) which add powerful message searching features.
 It's a modified version of GMailUI, written by Ken Mixter.</p>
 <p>
-Type "hello world" to search within the current view for this string in subject/from/to/cc.<br>
-Type "from:fred to:tom attachment:yes" to see all messages from Fred to Tom in the current view that have an attachment.<br>
-Press Ctrl+Enter to have this search apply to all folders.<br>
-Press Shift+Enter to invoke Gloda Search in all indexed folders.<br>
-Use Ctrl/Shift+Right Click to search the clicked subject/From/Recipient.<br>
+Type "hello world" to search within the current view for this string in subject/from/to/cc.<br/>
+Type "from:fred to:tom attachment:yes" to see all messages from Fred to Tom in the current view that have an attachment.<br/>
+Press Ctrl+Enter to have this search apply to all folders.<br/>
+Press Shift+Enter to invoke Gloda Search in all indexed folders.<br/>
+Use Ctrl/Shift+Right Click to search the clicked subject/From/Recipient.<br/>
 </p>
 
 <p>Expression Search's features are described below.</p>
@@ -58,6 +58,17 @@ field.
 </p>
 <p>This expression searches all messages in the current folder or view for 'bill' in the
 <i>to</i> or <i>cc</i> fields of the message.
+</p></li><li><p>
+
+<b>tonocc:bill</b> or <b>cc:tom</b> or <b>bcc:riddle</b>
+</p>
+<p>Like above, <b>tonocc</b> will search <i>to</i> field only, <b>cc/bcc</b> will search <i>cc/bcc</i> field only. Case insensitive.
+</p></li><li><p>
+
+<b>only:tom</b> or <b>o:tom</b>
+</p>
+<p>Search for 'tom', and 'tom' should be the only in <i>to</i> filed. Case insensitive.<br/>
+Note: 'only:(tom or jerry)' will get message that <i>to</i> filed is 'tom' or 'jerry' only, while 'only:(tom and jerry)' will get nothing.
 </p></li><li><p>
 
 <b>subject:electric bill</b> or <b>s:electric bill</b>
@@ -102,7 +113,7 @@ status can be one of Replied, Read, Marked, Forwarded, UnRead, New, ImapDeleted 
 <b>before:2011/03/09 07:12:00</b> or <b>be:09 Mar 2011 05:00:00</b> or <b>after:Mar 10, 2011</b> or <b>af:(2011/03/01 -2011/03/09)</b>
 </p>
 <p>This expression searches all messages in the current folder or view within the <i>date</i> range, The
-date format can be checked <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse'>Here<a>.
+date format can be checked <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse'>Here</a>.
 </p></li><li><p>
 
 <b>before:07:12:00</b> or <b>be:5:9</b> or <b>after:03:07:05</b> or <b>af:(3:0 -4:0)</b>
@@ -115,6 +126,12 @@ af:(3:0 -4:0) will search for messages in current view that <i>date</i> between 
 </p>
 <p>This expression searches all messages in the current folder or view to match date.
 The internal format for comparation is "yyyy/mm/dd hh:mm:ss", locale date is also supported.
+</p></li><li><p>
+
+<b>ag:3</b> or <b>da:3</b> or <b>age:3</b> or <b>days:(3 -5)</b>
+</p>
+<p>This expression searches all messages in the current folder or view to match age in days.
+days:(3 -5) will search for messages that age between 3 to 5 days.
 </p></li><li><p>
 
 <b>body:electric bill</b>
@@ -244,6 +261,15 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 0.8.4: <ul>
+<li>Added tonocc/bcc/cc/only/age search</li>
+<li>Added options for show verbose information</li>
+<li>Fixed '<>' in search pattern issue when use click2search</li>
+<li>Fixed search issue when use click2search and address is in addressbook</li>
+<li>Fixed hang issue when '\t' exists in search pattern</li>
+<li>Fixed minor bug that extension defined search terms show when search in address book</li>
+</ul>
+</li><li>
 Version 0.8.3: Fixed context menu missing issue when click right button.
 </li><li>
 Version 0.8.2: Work with Thunderbird 5. Fixed search bar shown issue. Fixed issue when search with complicated expressions.
