@@ -1,0 +1,2 @@
+#labels Featured
+Please read the <a href='http://expression-search.googlecode.com/svn/trunk/content/help.html'>Help Page</a> first.
