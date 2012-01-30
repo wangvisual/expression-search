@@ -34,7 +34,7 @@ Use Ctrl/Shift+Right Click to search the clicked subject/From/Recipient.<br/>
 <p>
 This extension adds a new search text box to the end of your quick search bar. Whatever phrase you enter
 is searched for in your currently selected folder's to/from/cc/subject fields.  Notice that by default
-the body is not searched for your search phrase.  If that results in too many matches,you can focus the seach
+the body is not searched for your search phrase.  If that results in too many matches,you can focus the search
 using "operators".  Operators are just short words followed by a colon, such as "from:amazon.com".
 </p>
 
@@ -67,8 +67,8 @@ field.
 
 <b>only:tom</b> or <b>o:tom</b>
 </p>
-<p>Search for 'tom', and 'tom' should be the only in <i>to</i> filed. Case insensitive.<br/>
-Note: 'only:(tom or jerry)' will get message that <i>to</i> filed is 'tom' or 'jerry' only, while 'only:(tom and jerry)' will get nothing.
+<p>Search for 'tom', and 'tom' should be the only recipients in <i>to</i> filed. Case insensitive.<br/>
+Note: 'only:(tom or jerry)' will get message that <i>to</i> filed is 'tom' or 'jerry' only, while 'only:(tom and jerry)' will get nothing, please use 'only:(tom,jerry)' instead if you want to search emails that recipients contain and only contain both 'tom' and 'jerry'.
 </p></li><li><p>
 
 <b>subject:electric bill</b> or <b>s:electric bill</b>
@@ -125,7 +125,7 @@ af:(3:0 -4:0) will search for messages in current view that <i>date</i> between 
 <b>date:2011/01</b> or <b>date:2011/01/03</b> or <b>d:" 03:"</b> or in zh-CN locale <b>d:2011年3月</b>
 </p>
 <p>This expression searches all messages in the current folder or view to match date.
-The internal format for comparation is "yyyy/mm/dd hh:mm:ss", locale date is also supported.
+The internal format for compare is "yyyy/mm/dd hh:mm:ss", locale date is also supported.
 </p></li><li><p>
 
 <b>ag:3</b> or <b>da:3</b> or <b>age:3</b> or <b>days:(3 -5)</b>
@@ -151,7 +151,7 @@ fields, and the <i>body</i>.
 
 <b>g: weather</b>
 </p>
-<p>This will call gloda (faceted) search if gloda enabled. This mode can't be used toghter will other specifications like 'f:' or 't:'.
+<p>This will call gloda (faceted) search if gloda enabled. This mode can't be used together will other specifications like 'f:' or 't:'.
 </p></li><li><p>
 
 <b>3+2</b>
@@ -241,8 +241,8 @@ both filter are effective.
 
 <h3>Click 2 Search</h3>
 <p>
-If Enabled, you can use Ctrl/Shift+Right Click on sender/receipient/subject column to search for the same sender,
-receipient or subject.
+If Enabled, you can use Ctrl/Shift+Right Click on sender/recipient/subject column to search for the same sender,
+recipient or subject.
 </p>
 <p>
 <a name="c2s_Replace"></a>
@@ -265,7 +265,7 @@ Version 0.8.4: <ul>
 <li>Added tonocc/bcc/cc/only/age search</li>
 <li>Added options for show verbose information</li>
 <li>Fixed '<>' in search pattern issue when use click2search</li>
-<li>Fixed search issue when use click2search and address is in addressbook</li>
+<li>Fixed search issue when use click2search and address is in address book</li>
 <li>Fixed hang issue when '\t' exists in search pattern</li>
 <li>Fixed minor bug that extension defined search terms show when search in address book</li>
 </ul>
@@ -306,7 +306,7 @@ Version 0.1: First version, changed from GMailUI to make it works for Thunderbir
 
 <h3>Known Issues of this extension or Thunderbird</h3>
 <ul><li>
-The "filename:" Search for filename/type in the attachement is experimental and may crash your Thunderbird.
+The "filename:" Search for filename/type in the attachment is experimental and may crash your Thunderbird.
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=124641'><span class="bz_closed">Bug 124641</span></a> - Thunderbird does not handle multi-line headers correctly when search term spans lines
 </li><li>
@@ -351,9 +351,15 @@ savo_msu - Author of <a href='https://addons.mozilla.org/af/thunderbird/addon/on
 </li><li>
 Kent James - Author of <a href='https://addons.mozilla.org/en-US/thunderbird/addon/filtaquilla/'>FiltaQuilla</a>
 </li><li>
+Jiten Dedhia - Suggest for 'toonly' search
+</li><li>
 Greg Cowan - Suggest for date search
 </li><li>
+Mike Martinez - Suggest for bcc search
+</li><li>
 Olivier - Suggest for Shift/Ctrl+Enter
+</li><li>
+Paul Sednaoui - Suggest for 'only' search
 </li><li>
 Randolf Ebelt - Find a bug when search with complicate expressions
 </li><li>
@@ -362,7 +368,7 @@ Tom Zhu - Suggest for Enter to focus message pane, and validations before releas
 
 <h3>Feedback, Suggestions, and on-going Development</h3>
 <p>Home Page: <a href='http://code.google.com/p/expression-search/'>expression-search</a>
-<p>Please send email to <a href='mailto:Opera.Wang+es@gmail.com'>Opera.Wang+es@gmail.com</a> for feedback, suggetions etc</p>
+<p>Please send email to <a href='mailto:Opera.Wang+es@gmail.com'>Opera.Wang+es@gmail.com</a> for feedback, suggestions etc</p>
 </div>
 </body>
 </html>
