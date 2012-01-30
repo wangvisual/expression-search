@@ -128,7 +128,16 @@ function _getRegEx(aSearchValue) {
 
   let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   toSomebodyOnly.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    return ( aMsgHdr.mime2DecodedRecipients.toLowerCase().indexOf(aSearchValue.toLowerCase()) != -1 && GlodaUtils.parseMailAddresses(aMsgHdr.mime2DecodedRecipients).count == 1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+    let mailRecipients = GlodaUtils.parseMailAddresses(aMsgHdr.mime2DecodedRecipients.toLowerCase());
+    let searchRecipients = GlodaUtils.parseMailAddresses(aSearchValue.toLowerCase()); 
+    let match = ( mailRecipients.count == searchRecipients.count );
+    match = match && searchRecipients.addresses.every( function(searchOne, index, array) {
+      // can't use aMsgHdr.mime2DecodedRecipients.toLowerCase().indexOf() because the recipient may in our addressbook and TB show it's Name instead of address
+      return mailRecipients.fullAddresses.some( function(recipientOne, index, array) {
+        if ( recipientOne.indexOf(searchOne) != -1 ) return true; // found one in mailRecipients
+      } );
+    } );
+    return ( match ^ (aSearchOp == nsMsgSearchOp.DoesntContain) );
   };
   
   // case insensitive
@@ -590,7 +599,7 @@ let ExperssionSearchFilter = {
                 ExpressionSearchLog.log('Expression Search: dayTime '+ inValue + " is not valid",1);
               invalidTime = true;
             }
-          })
+          } );
           if ( invalidTime ) return;
           e.left.tok = timeArray.join(":");
           attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dayTime' };

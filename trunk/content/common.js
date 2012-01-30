@@ -10,7 +10,6 @@ var ExpressionSearchCommon = {
       return url+anchor;
     try {
       return ExpressionSearchCommon.strings.get(url)+anchor;
-      alert(1);
     } catch (e) {
       return url+anchor;
     }
