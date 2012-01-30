@@ -515,9 +515,15 @@ let ExpressionSearchChrome = {
     let token = "";
     let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
     
+	ExpressionSearchLog.logObject(sCellText,'sCellText',0);
     let dbView = gFolderDisplay.view.dbView;
     let msgKey = dbView.getKeyAt(row.value);
-    let msgHdr = dbView.db.GetMsgHdrForKey(msgKey);
+	ExpressionSearchLog.logObject(dbView,'dbView',0);
+	ExpressionSearchLog.logObject(msgKey,'msgKey',0);
+    //let msgHdr = dbView.db.GetMsgHdrForKey(msgKey);
+	dbView.selectMsgByKey(msgKey);
+	let msgHdr = dbView.hdrForFirstSelectedMessage;
+	ExpressionSearchLog.logObject(msgHdr,'msgHdr',0);
     
     switch(col.value.id) {
        case "subjectCol":
