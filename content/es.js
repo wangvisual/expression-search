@@ -50,6 +50,7 @@ let ExpressionSearchChrome = {
     // for create quick search folder
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
+    this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
     // need to know whehter gloda enabled
     this.Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
@@ -514,17 +515,7 @@ let ExpressionSearchChrome = {
     // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
     let token = "";
     let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
-    
-	ExpressionSearchLog.logObject(sCellText,'sCellText',0);
-    let dbView = gFolderDisplay.view.dbView;
-    let msgKey = dbView.getKeyAt(row.value);
-	ExpressionSearchLog.logObject(dbView,'dbView',0);
-	ExpressionSearchLog.logObject(msgKey,'msgKey',0);
-    //let msgHdr = dbView.db.GetMsgHdrForKey(msgKey);
-	dbView.selectMsgByKey(msgKey);
-	let msgHdr = dbView.hdrForFirstSelectedMessage;
-	ExpressionSearchLog.logObject(msgHdr,'msgHdr',0);
-    
+    let msgHdr = gDBView.getMsgHdrAt(row.value);
     switch(col.value.id) {
        case "subjectCol":
          sCellText = ExpressionSearchChrome.RegexpReplaceString( sCellText );
@@ -542,18 +533,9 @@ let ExpressionSearchChrome = {
          break;
        case "senderCol":
          token = "f";
-         let newText = msgHdr.mime2DecodedAuthor;
-         if ( newText.indexOf(sCellText) == -1 ) { // mail address is in address book, and mail address has no alias
-           sCellText = newText.replace(/^.*<(.*)@.*>$/, '$1');
-         }
-         // start/end with <>
-         if ( /^<.*>$/.test(sCellText) ) {
-           sCellText = sCellText.replace(/^<(.*)@.*>$/, '$1');
-         }
-         break;
+         //break;
        case "recipientCol":
-         token = "t";
-         //sCellText = msgHdr.mime2DecodedRecipients;
+         if ( token == "" ) token = "t";
          //break;
        case "sio_inoutaddressCol": //showInOut support
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
@@ -564,12 +546,19 @@ let ExpressionSearchChrome = {
            treeView.getCellProperties(row.value,col.value,property);
            token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
          }
-         sCellText = sCellText.replace(/'/g, '');
-         // and, or, 1st, mouse position?
-         if ( sCellText.indexOf(',') != -1 ) {
-           sCellText = sCellText.replace(/,/g, ' and ');
-           sCellText = "(" + sCellText + ")";
-         }
+         let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
+         let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
+         sCellText = addressesFromHdr.addresses.map( function(address,index) {
+           let ret = address;
+           if ( typeof(addressesFromHdr.fullAddresses[index]) != 'undefined' && typeof(addressesFromCell.addresses[index]) != 'undefined' ) {
+             addressesFromCell.addresses[index] = addressesFromCell.addresses[index].replace(/'|"/g,'');
+             ExpressionSearchLog.log(addressesFromHdr.fullAddresses[index].toLowerCase() + ":" + addressesFromCell.addresses[index].toLowerCase());
+             if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( addressesFromCell.addresses[index].toLowerCase() ) != -1)
+               ret = addressesFromCell.addresses[index]; // if display name is part of full address, then use display name
+           }
+           return ret.replace(/(.*)@.*/, '$1'); // use mail ID only if it's an email address.
+         } ).join(' and ');
+         if ( addressesFromHdr.count > 1 ) sCellText = "(" + sCellText + ")";
          break;
        case "tagsCol":
          token = "tag";
