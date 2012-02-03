@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://expressionsearch/skin/overlay.css" type="text/css"?>
+<!-- for folder selector -->
+<?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
 <prefwindow id="expressionsearch-prefs"
      title="&expressionsearch.dialog.title;"
+     onload="onLoad();"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;">
   <preferences>
@@ -19,6 +23,7 @@
     <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
+    <preference id="pref_virtual_folder_path" name="extensions.expressionsearch.virtual_folder_path" type="string"/>
   </preferences>
   
   <vbox flex="1">
@@ -28,11 +33,18 @@
         <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
         <checkbox preference="pref_act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
         <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
+        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
+        <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
+        <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">
+          <menupopup id="esNewFolderPopup" type="folder" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
+            <menuitem label='&expressionsearch.option.use_root_folder;' value='' class='folderMenuItem' SpecialFolder="Virtual" />
+            <menuseparator/>
+          </menupopup>
+        </menulist>
         <hbox>
           <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
         </hbox>
-        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
         <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
       </vbox>
     </groupbox>
@@ -74,7 +86,7 @@
             </rows>
         </grid>
     </groupbox>
-    
+
     <groupbox flex="1" id="expressionsearch-pane-help">
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox>
@@ -87,5 +99,34 @@
     </groupbox>
   </vbox>
 </prefpane>
+<!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
+<script>
+  function onLoad() {
+    var folderPicker = document.getElementById("esNewFolderPicker");
+    if ( folderPicker.value == '' ) return;
+    var msgFolder = {};
+    try {
+      msgFolder = MailUtils.getFolderForURI(folderPicker.value);
+      document.getElementById("esNewFolderPopup").selectFolder(msgFolder);
+    } catch(e) {
+      folderPicker.setAttribute("label", msgFolder.prettyName);
+    }
+    folderPicker.setAttribute('tooltiptext', showPrettyTooltip(msgFolder.ValueUTF8||msgFolder.value, msgFolder.prettyName));
+  }
+  function showPrettyTooltip(URI,pretty) {
+    return decodeURIComponent(URI).replace(/(.*\/)[^/]*/, '$1') + pretty;
+  }
+  function onFolderPick(aEvent) {
+    var gPickedFolder = aEvent.target._folder || aEvent.target;
+    var label = gPickedFolder.prettyName || gPickedFolder.label;
+    var value = gPickedFolder.URI || gPickedFolder.value;
+    var folderPicker = document.getElementById("esNewFolderPicker");
+    folderPicker.value = value; // must set value before set label, or next line may fail when previous value is empty
+    folderPicker.setAttribute("label", label); 
+    folderPicker.setAttribute('tooltiptext', showPrettyTooltip(value, label));
+  }
+</script>
+<!-- for getFolderForURI -->
+<script type="application/javascript" src="resource:///modules/MailUtils.js"/>
 </prefwindow>

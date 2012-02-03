@@ -18,6 +18,8 @@
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">
+<!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
+<!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
 <!ENTITY expressionsearch.option.help "View help document">
 <!ENTITY expressionsearch.option.email "Send Email to author">
 <!ENTITY expressionsearch.option.crash "Thunderbird Crash Reports">

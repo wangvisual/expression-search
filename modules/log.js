@@ -99,7 +99,7 @@ var ExpressionSearchLog = {
   },
   
   logException: function(e) {
-    var msg = "Caught Exception"
+    var msg = "Caught Exception";
     if ( e.name && e.message ) {
       msg += " " + e.name + ": " + e.message + "\n";
     }
