@@ -5,6 +5,7 @@ pref("extensions.expressionsearch.act_as_normal_filter", true);
 pref("extensions.expressionsearch.reuse_existing_folder", false);
 pref("extensions.expressionsearch.select_msg_on_enter", false);
 pref("extensions.expressionsearch.enable_verbose_info", false);
+pref("extensions.expressionsearch.pref_virtual_folder_path", "");
 pref("extensions.expressionsearch.move2bar", 0);
 
 pref("extensions.expressionsearch.c2s_enableCtrl", true);
