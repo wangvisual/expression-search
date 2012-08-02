@@ -20,6 +20,8 @@ var EXPORTED_SYMBOLS = ["ExpressionSearchaop"];
 
 var ExpressionSearchaop;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 (function() {
 
 	var _after			= 1;
@@ -34,7 +36,7 @@ var ExpressionSearchaop;
 
 	var getType = (function() {
     
-        var topWins = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getEnumerator(null);
+        var topWins = Services.wm.getEnumerator(null);
         var window;
         while (topWins.hasMoreElements()) {
             topWin = topWins.getNext();
