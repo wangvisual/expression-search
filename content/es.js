@@ -612,10 +612,6 @@ let ExpressionSearchChrome = {
           ExpressionSearchChrome.firstRunAction.apply(ExpressionSearchChrome);
       });
     } catch (ex) {
-        // Gecko 1.9.2 and before
-        var em = ExpressionSearchChrome.Cc["@mozilla.org/extensions/manager;1"].getService(ExpressionSearchChrome.Ci.nsIExtensionManager);
-        ExpressionSearchChrome.options.current_version = em.getItemForID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}").version;
-        ExpressionSearchChrome.firstRunAction.apply(ExpressionSearchChrome);
     }
   },
 
