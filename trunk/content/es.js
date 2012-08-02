@@ -47,6 +47,9 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource://expressionsearch/aop.js");
     // for hook functions for attachment search
     this.Cu.import("resource:///modules/searchSpec.js");
+    // general services
+    this.Cu.import("resource://gre/modules/Services.jsm");
+    this.Cu.import("resource:///modules/mailServices.js");
     // for create quick search folder
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
@@ -59,9 +62,7 @@ let ExpressionSearchChrome = {
   },
   
   initPerf: function() {
-    this.prefs = this.Cc["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService)
-         .getBranch("extensions.expressionsearch.");
-    this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
     this.prefs.addObserver("", this, false);
     try {
       this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
@@ -348,16 +349,19 @@ let ExpressionSearchChrome = {
     const nsMsgFolderFlags = this.Ci.nsMsgFolderFlags;
     var currFolder = gFolderDisplay.displayedFolder;
     var currURI = currFolder.URI;
-    var rootFolder = currFolder.rootFolder;
+    var rootFolder = currFolder.rootFolder; // nsIMsgFolder
     var QSFolderName = "ExpressionSearch";
     var uriSearchString = "";
     if (!rootFolder) {
       alert('Expression Search: Cannot determine root folder of search');
       return;
     }
-    var QSFolderURI = rootFolder.URI + "/" + QSFolderName;
+    let virtual_folder_path = this.prefs.getCharPref('virtual_folder_path'); // '' or 'mailbox://nobody@Local%20Folders/Archive'
+    let targetFolderParent = rootFolder;
+    if ( virtual_folder_path != '' ) targetFolderParent = GetMsgFolderFromUri(virtual_folder_path, true);
+    var QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
-    if ( !rootFolder.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
+    if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
       var allFolders = this.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
       rootFolder.ListDescendents(allFolders);
       var numFolders = allFolders.Count();
@@ -375,7 +379,7 @@ let ExpressionSearchChrome = {
     }
 
     //Check if folder exists already
-    if (rootFolder.containsChildNamed(QSFolderName)) {
+    if (targetFolderParent.containsChildNamed(QSFolderName)) {
       // modify existing folder
       var msgFolder = GetMsgFolderFromUri(QSFolderURI);
       if (!msgFolder.isSpecialFolder(nsMsgFolderFlags.Virtual,false)) {
@@ -390,10 +394,9 @@ let ExpressionSearchChrome = {
       }
       virtualFolderWrapper.onlineSearch = false;
       virtualFolderWrapper.cleanUpMessageDatabase();
-      var accountManager = this.Cc["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-      accountManager.saveVirtualFolders();
+      MailServices.accounts.saveVirtualFolders();
     } else {
-      VirtualFolderHelper.createNewVirtualFolder(QSFolderName, rootFolder, uriSearchString, searchTerms, false);
+      VirtualFolderHelper.createNewVirtualFolder(QSFolderName, targetFolderParent, uriSearchString, searchTerms, false);
     }
 
     if (currURI == QSFolderURI) {
@@ -584,8 +587,7 @@ let ExpressionSearchChrome = {
     this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str); // must before loadTab
     let anchor = '';
     if ( this.options.installed_version != "0.1" ) anchor = '#version_history'; // this is an update
-    let firstRun = this.Cc["@mozilla.org/xpcom/version-comparator;1"].getService(this.Ci.nsIVersionComparator)
-                      .compare( this.options.current_version, this.options.installed_version );
+    let firstRun = Services.vc.compare( this.options.current_version, this.options.installed_version );
     if ( firstRun > 0 ) { // first for this version
       ExpressionSearchCommon.loadTab('expressionsearch.helpfile', anchor);
     }

@@ -11,6 +11,8 @@ let Cc = Components.classes;
 Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
@@ -92,9 +94,38 @@ function _getRegEx(aSearchValue) {
     let searchFlags;
     [searchValue, searchFlags] = _getRegEx(aSearchValue);
     let regexp = new RegExp(searchValue, searchFlags);
-    let res = regexp.test(subject);
-    if ( aSearchOp == nsMsgSearchOp.Matches ) return res;
-    return !res;
+    return regexp.test(subject) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+  };
+  
+  let headerRegex = new customerTermBase("headerRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  headerRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    // the header and its regex are separated by a '~' or '=' in aSearchValue
+    // 'List-Id=/all-test/i' will match all messages that have List-ID header, and it's content match /all-test/i
+    // 'List-ID' will match all messages that have this header.
+    ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
+    // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
+    // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
+    
+    let headerName = aSearchValue;
+    let colonIndex = aSearchValue.indexOf('~');
+    if (colonIndex == -1) colonIndex = aSearchValue.indexOf('=');
+    if (colonIndex == -1) {
+      ExpressionSearchLog.log('name:' + headerName);
+      let headerValue = aMsgHdr.getStringProperty(headerName);
+      ExpressionSearchLog.log('value:' + headerValue + ":"+ aMsgHdr.getProperty(headerName) );
+      return aSearchOp != nsMsgSearchOp.Matches;
+    }
+    headerName = aSearchValue.slice(0, colonIndex);
+    let regex = aSearchValue.slice(colonIndex + 1); 
+    let searchValue;
+    let searchFlags;
+    [searchValue, searchFlags] = _getRegEx(regex);
+    let regexp = new RegExp(searchValue, searchFlags);
+    let headerValue = aMsgHdr.getStringProperty(headerName);
+    //return regexp.test(headerValue) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+    
+    // https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js msgHdrGetHeaders
+    return false;
   };
 
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
@@ -161,7 +192,7 @@ function _getRegEx(aSearchValue) {
       */
       let topWin = {};
       let searchSession = {};
-      let topWins = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getEnumerator(null);
+      let topWins = Services.wm.getEnumerator(null);
       while (topWins.hasMoreElements()) {
         topWin = topWins.getNext();
         topWin.QueryInterface(Ci.nsIDOMWindowInternal);
@@ -241,7 +272,7 @@ function _getRegEx(aSearchValue) {
         complete = true;
       });
       // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
-      let thread = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
+      let thread = Services.tm.currentThread;
       while (!complete && !ExpressionSearchVariable.stopped && ExpressionSearchVariable.stopreq == Number.MAX_VALUE && !ExpressionSearchVariable.stopping ) {
           thread.processNextEvent(true); // may wait
       }
@@ -256,10 +287,11 @@ function _getRegEx(aSearchValue) {
     }
   };
 
-  let filterService = Cc["@mozilla.org/messenger/services/filters;1"].getService(Ci.nsIMsgFilterService);
+  let filterService = MailServices.filters;
   filterService.addCustomTerm(bccSearch);
   filterService.addCustomTerm(toSomebodyOnly);
   filterService.addCustomTerm(subjectRegex);
+  filterService.addCustomTerm(headerRegex);
   filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
@@ -286,7 +318,7 @@ let ExperssionSearchFilter = {
         if ( aTermCreator && aTermCreator.window && aTermCreator.window.domWindow &&  aTermCreator.window.domWindow.ExpressionSearchChrome )
           topWin = aTermCreator.window.domWindow;
         else
-          topWin = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator).getMostRecentWindow("mail:3pane");
+          topWin = Services.wm.getMostRecentWindow("mail:3pane");
 
         // check if in normal filter mode
         if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
@@ -497,8 +529,7 @@ let ExperssionSearchFilter = {
   },
 
   get_key_from_tag: function(myTag) {
-    var tagService = Cc["@mozilla.org/messenger/tagservice;1"].getService(Ci.nsIMsgTagService); 
-    var tagArray = tagService.getAllTags({});
+    var tagArray = MailServices.tags.getAllTags({});
     // consider two tags, one is "ABC", the other is "ABCD", when searching for "AB", perfect is return both.
     // however, that need change the token tree.
     // so here I just return the best fit "ABC".

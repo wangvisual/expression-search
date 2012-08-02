@@ -4,6 +4,8 @@
 
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var ExpressionSearchLog = {
   popup: function(title, msg) {
     try {
@@ -18,17 +20,13 @@ var ExpressionSearchLog = {
   info: function(msg,popup) {
     let verbose = true;
     try {
-      let prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService)
-         .getBranch("extensions.expressionsearch.");
-      prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-      verbose = prefs.getBoolPref("enable_verbose_info");
+      verbose = Services.prefs.getBranch("extensions.expressionsearch.").getBoolPref("enable_verbose_info");
     } catch(e){}
     if (verbose) this.log(msg,popup);
   },
 
   log: function(msg,popup) {
-    var console = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-    console.logStringMessage(msg);
+    Services.console.logStringMessage(msg);
     if ( typeof(popup)!='undefined' && popup )
       this.popup("Warning!",msg);
   },
