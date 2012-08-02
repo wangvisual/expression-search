@@ -97,37 +97,6 @@ function _getRegEx(aSearchValue) {
     return regexp.test(subject) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
   };
   
-  let headerRegex = new customerTermBase("headerRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
-  headerRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    // the header and its regex are separated by a '~' or '=' in aSearchValue
-    // 'List-Id=/all-test/i' will match all messages that have List-ID header, and it's content match /all-test/i
-    // 'List-ID' will match all messages that have this header.
-    ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
-    // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
-    // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
-    
-    let headerName = aSearchValue;
-    let colonIndex = aSearchValue.indexOf('~');
-    if (colonIndex == -1) colonIndex = aSearchValue.indexOf('=');
-    if (colonIndex == -1) {
-      ExpressionSearchLog.log('name:' + headerName);
-      let headerValue = aMsgHdr.getStringProperty(headerName);
-      ExpressionSearchLog.log('value:' + headerValue + ":"+ aMsgHdr.getProperty(headerName) );
-      return aSearchOp != nsMsgSearchOp.Matches;
-    }
-    headerName = aSearchValue.slice(0, colonIndex);
-    let regex = aSearchValue.slice(colonIndex + 1); 
-    let searchValue;
-    let searchFlags;
-    [searchValue, searchFlags] = _getRegEx(regex);
-    let regexp = new RegExp(searchValue, searchFlags);
-    let headerValue = aMsgHdr.getStringProperty(headerName);
-    //return regexp.test(headerValue) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
-    
-    // https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js msgHdrGetHeaders
-    return false;
-  };
-
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
   // case sensitive, not like normal subject search
   // TODO: remove this as this bug was fixed
@@ -291,7 +260,6 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(bccSearch);
   filterService.addCustomTerm(toSomebodyOnly);
   filterService.addCustomTerm(subjectRegex);
-  filterService.addCustomTerm(headerRegex);
   filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
