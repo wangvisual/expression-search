@@ -12,3 +12,22 @@
 .search-value-custom[searchAttribute^="expressionsearch#"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }
+
+/* make the main bar looks better when placed on menubar/toolbar */
+#mail-bar3 #quick-filter-bar-main-bar,
+#mail-toolbar-menubar2 #quick-filter-bar-main-bar {
+  width: 600px;
+  -moz-box-flex: 1;
+  flex: 1;
+  background-color: transparent;
+  border: 0 solid red;
+}
+
+/* fix the result label color issue when placed on menubar/toolbar */
+#qfb-results-label[filterActive="matches"] {
+  color: green;
+}
+
+#qfb-results-label[filterActive="nomatches"] {
+  color: #f66;
+}

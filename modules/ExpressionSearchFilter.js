@@ -243,7 +243,7 @@ function _getRegEx(aSearchValue) {
       // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
       let thread = Services.tm.currentThread;
       while (!complete && !ExpressionSearchVariable.stopped && ExpressionSearchVariable.stopreq == Number.MAX_VALUE && !ExpressionSearchVariable.stopping ) {
-          thread.processNextEvent(true); // may wait
+          thread.processNextEvent(true); // may wait, and validator will report warnings of dead lock on this line
       }
 
       if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
@@ -342,12 +342,10 @@ let ExperssionSearchFilter = {
     // -- platform-dependent emptytext setup
     let filterNode = aDocument.getElementById('qfb-qs-textbox');
     let quickKey = '';
-    let attributeName = "emptytext"; // for 3.1
+    let attributeName = "placeholder";
     if ( filterNode && typeof(Application)!='undefined' ) {
-      if ( filterNode.hasAttribute("placeholder") )
-        attributeName = "placeholder"; // for 3.3
       quickKey = filterNode.getAttribute(Application.platformIsMac ? "keyLabelMac" : "keyLabelNonMac");
-      // now Ctrl+F will focus to our input, so remove the message in this one
+      // now Ctrl+F will focus to our input, so remove the message in builtin one
       filterNode.setAttribute( attributeName, filterNode.getAttribute("emptytextbase").replace("#1", '') );
       // force to update the message
       filterNode.value = '';

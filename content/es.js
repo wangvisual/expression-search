@@ -13,8 +13,7 @@ let ExpressionSearchChrome = {
   // if last key is Enter
   isEnter: 0,
   
-  needMoveIds: ["qfb-sticky", "quick-filter-bar-collapsible-buttons", "qfb-results-label", "expression-search-textbox"],
-  collapsibleButtons: ["qfb-unread", "qfb-starred", "qfb-inaddrbook", "qfb-tags", "qfb-attachment"],
+  needMoveId: "quick-filter-bar-main-bar",
   textBoxDomId: "expression-search-textbox",
   
   prefs: null, // preference object
@@ -125,19 +124,15 @@ let ExpressionSearchChrome = {
       let aFolderDisplay = invocation.arguments[0];
       let tab = aFolderDisplay._tabInfo;
       let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
-      ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
-        document.getElementById(ID).style.visibility = appropriate ? 'visible': 'hidden';
-      } );
+      document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = appropriate ? 'visible': 'hidden';
       return invocation.proceed();
     })[0] );
     
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.before( {target: QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
       let filterer = this.maybeActiveFilterer;
-      ExpressionSearchChrome.needMoveIds.concat(ExpressionSearchChrome.collapsibleButtons).forEach( function(ID, index, array) {
-        // filterer means if the tab can use quick filter
-        // filterer.visible means if the quick search bar is visible
-        document.getElementById(ID).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
-      } );
+      // filterer means if the tab can use quick filter
+      // filterer.visible means if the quick search bar is visible
+      document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
     })[0] );
     
     // hook _flattenGroupifyTerms to avoid being flatten
@@ -166,6 +161,16 @@ let ExpressionSearchChrome = {
         }
       }
       return outTerms;
+    })[0] );
+    
+    // for results label to show correct color by copy filterActive attribute from quick-filter-bar to qfb-results-label, and set color in overlay.css
+    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.after( {target: QuickFilterBarMuxer, method: 'reflectFiltererResults'}, function(result) {
+      let qfb = document.getElementById("quick-filter-bar");
+      let resultsLabel = document.getElementById("qfb-results-label");
+      if ( qfb && resultsLabel ) {
+        resultsLabel.setAttribute( "filterActive", qfb.getAttribute("filterActive") || '' );
+      }
+      return result;
     })[0] );
     
     // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
@@ -229,13 +234,10 @@ let ExpressionSearchChrome = {
   
     //quick-filter-bar
     //  quick-filter-bar-main-bar
+    //    qfb-sticky qfb-filter-label [quick-filter-bar-collapsible-buttons] [100 results] [search filter]
     //  quick-filter-bar-expando
     //    quick-filter-bar-tab-bar : it's taG bar
     //    quick-filter-bar-filter-text-bar.collapsed=(aFilterValue.text == null);
-    
-    //qfb-sticky [quick-filter-bar-collapsible-buttons] [100 results] [search filter]
-    //                                          subject ...
-    
     //QuickFilterState.visible
     
     //QuickFilterBarMuxer
@@ -244,6 +246,8 @@ let ExpressionSearchChrome = {
     let filterNode = document.getElementById('qfb-qs-textbox');
     if ( filterNode && filterNode.style ) {
       filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
+      filterNode.setAttribute('width', this.options.move2bar == 2 ? 100 : 320);
+      filterNode.setAttribute('minwidth', this.options.move2bar == 2 ? 80 : 280);
     }
     if ( filterNode && ExpressionSearchChrome.options.hide_normal_filer ) // hide normal filter, so reset it
       filterNode.value = '';
@@ -251,39 +255,23 @@ let ExpressionSearchChrome = {
     if ( filterLabel && filterLabel.style ) {
       filterLabel.style.display = this.options.hide_filter_label ? 'none' : '';
     }
-    let spacer = document.getElementById('qfb-filter-bar-spacer');
-    if ( spacer ) {
-      spacer.flex = this.options.hide_filter_label ? 1 : 200;
-    }
-    let show = ( this.options.move2bar==0 || !this.options.hide_normal_filer );
-    let mainbar = document.getElementById("quick-filter-bar-main-bar");
-    mainbar.collapsed = show ? false: true; // only me will change mainbar status, TB won't
 
     // move expression search box along with other buttons to dest position
     if ( this.options.move2bar == this.options.savedPosition ) return;
-    let dest = "quick-filter-bar-main-bar";
+    this.options.savedPosition = this.options.move2bar;
+    let dest = 'quick-filter-bar';
     let reference = null;
     if ( this.options.move2bar == 0 )
-      reference = document.getElementById("qfb-filter-label");
-    else if ( this.options.move2bar == 1 )
+      reference = document.getElementById("quick-filter-bar-expando");
+    else if ( this.options.move2bar == 1 ) {
       dest = 'mail-bar3';
+      reference = document.getElementById('qfb-show-filter-bar');
+    }
     else if ( this.options.move2bar == 2 )
       dest = 'mail-toolbar-menubar2';
     var toolbar = document.getElementById(dest);
-    var i = 0;
-    while ( i < this.needMoveIds.length ) {
-        var needMove = document.getElementById(this.needMoveIds[i]);
-        toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
-        i++;
-        if ( this.options.move2bar == 0 )
-          if ( i == 1 )
-            reference = document.getElementById("qfb-filter-bar-spacer");
-          else if ( i == 2 )
-            reference = document.getElementById("qfb-qs-textbox");
-          else if ( i == 3 )
-            reference = null;
-    }
-    this.options.savedPosition = this.options.move2bar;
+    var needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
+    toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
   },
   
   hideUpsellPanel: function() {
@@ -404,6 +392,7 @@ let ExpressionSearchChrome = {
       SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
     }
     SelectFolder(QSFolderURI);
+    //ExpressionSearchCommon.loadTab( {folder: msgFolder, type:'folder'} ); // load in Tab, cause getFilter error
   },
 
   // select first message, expand first container if closed
