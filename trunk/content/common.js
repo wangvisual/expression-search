@@ -24,7 +24,7 @@ var ExpressionSearchCommon = {
     window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null,
       { tabType: "contentTab", tabParams: {contentPage: ExpressionSearchCommon.translateURL(url,anchor) } });
   },
-  loadTab: function(url,anchor) {
+  getTabObject: function() {
     let tabmail = document.getElementById("tabmail");
     if (!tabmail) {
       // Try opening new tabs in an existing 3pane window
@@ -34,10 +34,20 @@ var ExpressionSearchCommon = {
         mail3PaneWindow.focus();
       }
     }
+    return tabmail;
+  },
+  loadTab: function(url,anchor) {
+    let args = { type: 'contentTab' };
+    let tabmail = ExpressionSearchCommon.getTabObject();
+    if ( typeof(url) == 'object' ) {
+        args = url;
+    } else {
+        args.contentPage = ExpressionSearchCommon.translateURL(url,anchor);
+    }
     if (tabmail)
-      tabmail.openTab("contentTab", {contentPage: ExpressionSearchCommon.translateURL(url,anchor)});
+      tabmail.openTab( args.type, args );
     else
-      this.loadURL(url);
+      this.loadURL(args.contentPage || args.folder);
   },
   sendEmail: function(url) {
     var uri = Components.classes["@mozilla.org/network/simple-uri;1"].getService(Components.interfaces.nsIURI);
