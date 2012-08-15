@@ -125,6 +125,7 @@ let ExpressionSearchChrome = {
       let tab = aFolderDisplay._tabInfo;
       let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
       document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = appropriate ? 'visible': 'hidden';
+      document.getElementById("qfb-results-label").style.visibility = appropriate ? 'visible': 'hidden';
       return invocation.proceed();
     })[0] );
     
@@ -133,6 +134,7 @@ let ExpressionSearchChrome = {
       // filterer means if the tab can use quick filter
       // filterer.visible means if the quick search bar is visible
       document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
+      document.getElementById("qfb-results-label").style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
     })[0] );
     
     // hook _flattenGroupifyTerms to avoid being flatten
