@@ -15,6 +15,7 @@
     <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool"/>
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
+    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
     <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int"/>
@@ -33,6 +34,16 @@
         <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
         <checkbox preference="pref_act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
         <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
+        <hbox align='center'>
+          <menulist preference='pref_showbuttonlabel'>
+            <menupopup>
+              <menuitem label="&expressionsearch.option.showbuttonlabel.auto;" value="0"/>
+              <menuitem label="&expressionsearch.option.showbuttonlabel.show;" value="1"/>
+              <menuitem label="&expressionsearch.option.showbuttonlabel.hide;" value="2"/>
+            </menupopup>
+          </menulist>
+          <text value='&expressionsearch.option.showbuttonlabel;' />
+        </hbox>
         <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
         <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
         <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">

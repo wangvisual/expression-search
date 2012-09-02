@@ -31,3 +31,12 @@
 #qfb-results-label[filterActive="nomatches"] {
   color: #f66;
 }
+
+/* force show or hide button text */
+#quick-filter-bar-collapsible-buttons.hidelabel toolbarbutton label.toolbarbutton-text {
+  display: none;
+}
+
+#quick-filter-bar-collapsible-buttons.showlabel toolbarbutton label.toolbarbutton-text {
+  display: inline;
+}

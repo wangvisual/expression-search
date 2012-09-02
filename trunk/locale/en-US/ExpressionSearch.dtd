@@ -15,6 +15,10 @@
 <!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
 <!ENTITY expressionsearch.option.act_as_normal_filter "Act as Normal Filter when no tokens found in search string">
 <!ENTITY expressionsearch.option.hidelabel "Hide string 'Quick Filter' to get more space">
+<!ENTITY expressionsearch.option.showbuttonlabel.auto "Automatically show/hide">
+<!ENTITY expressionsearch.option.showbuttonlabel.show "Always show">
+<!ENTITY expressionsearch.option.showbuttonlabel.hide "Always hide">
+<!ENTITY expressionsearch.option.showbuttonlabel "text label of 'Quick Filter' buttons">
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">

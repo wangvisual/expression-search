@@ -70,6 +70,7 @@ let ExpressionSearchChrome = {
       this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
       this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
       this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
+      this.options.showbuttonlabel = this.prefs.getIntPref("showbuttonlabel"); // 0:auto 1:force show 2:force hide
       this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
       this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
       this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
@@ -96,6 +97,7 @@ let ExpressionSearchChrome = {
          this.options[data] = this.prefs.getBoolPref(data);
          break;
        case "move2bar":
+       case "showbuttonlabel":
          this.options[data] = this.prefs.getIntPref(data);
          break;
        case "c2s_regexpMatch":
@@ -103,7 +105,7 @@ let ExpressionSearchChrome = {
          this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
          break;
      }
-     if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' )
+     if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' )
        this.refreshFilterBar();
   },
 
@@ -248,8 +250,8 @@ let ExpressionSearchChrome = {
     let filterNode = document.getElementById('qfb-qs-textbox');
     if ( filterNode && filterNode.style ) {
       filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
-      filterNode.setAttribute('width', this.options.move2bar == 2 ? 100 : 320);
-      filterNode.setAttribute('minwidth', this.options.move2bar == 2 ? 80 : 280);
+      filterNode.setAttribute('width', this.options.move2bar == 0 ? 100 : 320);
+      filterNode.setAttribute('minwidth', this.options.move2bar == 0 ? 80 : 280);
     }
     if ( filterNode && ExpressionSearchChrome.options.hide_normal_filer ) // hide normal filter, so reset it
       filterNode.value = '';
@@ -259,21 +261,44 @@ let ExpressionSearchChrome = {
     }
 
     // move expression search box along with other buttons to dest position
-    if ( this.options.move2bar == this.options.savedPosition ) return;
-    this.options.savedPosition = this.options.move2bar;
-    let dest = 'quick-filter-bar';
-    let reference = null;
-    if ( this.options.move2bar == 0 )
-      reference = document.getElementById("quick-filter-bar-expando");
-    else if ( this.options.move2bar == 1 ) {
-      dest = 'mail-bar3';
-      reference = document.getElementById('qfb-show-filter-bar');
+    if ( this.options.move2bar != this.options.savedPosition ) {
+      this.options.savedPosition = this.options.move2bar;
+      let dest = 'quick-filter-bar';
+      let reference = null;
+      if ( this.options.move2bar == 0 )
+        reference = document.getElementById("quick-filter-bar-expando");
+      else if ( this.options.move2bar == 1 ) {
+        dest = 'mail-bar3';
+        reference = document.getElementById('qfb-show-filter-bar');
+      }
+      else if ( this.options.move2bar == 2 )
+        dest = 'mail-toolbar-menubar2';
+      let toolbar = document.getElementById(dest);
+      let needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
+      toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
     }
-    else if ( this.options.move2bar == 2 )
-      dest = 'mail-toolbar-menubar2';
-    var toolbar = document.getElementById(dest);
-    var needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
-    toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
+    
+    let collapsible = document.getElementById('quick-filter-bar-collapsible-buttons');
+    if ( collapsible && collapsible.classList ) {
+      collapsible.classList.remove("hidelabel");
+      collapsible.classList.remove("showlabel");
+      if ( this.options.showbuttonlabel == 1 ) {
+        collapsible.classList.add("showlabel");
+      } else if ( this.options.showbuttonlabel == 2 ) {
+        collapsible.classList.add("hidelabel");
+      } else if ( this.options.showbuttonlabel == 0 ) {
+        // auto show/hide collapsible buttons
+        if ( QuickFilterBarMuxer._buttonLabelsCollapsed ) {
+          QuickFilterBarMuxer._minExpandedBarWidth = 0; // let it re-calculate the min expanded bar width because we changed the layout
+          QuickFilterBarMuxer.onWindowResize.apply(QuickFilterBarMuxer);
+        } else {
+          let quickFilterBarBox = document.getElementById("quick-filter-bar-main-bar"); 
+          if ( quickFilterBarBox && quickFilterBarBox.clientWidth < quickFilterBarBox.scrollWidth ) {
+            QuickFilterBarMuxer.onOverflow.apply(QuickFilterBarMuxer);
+          }
+        }
+      }
+    }
   },
   
   hideUpsellPanel: function() {
@@ -302,7 +327,7 @@ let ExpressionSearchChrome = {
           ExperssionSearchFilter.latchQSFolderReq = ExpressionSearchChrome;
           this._fireCommand(this);
         } else {
-          var e = compute_expression(searchValue);
+          let e = compute_expression(searchValue);
           if (e.kind == 'spec' && e.tok == 'calc') {
             ExpressionSearchChrome.isEnter = 0; // showCalculationResult also will select the result.
             ExpressionSearchChrome.showCalculationResult(e);
