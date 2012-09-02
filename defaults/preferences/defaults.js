@@ -7,6 +7,7 @@ pref("extensions.expressionsearch.select_msg_on_enter", false);
 pref("extensions.expressionsearch.enable_verbose_info", false);
 pref("extensions.expressionsearch.virtual_folder_path", "");
 pref("extensions.expressionsearch.move2bar", 0);
+pref("extensions.expressionsearch.showbuttonlabel", 0);
 
 pref("extensions.expressionsearch.c2s_enableCtrl", true);
 pref("extensions.expressionsearch.c2s_enableShift", false);
