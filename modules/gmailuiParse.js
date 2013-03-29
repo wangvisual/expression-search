@@ -13,7 +13,23 @@
     delete all white spaces including ' ', \t etc.
 */
 
-var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix"];
+var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "expression_search_all_tokens"];
+
+let Cu = Components.utils;
+Cu.import("resource://expressionsearch/log.js");
+let tokenDict = { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], body:['b'], attachment:['a'],
+                  tag: ['l','label'], before:['be'], after: ['af'], date: ['d'], days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['nt'],
+                  status: ['u','is','i'], regex:['re','r'], filename:['fi','fn', 'file'] };
+let tokenMap = {}; //{ f: 'from', t: 'to', toorcc: 'to' };
+let allTokenArray = []; // ['from', 'f', 'to', 't', 'toorcc']
+for ( let token_standard_name in tokenDict ) {
+  allTokenArray = allTokenArray.concat(token_standard_name, tokenDict[token_standard_name]);
+  for ( let token_alias of tokenDict[token_standard_name] ) {
+    tokenMap[token_alias] = token_standard_name;
+  }
+}
+let tokenInfo = { to: 'To or CC field contains' };
+var expression_search_all_tokens = allTokenArray.join('|'); //'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af';
 
 ////////// Tokenize
 
@@ -87,16 +103,15 @@ function ADVANCE_TOKEN() {
 
   // not a single-char token, so scan it all in.
   var tok = "";
-  let allTokens = 'simple|regex|re|r|date|d|filename|fi|fn|from|f|toorcc|to|t|tonocc|tn|bcc|bc|cc|c|only|o|subject|s|all|a|age|ag|days|da|body|b|attachment|tag|label|l|status|u|is|i|before|be|after|af';
   if (!this.calc) {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
     /*while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
-      if ( this.str[0] == ':' && allTokens.test(tok) ) break;
+      if ( this.str[0] == ':' && expression_search_all_tokens.test(tok) ) break;
       tok+=this.str[0];
       this.str = this.str.substr(1);
     }*/
-    let splitTokens = new RegExp('^('+allTokens+")(:.*)");
+    let splitTokens = new RegExp('^('+expression_search_all_tokens+")(:.*)");
     let splitResult = splitTokens.exec(this.str);
     if ( splitResult != null ) {
       tok = splitResult[1];
@@ -129,25 +144,9 @@ function ADVANCE_TOKEN() {
 
   if (this.str[0] == ':') {
     this.str = this.str.substr(1);
-    let testToken = new RegExp('^(?:' + allTokens + ')$');
+    let testToken = new RegExp('^(?:' + expression_search_all_tokens + ')$');
     if ( testToken.test(tok) ) {
-      if (tok == 'f') tok = 'from';
-      else if (tok == 't' || tok == 'toorcc') tok = 'to'; // to or cc
-      else if (tok == 'tn') tok = 'tonocc'; // to, no cc, no bcc
-      else if (tok == 'c') tok = 'cc'; // cc, no bcc
-      else if (tok == 'bc') tok = 'bcc';
-      else if (tok == 'o') tok = 'only'; // to somebody only
-      else if (tok == 's') tok = 'subject';
-      else if (tok == 'b') tok = 'body';
-      else if (tok == 'a') tok = 'attachment';
-      else if (tok == 'l' || tok == 'label') tok = 'tag';
-      else if (tok == 'be') tok = 'before';
-      else if (tok == 'af') tok = 'after';
-      else if (tok == 'd') tok = 'date';
-      else if (tok == 'da' || tok == 'age' || tok == 'ag') tok = 'days';
-      else if (tok == 'u' || tok == 'is' || tok == 'i' ) tok = 'status';
-      else if (tok == 're' || tok == 'r') tok = 'regex';
-      else if (tok == 'fi' || tok == 'fn') tok = 'filename';
+      if ( typeof(tokenMap[tok]) != 'undefined' ) tok = tokenMap[tok]; // f => from
       this.next_token = {
         kind: 'spec',
         tok: tok
@@ -575,9 +574,9 @@ function expr_demorgan(e) {
       else if (under.tok == '-')
         return under.left;
       else
-         alert('internal error in demorgan: 1');
+         ExpressionSearchLog.log('internal error in demorgan: bad',1);
     } else if (under.kind != 'spec') {
-      alert('internal error in demorgan: 2');
+      ExpressionSearchLog.log('internal error in demorgan: not spec',1);
     }
   } else {
     if (e.left != undefined)
