@@ -220,6 +220,7 @@ let ExpressionSearchChrome = {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode && aNode.removeEventListener ) {
         aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
+        aNode.removeEventListener("click", ExpressionSearchChrome.onTokenChange, true);
         aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
         aNode.removeEventListener("click", ExpressionSearchChrome.onSearchBarFocus, true);
     }
@@ -307,9 +308,50 @@ let ExpressionSearchChrome = {
       panel.hidePopup();
   },
   
+  helpTimer: 0,
+
+  showHideHelp: function(show, line1, line2, line3, line4) {
+    if ( typeof(document) == 'undefined' || typeof(document.defaultView) == 'undefined' ) return;
+    let tooltip = document.getElementById("expression-search-tooltip");
+    let tooltip1 = document.getElementById("expression-search-tooltip-line1");
+    let tooltip2 = document.getElementById("expression-search-tooltip-line2");
+    let tooltip3 = document.getElementById("expression-search-tooltip-line3");
+    let tooltip4 = document.getElementById("expression-search-tooltip-line4");
+    let statusbaricon = document.getElementById("status-bar-expressionsearch");
+    if ( tooltip && tooltip1 && tooltip2 && tooltip3 && tooltip4 && statusbaricon ) {
+      if ( typeof(line1) != 'undefined' ) tooltip1.textContent = line1;
+      if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
+      if ( typeof(line3) != 'undefined' ) tooltip3.textContent = line3;
+      if ( typeof(line4) != 'undefined' ) tooltip4.textContent = line4;
+      if ( this.helpTimer > 0 ) {
+        window.clearTimeout( this.helpTimer );
+        this.helpTimer = 0;
+      }
+      let time2hide = 2000;
+      if ( show ) {
+        tooltip.openPopup(statusbaricon, "before_start", 0, 0, false, true, null);
+        time2hide = 5000;
+      }
+      this.helpTimer = window.setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
+    }
+  },
+  
+  onTokenChange: function() {
+    let searchValue = this.value;
+    let start = searchValue.lastIndexOf(' ', this.selectionEnd > 0 ? this.selectionEnd - 1 : 0); // selectionEnd is index of the character after the selection
+    let currentString = searchValue.substring(start+1, this.selectionEnd);
+    currentString = currentString.replace(/:.*/,'');
+    ExpressionSearchLog.log("string:"+currentString);
+    ExpressionSearchLog.logObject(ExpressionSearchTokens.mostFit(currentString),'ret',1);
+    let help = ExpressionSearchTokens.mostFit(currentString);
+    let term = undefined;
+    if ( searchValue == '' ) term = ' ';
+    ExpressionSearchChrome.showHideHelp(1, help.alias, help.info, help.matchString, term);
+  },
+  
   onSearchKeyPress: function(event){
     ExpressionSearchChrome.isEnter = 0;
-    let searchValue = this.value; // this is aNode/my search text box
+    let searchValue = this.value; // this is aNode/my search text box, not updated with event.char yet
     if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
       ExpressionSearchChrome.isEnter = 1;
       let panel = document.getElementById("qfb-text-search-upsell");
@@ -341,19 +383,26 @@ let ExpressionSearchChrome = {
       ExpressionSearchChrome.selectFirstMessage(true);
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
       ExpressionSearchChrome.selectFirstMessage(); // no select message, but select pane
+    else {
+      let self = this;
+      window.setTimeout( function(){ ExpressionSearchChrome.onTokenChange.apply(self) ;}, 1  ); // defer the call or this.value is still the old value
+    }
   },
   
   onSearchBarFocus: function(event) {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
-    if ( aNode && aNode.value == '' ) {
-      QuickFilterBarMuxer._showFilterBar(true);
+    if ( aNode ) {
+      if ( aNode.value == '' ) QuickFilterBarMuxer._showFilterBar(true);
+      ExpressionSearchChrome.onTokenChange.apply(aNode);
     }
   },
 
   initSearchInput: function() {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode ) {
-      aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too later, 
+      aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too late
+      //aNode.addEventListener("input", ExpressionSearchChrome.onTokenChange, true); // input can't get arrow key change
+      aNode.addEventListener("click", ExpressionSearchChrome.onTokenChange, true); // to track selectEnd change
       aNode.addEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
       aNode.addEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
     }
@@ -530,7 +579,7 @@ let ExpressionSearchChrome = {
     if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
     var row = {}; var col = {}; var childElt = {};
     event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-    if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' ) return;
+    if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' || row.value < 0 || col.value == null ) return;
     // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
     let token = "";
     let sCellText = event.currentTarget.view.getCellText(row.value, col.value);

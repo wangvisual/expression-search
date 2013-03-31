@@ -105,6 +105,46 @@ function _getRegEx(aSearchValue) {
     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
     return !res;
   };
+  
+  let headerRegex = new customerTermBase("headerRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  headerRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=363238
+    // https://developer.mozilla.org/en-US/docs/Extensions/Thunderbird/customDBHeaders_Preference
+    // the header and its regex are separated by a '~' or '=' in aSearchValue
+    // 'List-Id=/all-test/i' will match all messages that have List-ID header, and it's content match /all-test/i
+    // 'List-ID' will match all messages that have this header.
+    //ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
+    // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
+    // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
+
+    let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
+    while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
+    ExpressionSearchLog.log(str);
+    // flags:1 label:0 statusOfset:21 sender:<cc@some.com> recipients:swe-web@some.com subject:[swe-web] Error: Web Applications Down message-id:201202030701.q1371Noo014742@peopf999.some.com date:4f2b8643 dateReceived:4f2b864b priority:1 list-id:<swe-web.some.com> x-mime-autoconverted:from quoted-printable to 8bit by sympa.some.com id q1371O8j002081 msgCharSet:iso-8859-1 msgOffset:1f6e size:4728 numLines:180 storeToken:8046 threadParent:ffffffff msgThreadId:1f6e ProtoThreadFlags:0 sender_name:2453|swe-web@some.COM
+    // Can't add content-type/receieved etc to customDBHeaders which thunderbird already parsed and removed from header
+
+    
+    let headerName = aSearchValue.toLowerCase();
+    let colonIndex = aSearchValue.indexOf('~');
+    if (colonIndex == -1) colonIndex = aSearchValue.indexOf('=');
+    if (colonIndex == -1) {
+      ExpressionSearchLog.log('name:' + headerName);
+      let headerValue = aMsgHdr.getStringProperty(headerName);
+      ExpressionSearchLog.log('value:' + headerValue + ":"+ aMsgHdr.getProperty(headerName) );
+      return aSearchOp != nsMsgSearchOp.Matches;
+    }
+    headerName = aSearchValue.slice(0, colonIndex);
+    let regex = aSearchValue.slice(colonIndex + 1); 
+    let searchValue;
+    let searchFlags;
+    [searchValue, searchFlags] = _getRegEx(regex);
+    let regexp = new RegExp(searchValue, searchFlags);
+    let headerValue = aMsgHdr.getStringProperty(headerName);
+    //return regexp.test(headerValue) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+    
+    // https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js msgHdrGetHeaders
+    return false;
+  };
 
   let dayTime = new customerTermBase("dayTime", [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter]);
   dayTime.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
@@ -261,6 +301,7 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(toSomebodyOnly);
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(subjectSimple);
+  filterService.addCustomTerm(headerRegex);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
   filterService.addCustomTerm(attachmentNameOrType);
@@ -272,25 +313,24 @@ let ExperssionSearchFilter = {
   
   // request to create virtual folder, set to the ExpressionSearchChrome when need to create
   latchQSFolderReq: 0,
-  allTokens: 'simple|regex|re|r|date|d|filename|fi|fn|from|f|toorcc|to|t|tonocc|tn|bcc|bc|cc|c|only|o|subject|s|all|a|age|ag|days|da|body|b|attachment|tag|label|l|status|u|is|i|before|be|after|af',
 
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
-    if (aFilterValue.text) {
-      try {
+    try {
+      // we're in javascript modules, no window object, so first find the top window
+      let topWin = {};
+      if ( aTermCreator && aTermCreator.window && aTermCreator.window.domWindow &&  aTermCreator.window.domWindow.ExpressionSearchChrome )
+        topWin = aTermCreator.window.domWindow;
+      else
+        topWin = Services.wm.getMostRecentWindow("mail:3pane");
+
+      if (aFilterValue.text) {
         if ( aFilterValue.text.toLowerCase().indexOf('g:') == 0 ) { // may get called when init with saved values in searchInput.
           return;
         }
       
-        // we're in javascript modules, no window object, so first find the top window
-        let topWin = {};
-        if ( aTermCreator && aTermCreator.window && aTermCreator.window.domWindow &&  aTermCreator.window.domWindow.ExpressionSearchChrome )
-          topWin = aTermCreator.window.domWindow;
-        else
-          topWin = Services.wm.getMostRecentWindow("mail:3pane");
-
         // check if in normal filter mode
         if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
-          let checkColon = new RegExp('(?:^|\\b)(?:' + ExperssionSearchFilter.allTokens + '):', 'g');
+          let checkColon = new RegExp('(?:^|\\b)(?:' + ExpressionSearchTokens.allTokens + '):', 'g');
           if ( !checkColon.test(aFilterValue.text) ) { // can't find any my token
             let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
             // Use normalFilter's appendTerms to create search term
@@ -299,6 +339,7 @@ let ExperssionSearchFilter = {
             normalFilterState.text = aFilterValue.text;
             let normalFilter = QuickFilterManager.filterDefsByName['text'];
             normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
+            topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
             normalFilterState.text = originalText;
             topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
             return;
@@ -311,8 +352,8 @@ let ExperssionSearchFilter = {
         
         // first remove trailing specifications if it's empty
         // then remove trailing ' and' but no remove of "f: and"
-        let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExperssionSearchFilter.allTokens + '):(?:\\(|)\\s*$', "i");
-        let regExpSearch = new RegExp( '\\b(?:' + ExperssionSearchFilter.allTokens + '):\\s+and\\s*$', "i");
+        let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExpressionSearchTokens.allTokens + '):(?:\\(|)\\s*$', "i");
+        let regExpSearch = new RegExp( '\\b(?:' + ExpressionSearchTokens.allTokens + '):\\s+and\\s*$', "i");
         var aSearchString = aFilterValue.text.replace(regExpReplace,'');
         if ( !regExpSearch.test(aSearchString) ) {
           aSearchString = aSearchString.replace(/\s+\and\s*$/i,'');
@@ -330,11 +371,14 @@ let ExperssionSearchFilter = {
         } else {
           ExpressionSearchLog.info("Experssion Search Statements: "+expr_tostring_infix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
+          if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
         return;
-      } catch (err) {
-        ExpressionSearchLog.logException(err);
+      } else {
+        //showHideHelp(topWin.document, false, '');
       }
+    } catch (err) {
+        ExpressionSearchLog.logException(err);
     }
   },
 
@@ -364,7 +408,7 @@ let ExperssionSearchFilter = {
   propagateState: function(aOld, aSticky) {
     return {
       // must clear state when create quick search folder, or recursive call happenes when aSticky.
-      text: ( aSticky && !ExperssionSearchFilter.latchQSFolderReq )? aOld.text : null,
+      text: ( aSticky && !ExperssionSearchFilter.latchQSFolderReq && typeof(aOld) != 'undefined' )? aOld.text : null,
       //states: {},
     };
   },
@@ -407,6 +451,11 @@ let ExperssionSearchFilter = {
     if ( aNode.value != desiredValue && !aFromPFP )
       aNode.value = desiredValue;
 
+    let ExpressionSearchChrome = {};
+    if ( aDocument && aDocument.defaultView && aDocument.defaultView.window && aDocument.defaultView.window.ExpressionSearchChrome )
+      ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
+    if ( ExpressionSearchChrome ) ExpressionSearchChrome.showHideHelp(false);
+    
     let panel = aDocument.getElementById("qfb-text-search-upsell");
     if (aFromPFP == "upsell") {
       let searchString = ExperssionSearchFilter.expression2gloda(aFilterValue.text);
@@ -422,9 +471,6 @@ let ExperssionSearchFilter = {
     if (panel.state != "closed")
       panel.hidePopup();
 
-    let ExpressionSearchChrome = {};
-    if ( aDocument && aDocument.defaultView && aDocument.defaultView.window && aDocument.defaultView.window.ExpressionSearchChrome )
-      ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
     ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
   },
 
@@ -495,6 +541,7 @@ let ExperssionSearchFilter = {
   },
 
   get_key_from_tag: function(myTag) {
+    if ( myTag == 'na' ) return myTag;
     var tagArray = MailServices.tags.getAllTags({});
     // consider two tags, one is "ABC", the other is "ABCD", when searching for "AB", perfect is return both.
     // however, that need change the token tree.
@@ -514,13 +561,32 @@ let ExperssionSearchFilter = {
     return "..unknown..";
   },
   
-  
   expression2gloda: function(searchValue) {
     searchValue = searchValue.replace(/^g:\s*/i,'');
-    let regExp = new RegExp( "(?:^|\\b)(?:" + this.allTokens + "):", "g");
+    let regExp = new RegExp( "(?:^|\\b)(?:" + ExpressionSearchTokens.allTokens + "):", "g");
     searchValue = searchValue.replace(regExp,'');
     searchValue = searchValue.replace(/(?:\b|^)(?:and|or)(?:\b|$)/g,'').replace(/[()]/g,'');
     return searchValue;
+  },
+  
+  getSearchTermString: function(searchTerms) {
+    let condition = "";
+    searchTerms.forEach( function(searchTerm, index, array) {
+      if (index > 0) condition += " ";
+      if (searchTerm.matchAll)
+        condition += "ALL";
+      else {
+        condition += searchTerm.booleanAnd ? "AND" : "OR";
+        condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " {" : "";
+      }
+      let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Ci.nsIScriptableUnicodeConverter);
+      converter.charset = 'UTF-8';
+      let termString = converter.ConvertToUnicode(searchTerm.termAsString); // termAsString is ACString
+      condition += " (" + termString + ")"; 
+      // "}" may not balanced with "{", but who cares
+      condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " }" : "";
+    } );
+    return condition;
   },
   
   convertExpression: function(e,aTermCreator,searchTerms,was_or) {
@@ -535,11 +601,12 @@ let ExperssionSearchFilter = {
     }
     if (e.kind == 'spec') {
       let attr;
+      let op = is_not ? nsMsgSearchOp.DoesntContain:nsMsgSearchOp.Contains;
       if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
       else if (e.tok == 'tonocc') attr = nsMsgSearchAttrib.To;
       else if (e.tok == 'cc') attr = nsMsgSearchAttrib.CC;
-      else if (e.tok == 'days') attr = nsMsgSearchAttrib.AgeInDays;
+      else if (e.tok == 'days' || e.tok == 'older_than' || e.tok == 'newer_than') attr = nsMsgSearchAttrib.AgeInDays;
       // AllAddresses,AnyText,Size,Name,DisplayName,Nickname,ScreenName,Email,AdditionalEmail
       else if (e.tok == 'subject') attr = nsMsgSearchAttrib.Subject;
       else if (e.tok == 'bcc') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#Bcc' };
@@ -555,10 +622,10 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'tag') {
         e.left.tok = this.get_key_from_tag(e.left.tok.toLowerCase());
         attr = nsMsgSearchAttrib.Keywords;
+        if ( e.left.tok.toLowerCase() == 'na' ) op = is_not ? nsMsgSearchOp.IsntEmpty:nsMsgSearchOp.IsEmpty;
       } else if (e.tok == 'calc' ) {
         return;
       } else {ExpressionSearchLog.log('Exression Search: unexpected specifier',1); return; }
-      var op = is_not ? nsMsgSearchOp.DoesntContain:nsMsgSearchOp.Contains;
       if (e.left.kind != 'str') {
         ExpressionSearchLog.log('Exression Search: unexpected expression tree',1);
         return;
@@ -619,6 +686,8 @@ let ExperssionSearchFilter = {
           e.left.tok = nsMsgMessageFlags.Read;
         else if (/^M/i.test(e.left.tok))
           e.left.tok = nsMsgMessageFlags.Marked;
+        else if (/^Star/i.test(e.left.tok))
+          e.left.tok = nsMsgMessageFlags.Marked;
         else if (/^F/i.test(e.left.tok))
           e.left.tok = nsMsgMessageFlags.Forwarded;
         else if (/^N/i.test(e.left.tok))
@@ -631,15 +700,42 @@ let ExperssionSearchFilter = {
           e.left.tok = nsMsgMessageFlags.Read;
           is_not = !is_not;
         } else {
-          ExpressionSearchLog.log('Exression Search: unknown status '+e.left.tok,1);
+          ExpressionSearchLog.log('Expression Search: unknown status '+e.left.tok,1);
           return;
+        }
+      }
+      if ( attr == nsMsgSearchAttrib.AgeInDays ) { // age==days==older_than/newer_than 2y,3m,5d,6,-8
+        if ( e.tok == 'newer_than' ) is_not = !is_not;
+        // today == -1, yesterday == -2, day == '', week *=7, month *= 30?, year *= 365
+        let match = e.left.tok.match(/^([-.\d]*)(\w*)/);
+        if ( match.length == 3 ) {
+          let days = match[1];
+          if ( days == '' ) days = 1;
+          let period = match[2];
+          if ( period == '' ) period = 1;
+          if (/^t/i.test(period)) { // today
+            period = 1;
+            is_not = !is_not;
+          } else if (/^yes/i.test(period)) {
+            period = 2;
+            is_not = !is_not;
+          } else if (/^d/i.test(period)) {
+            period = 1;
+          } else if (/^w/i.test(period)) {
+            period = 7;
+          } else if (/^m/i.test(period)) {
+            period = 30.4369;
+          } else if (/^yea/i.test(period)) {
+            period = 365.2425;
+          }
+          e.left.tok = days * period;
         }
       }
       if (e.tok == 'attachment' || e.tok == 'status')
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
       else if (e.tok == 'date' )
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches;
-      else if (e.tok == 'days')
+      else if (attr == nsMsgSearchAttrib.AgeInDays)
         op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;
       else if (e.tok == 'regex') {
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches; // actually only has Matches
@@ -699,26 +795,7 @@ let ExperssionSearchFilter = {
       priorTerm.endsGrouping = true;
       firstDJTerm = -1;
     }
-    function getSearchTermString(searchTerms) {
-      let condition = "";
-      searchTerms.forEach( function(searchTerm, index, array) {
-        if (index > 0) condition += " ";
-        if (searchTerm.matchAll)
-          condition += "ALL";
-        else {
-          condition += searchTerm.booleanAnd ? "AND" : "OR";
-          condition += searchTerm.beginsGrouping && !searchTerm.endsGrouping ? " {" : "";
-        }
-        let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"] .createInstance(Ci.nsIScriptableUnicodeConverter);
-        converter.charset = 'UTF-8';
-        let termString = converter.ConvertToUnicode(searchTerm.termAsString); // termAsString is ACString
-        condition += " (" + termString + ")"; 
-        // "}" may not balanced with "{", but who cares
-        condition += searchTerm.endsGrouping && !searchTerm.beginsGrouping ? " }" : "";
-      } );
-      return condition;
-    }
-    ExpressionSearchLog.info("Experssion Search Terms: "+getSearchTermString(searchTerms));
+    ExpressionSearchLog.info("Expression Search Terms: "+this.getSearchTermString(searchTerms));
     return null;
   },
   
