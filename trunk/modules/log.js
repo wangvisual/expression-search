@@ -14,6 +14,7 @@ var ExpressionSearchLog = {
                 showAlertNotification(null, title, msg, false, '', null);
     } catch(e) {
       // prevents runtime error on platforms that don't implement nsIAlertsService
+      this.logException(e);
     }
   },
   

@@ -13,23 +13,50 @@
     delete all white spaces including ' ', \t etc.
 */
 
-var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "expression_search_all_tokens"];
+var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "ExpressionSearchTokens"];
 
 let Cu = Components.utils;
 Cu.import("resource://expressionsearch/log.js");
-let tokenDict = { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], body:['b'], attachment:['a'],
-                  tag: ['l','label'], before:['be'], after: ['af'], date: ['d'], days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['nt'],
-                  status: ['u','is','i'], regex:['re','r'], filename:['fi','fn', 'file'] };
-let tokenMap = {}; //{ f: 'from', t: 'to', toorcc: 'to' };
-let allTokenArray = []; // ['from', 'f', 'to', 't', 'toorcc']
-for ( let token_standard_name in tokenDict ) {
-  allTokenArray = allTokenArray.concat(token_standard_name, tokenDict[token_standard_name]);
-  for ( let token_alias of tokenDict[token_standard_name] ) {
-    tokenMap[token_alias] = token_standard_name;
-  }
-}
-let tokenInfo = { to: 'To or CC field contains' };
-var expression_search_all_tokens = allTokenArray.join('|'); //'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af';
+var ExpressionSearchTokens = {
+  tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'],
+                  body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], 
+                  days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'],
+                  status: ['u','is','i'], regex:['re','r'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
+  tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
+  allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
+  allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
+  tokenInfo: { ' ': 'Please type keywords to search', to: 'To or CC field contains', from: 'From field' },
+  mostFit: function(input) {
+    let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
+    let distance = 100;
+    for ( let name of ExpressionSearchTokens.allTokenArray ) {
+      if ( input.length == 0 || name.indexOf(input) == 0 ) {
+        let fullName = name;
+        if ( typeof(ExpressionSearchTokens.tokenMap[name]) != 'undefined' ) fullName = ExpressionSearchTokens.tokenMap[name];
+        ret.match[fullName] = 1;
+        let diff = name.length - input.length;
+        if ( diff < distance && input.length != 0 ) {
+          distance = diff;
+          ret.first = fullName;
+        }
+      }
+    }
+    if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = "    " + ExpressionSearchTokens.tokenInfo[ret.first];
+    if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join('/') + " )";
+    ret.matchString = Object.keys(ret.match).sort().join(', ');
+    return ret;
+  },
+  init: function() { // init allTokenArray tokenMap allTokens
+    for ( let token_standard_name in this.tokenDict ) {
+      this.allTokenArray = this.allTokenArray.concat(token_standard_name, this.tokenDict[token_standard_name]);
+      for ( let token_alias of this.tokenDict[token_standard_name] ) {
+        this.tokenMap[token_alias] = token_standard_name;
+      }
+    }
+    this.allTokens = this.allTokenArray.join('|'); 
+  },
+};
+ExpressionSearchTokens.init.apply(ExpressionSearchTokens);
 
 ////////// Tokenize
 
@@ -107,11 +134,11 @@ function ADVANCE_TOKEN() {
     //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
     //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
     /*while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
-      if ( this.str[0] == ':' && expression_search_all_tokens.test(tok) ) break;
+      if ( this.str[0] == ':' && ExpressionSearchTokens.allTokens.test(tok) ) break;
       tok+=this.str[0];
       this.str = this.str.substr(1);
     }*/
-    let splitTokens = new RegExp('^('+expression_search_all_tokens+")(:.*)");
+    let splitTokens = new RegExp('^('+ExpressionSearchTokens.allTokens+")(:.*)");
     let splitResult = splitTokens.exec(this.str);
     if ( splitResult != null ) {
       tok = splitResult[1];
@@ -144,9 +171,9 @@ function ADVANCE_TOKEN() {
 
   if (this.str[0] == ':') {
     this.str = this.str.substr(1);
-    let testToken = new RegExp('^(?:' + expression_search_all_tokens + ')$');
+    let testToken = new RegExp('^(?:' + ExpressionSearchTokens.allTokens + ')$');
     if ( testToken.test(tok) ) {
-      if ( typeof(tokenMap[tok]) != 'undefined' ) tok = tokenMap[tok]; // f => from
+      if ( typeof(ExpressionSearchTokens.tokenMap[tok]) != 'undefined' ) tok = ExpressionSearchTokens.tokenMap[tok]; // f => from
       this.next_token = {
         kind: 'spec',
         tok: tok

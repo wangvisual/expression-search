@@ -10,7 +10,33 @@
 ]>
 
 <overlay id="esMailWindowOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <keyset id="mailKeys">
     <key id="key_find_expression_search" key="&expressionsearch.focusSearch.key;" modifiers="&expressionsearch.focusSearch.mod;" oncommand="ExpressionSearchChrome.setFocus();"/>
   </keyset>
+  <statusbar id="status-bar">
+    <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
+      <description id="expression-search-tooltip-line1"> </description>
+      <description id="expression-search-tooltip-line2"> </description>
+      <description id="expression-search-tooltip-line3"> </description>
+      <description id="expression-search-tooltip-line4"> </description>
+    </tooltip>
+    <popupset>
+       <menupopup id="expression-search-context-menu">
+          <menuitem label="Preference" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul');"/>
+          <menuitem label="Help" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
+          <!--menuitem label="Donation" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/-->
+          <menuitem label="About" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul');"/>
+       </menupopup>
+    </popupset>
+    <statusbarpanel id="status-bar-expressionsearch"
+      class="statusbarpanel-iconic"
+      insertafter="totalMessageCount"
+      label="Expression Search"
+      src="chrome://expressionsearch/skin/statusbar_icon.png"
+      tooltip="expression-search-tooltip"
+      popup="expression-search-context-menu"
+      context="expression-search-context-menu"
+    />
+  </statusbar>
 </overlay>
