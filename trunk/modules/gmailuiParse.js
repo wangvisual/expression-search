@@ -25,7 +25,10 @@ var ExpressionSearchTokens = {
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
-  tokenInfo: { ' ': 'Please type keywords to search', to: 'To or CC field contains', from: 'From field' },
+  tokenInfo: { ' ': 'Please type keywords to search',
+               to: 'To or CC field contains',
+               from: "from:(Alice or Bob)\n    Searches From field",
+               subject: "subject:(Hello -World!)\n    Searches Subject to Contains Hello but not World!" },
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;

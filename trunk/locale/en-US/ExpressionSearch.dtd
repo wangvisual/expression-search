@@ -22,11 +22,12 @@
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">
+<!ENTITY expressionsearch.option.enable_statusbar_info "Show tooltips above status bar when type commands">
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
 <!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
-<!ENTITY expressionsearch.option.help "View help document">
+<!ENTITY expressionsearch.option.help "Help">
 <!ENTITY expressionsearch.option.email "Send Email to author">
-<!ENTITY expressionsearch.option.crash "Thunderbird Crash Reports">
+<!ENTITY expressionsearch.option.crash "Crash Reports">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
 <!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
 
@@ -41,3 +42,7 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
+
+<!ENTITY expressionsearch.menu.donate.label "Donate">
+<!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
+<!ENTITY expressionsearch.menu.donate.pay "paypal">

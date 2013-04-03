@@ -18,7 +18,7 @@
       <text class='abouthead' id="contributorsTitle" value="&about.contributors.label;"/>
       <text value="Ken Mixter - original GMailUI"/>
       <text value=""/>
-      <text class='textlink' value="&about.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
+      <text class='textlink' value="&about.help;" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile');"/>
     </vbox>
   </groupbox>
 </dialog>

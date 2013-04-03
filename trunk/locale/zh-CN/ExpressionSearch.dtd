@@ -22,9 +22,10 @@
 <!ENTITY expressionsearch.option.reusefolder "重新生成保存搜索时不改变选其中的文件夹选择">
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
 <!ENTITY expressionsearch.option.enable_verbose_info "在控制台中显示详细信息">
+<!ENTITY expressionsearch.option.enable_statusbar_info "输入时在状态栏以上显示帮助信息">
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "当按下Ctrl+Enter键时，在下面目录里创建或更新ExpressionSearch虚拟目录:">
 <!ENTITY expressionsearch.option.use_root_folder "当前目录的根目录">
-<!ENTITY expressionsearch.option.help "查看帮助">
+<!ENTITY expressionsearch.option.help "帮助">
 <!ENTITY expressionsearch.option.email "给作者发邮件">
 <!ENTITY expressionsearch.option.crash "查看雷鸟崩溃报告">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "邮件列表中按 Ctrl+鼠标右键 执行搜索">
@@ -41,3 +42,7 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  搜索前使用正则表达式替换标题  ">
 <!ENTITY expressionsearch.dialog.c2s_match "匹配">
 <!ENTITY expressionsearch.dialog.c2s_replace "替换">
+
+<!ENTITY expressionsearch.menu.donate.label "资助">
+<!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/alipay.ico">
+<!ENTITY expressionsearch.menu.donate.pay "alipay">
