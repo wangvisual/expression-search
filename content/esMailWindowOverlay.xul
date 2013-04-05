@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="chrome://expressionsearch/skin/overlay.css" type="text/css"?>
 
 <!DOCTYPE window [
   <!-- too much conflicts with TB's built-in hotkeys
@@ -16,15 +17,15 @@
   </keyset>
   <statusbar id="status-bar">
     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
-      <description id="expression-search-tooltip-line1"> </description>
-      <description id="expression-search-tooltip-line2"> </description>
-      <description id="expression-search-tooltip-line3"> </description>
-      <description id="expression-search-tooltip-line4"> </description>
+      <description id="expression-search-tooltip-line1" class="tooltip-token"> </description>
+      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info"> </description></hbox>
+      <description id="expression-search-tooltip-line3" class="tooltip-match"> </description>
+      <description id="expression-search-tooltip-line4" class="tooltip-term"> </description>
     </tooltip>
     <popupset>
        <menupopup id="expression-search-context-menu">
           <menuitem label="&expressionsearch.dialog.settings;" class="menuitem-iconic" image="chrome://messenger/skin/accountcentral/account-settings.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul');"/>
-          <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://mozapps/skin/plugins/pluginHelp-16.png" oncommand="ExpressionSearchCommon.loadTab('expressionsearch.helpfile');"/>
+          <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://global/skin/icons/Question.png" oncommand="ExpressionSearchCommon.loadTab('expressionsearch.helpfile');"/>
           <menuitem label="&expressionsearch.menu.donate.label;" class="menuitem-iconic" image="&expressionsearch.menu.donate.image;" oncommand="ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;');"/>
           <menuitem label="&about.about;" class="menuitem-iconic" image="chrome://expressionsearch/skin/statusbar_icon.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul');"/>
        </menupopup>

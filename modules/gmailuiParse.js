@@ -17,18 +17,39 @@ var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "Expression
 
 let Cu = Components.utils;
 Cu.import("resource://expressionsearch/log.js");
+Cu.import("resource:///modules/StringBundle.js");
+let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 var ExpressionSearchTokens = {
   tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'],
                   body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], 
-                  days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'],
-                  status: ['u','is','i'], regex:['re','r'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
+                  days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'],
+                  status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
-  tokenInfo: { ' ': 'Please type keywords to search',
-               to: 'To or CC field contains',
-               from: "from:(Alice or Bob)\n    Searches From field",
-               subject: "subject:(Hello -World!)\n    Searches Subject to Contains Hello but not World!" },
+  tokenInfo: { ' ': strings.get('info.blank'),
+               after: strings.get('info.after'),
+               all: strings.get('info.all'),
+               attachment: strings.get('info.attachment'),
+               bcc: strings.get('info.bcc'),
+               before: strings.get('info.before'),
+               body: strings.get('info.body'),
+               cc: strings.get('info.cc'),
+               date: strings.get('info.date'),
+               days: strings.get('info.days'),
+               filename: strings.get('info.filename'),
+               from: strings.get('info.from'),
+               newer_than: strings.get('info.newer_than'),
+               only: strings.get('info.only'), // Hi Validation Report, This is not a Event handler :-)
+               regex: strings.get('info.regex'),
+               simple: strings.get('info.simple'),
+               status: strings.get('info.status'),
+               subject: strings.get('info.subject'),
+               tag: strings.get('info.tag'),
+               to: strings.get('info.to'),
+               tonocc: strings.get('info.tonocc'),
+               gloda: strings.get('info.gloda'),
+             },
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;
@@ -44,7 +65,7 @@ var ExpressionSearchTokens = {
         }
       }
     }
-    if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = "    " + ExpressionSearchTokens.tokenInfo[ret.first];
+    if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = ExpressionSearchTokens.tokenInfo[ret.first];
     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join('/') + " )";
     ret.matchString = Object.keys(ret.match).sort().join(', ');
     return ret;
