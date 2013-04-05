@@ -9,6 +9,23 @@
   font-size: large;
 }
 
+.tooltip-token {
+  font-weight: bold;
+  color: green;
+}
+
+.tooltip-info {
+  color: blue;
+}
+
+.tooltip-match {
+  color: purple;
+}
+
+.tooltip-term {
+  color: grey;
+}
+
 .search-value-custom[searchAttribute^="expressionsearch#"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }

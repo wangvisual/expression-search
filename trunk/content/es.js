@@ -76,6 +76,7 @@ let ExpressionSearchChrome = {
       this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
       this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
       this.options.installed_version = this.prefs.getComplexValue('installed_version',this.Ci.nsISupportsString).data;
+      this.options.enable_statusbar_info = this.prefs.getBoolPref("enable_statusbar_info");
     } catch ( err ) {
       ExpressionSearchLog.logException(err);
     }
@@ -94,6 +95,7 @@ let ExpressionSearchChrome = {
        case "select_msg_on_enter":
        case "c2s_enableCtrl":
        case "c2s_enableShift":
+       case "enable_statusbar_info":
          this.options[data] = this.prefs.getBoolPref(data);
          break;
        case "move2bar":
@@ -220,9 +222,10 @@ let ExpressionSearchChrome = {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode && aNode.removeEventListener ) {
         aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
+        //aNode.removeEventListener("input", ExpressionSearchChrome.onTokenChange, true);
         aNode.removeEventListener("click", ExpressionSearchChrome.onTokenChange, true);
-        aNode.removeEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
-        aNode.removeEventListener("click", ExpressionSearchChrome.onSearchBarFocus, true);
+        aNode.removeEventListener("blur", ExpressionSearchChrome.onSearchBarBlur, true);
+        aNode.removeEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
     }
     let threadPane = document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
@@ -323,6 +326,7 @@ let ExpressionSearchChrome = {
       if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
       if ( typeof(line3) != 'undefined' ) tooltip3.textContent = line3;
       if ( typeof(line4) != 'undefined' ) tooltip4.textContent = line4;
+      if ( !ExpressionSearchChrome.options.enable_statusbar_info ) return;
       if ( this.helpTimer > 0 ) {
         window.clearTimeout( this.helpTimer );
         this.helpTimer = 0;
@@ -331,6 +335,7 @@ let ExpressionSearchChrome = {
       if ( show ) {
         tooltip.openPopup(statusbaricon, "before_start", 0, 0, false, true, null);
         time2hide = 5000;
+        if ( ExpressionSearchChrome.isFocus ) time2hide = 10000;
       }
       this.helpTimer = window.setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
     }
@@ -341,8 +346,6 @@ let ExpressionSearchChrome = {
     let start = searchValue.lastIndexOf(' ', this.selectionEnd > 0 ? this.selectionEnd - 1 : 0); // selectionEnd is index of the character after the selection
     let currentString = searchValue.substring(start+1, this.selectionEnd);
     currentString = currentString.replace(/:.*/,'');
-    ExpressionSearchLog.log("string:"+currentString);
-    ExpressionSearchLog.logObject(ExpressionSearchTokens.mostFit(currentString),'ret',1);
     let help = ExpressionSearchTokens.mostFit(currentString);
     let term = undefined;
     if ( searchValue == '' ) term = ' ';
@@ -389,10 +392,17 @@ let ExpressionSearchChrome = {
     }
   },
   
+  onSearchBarBlur: function(event) {
+    ExpressionSearchChrome.hideUpsellPanel();
+    ExpressionSearchChrome.isFocus = false;
+    ExpressionSearchChrome.showHideHelp(false);
+  },
+  
   onSearchBarFocus: function(event) {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode ) {
       if ( aNode.value == '' ) QuickFilterBarMuxer._showFilterBar(true);
+      ExpressionSearchChrome.isFocus = true;
       ExpressionSearchChrome.onTokenChange.apply(aNode);
     }
   },
@@ -401,9 +411,9 @@ let ExpressionSearchChrome = {
     let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( aNode ) {
       aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too late
-      //aNode.addEventListener("input", ExpressionSearchChrome.onTokenChange, true); // input can't get arrow key change
+      //aNode.addEventListener("input", ExpressionSearchChrome.onTokenChange, true); // input can't get arrow key change but can get update when click2search
       aNode.addEventListener("click", ExpressionSearchChrome.onTokenChange, true); // to track selectEnd change
-      aNode.addEventListener("blur", ExpressionSearchChrome.hideUpsellPanel, true);
+      aNode.addEventListener("blur", ExpressionSearchChrome.onSearchBarBlur, true);
       aNode.addEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
     }
   },
@@ -639,6 +649,7 @@ let ExpressionSearchChrome = {
     if ( sCellText == "" ) return;
     QuickFilterBarMuxer._showFilterBar(true);
     aNode.value = token + ":" + sCellText;
+    ExpressionSearchChrome.onTokenChange.apply(aNode);
     ExpressionSearchChrome.isEnter = true; // So the email can be selected
     aNode._fireCommand(aNode);
     // Stop even bubbling
