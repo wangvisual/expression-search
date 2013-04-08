@@ -26,6 +26,8 @@
     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
     <preference id="pref_enable_statusbar_info" name="extensions.expressionsearch.enable_statusbar_info" type="bool"/>
     <preference id="pref_virtual_folder_path" name="extensions.expressionsearch.virtual_folder_path" type="string"/>
+    <preference id="pref_customHeaders" name="mailnews.customHeaders" type="string"/>
+    <preference id="pref_customDBHeaders" name="mailnews.customDBHeaders" type="string"/>
   </preferences>
   
   <vbox flex="1">
@@ -35,6 +37,22 @@
         <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
         <checkbox preference="pref_act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
         <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
+        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
+        <hbox>
+          <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
+          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
+        </hbox>
+        <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
+        <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info;"/>
+        <hbox align='center'>
+          <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
+          <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">
+            <menupopup id="esNewFolderPopup" type="folder" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
+              <menuitem label='&expressionsearch.option.use_root_folder;' value='' class='folderMenuItem' SpecialFolder="Virtual" />
+              <menuseparator/>
+            </menupopup>
+          </menulist>
+        </hbox>
         <hbox align='center'>
           <menulist preference='pref_showbuttonlabel'>
             <menupopup>
@@ -45,20 +63,15 @@
           </menulist>
           <text value='&expressionsearch.option.showbuttonlabel;' />
         </hbox>
-        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
-        <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
-        <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">
-          <menupopup id="esNewFolderPopup" type="folder" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
-            <menuitem label='&expressionsearch.option.use_root_folder;' value='' class='folderMenuItem' SpecialFolder="Virtual" />
-            <menuseparator/>
-          </menupopup>
-        </menulist>
         <hbox>
-          <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
-          <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
+          <button id="customHeadersButton" tooltip="customDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="window.showModalDialog('chrome://messenger/content/CustomHeaders.xul');"/> 
+          <textbox preference="pref_customHeaders" id="customHeadersText" disabled="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="customDBHeadersTooltip" flex="100"/>
+          <tooltip id="customDBHeadersTooltip">
+            <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>
+            <description class='tooltip-info' id="tooltip_customHeaders" preference="pref_customHeaders" preference-editable="true"/>
+            <description class='tooltip-info' preference="pref_customDBHeaders" preference-editable="true"/>
+          </tooltip>
         </hbox>
-        <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
-        <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info;"/>
       </vbox>
     </groupbox>
     
@@ -84,8 +97,8 @@
         </hbox>
         <grid id="c2sRegexpGrid">
             <columns>
-                <column/>
-                <column/>
+                <column flex="1"/>
+                <column flex="1000"/>
             </columns>
             <rows>
                 <row>
@@ -105,11 +118,11 @@
       <vbox align="center">
         <hbox>
           <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('paypal');" />
-          <label value="     "/>
+          <label value="               " flex="100"/>
           <image style="cursor:pointer;" src="donate-with-alipay.png" onclick="ExpressionSearchCommon.loadDonate('alipay');" />
         </hbox>
         <label/>
-        <hbox><label class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile');"/><label/> <label class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/><label/><label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/></hbox>
+        <hbox><label class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/><label/> <label class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/><label/><label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/></hbox>
       </vbox>
     </groupbox>
   </vbox>
@@ -117,7 +130,13 @@
 <!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
 <script>
+<![CDATA[
   function onLoad() {
+    if ( Services.vc.compare(Application.version, "19") < 0) { // bug 363238
+      // AddEventListner not works here, also setAttribute is too late
+      // document.getElementById("customHeadersText").setAttribute("onsyncfrompreference", "return onSyncFromPreference();");
+      document.getElementById("tooltip_customHeaders").style.display = "none";
+    }
     var folderPicker = document.getElementById("esNewFolderPicker");
     if ( folderPicker.value == '' ) return;
     var msgFolder = {};
@@ -141,6 +160,39 @@
     folderPicker.setAttribute("label", label); 
     folderPicker.setAttribute('tooltiptext', showPrettyTooltip(value, label));
   }
+  
+  function onSyncFromPreference() {
+    var preference = document.getElementById("pref_customHeaders");
+    // .value === undefined means the preference is set to the default value
+    var actualValue = preference.value !== undefined ? preference.value : preference.defaultValue;
+    // actualValue may be |null| here if the pref didn't have the default value.
+    if ( Services.vc.compare(Application.version, "19") >= 0 ) return actualValue; // bug 363238
+    var currentHeaders = document.getElementById("customHeadersText").value.split(/: /);
+    var inputHeaders = actualValue.split(/: /);
+    var customDBHeaders = Services.prefs.getCharPref("mailnews.customDBHeaders").split(" ");
+    var added = 0;
+    var removed = 0;
+    // all inputHeaders need be in customeDBHeaders
+    // If some value was removed, need removed in DBHeaders too
+    inputHeaders.forEach( function(header, index, array) {
+      if ( customDBHeaders.indexOf(header.toLowerCase()) < 0 ) {
+        customDBHeaders.push(header.toLowerCase());
+        added = 1;
+      }
+    } );
+    currentHeaders.forEach( function(header, index, array) {
+      if ( inputHeaders.indexOf(header) < 0 && customDBHeaders.indexOf(header.toLowerCase()) >= 0 ) {
+        customDBHeaders.splice( customDBHeaders.indexOf(header.toLowerCase()), 1 );
+        removed = 1;
+      }
+    } );
+    if ( added || removed ) Services.prefs.setCharPref("mailnews.customDBHeaders", customDBHeaders.sort().join(" ").trim());
+    if ( added ) {
+      //Services.prompt.alert(window, "Warning", "New added, need repair folder");
+    }
+    return actualValue;
+  }
+]]>
 </script>
 <!-- for getFolderForURI -->
 <script type="application/javascript" src="resource:///modules/MailUtils.js"/>
