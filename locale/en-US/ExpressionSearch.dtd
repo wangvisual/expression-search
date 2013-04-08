@@ -37,6 +37,8 @@
 <!ENTITY expressionsearch.dialog.move2quicksearchbar "QuickSearchBar">
 <!ENTITY expressionsearch.dialog.move2toolbar "ToolBar">
 <!ENTITY expressionsearch.dialog.move2menubar "Menubar">
+<!ENTITY expressionsearch.dialog.searchmoreheaders "Search More Headers:">
+<!ENTITY expressionsearch.dialog.searchmoreheaderstooltip "The following headers can be searched for new emails or after repair mail folder:">
 <!ENTITY expressionsearch.dialog.c2s_settings "Click2Search Settings">
 <!ENTITY expressionsearch.dialog.help "Help">
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
