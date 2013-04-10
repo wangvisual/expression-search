@@ -630,7 +630,6 @@ let ExpressionSearchChrome = {
            let ret = address;
            if ( typeof(addressesFromHdr.fullAddresses[index]) != 'undefined' && typeof(addressesFromCell.addresses[index]) != 'undefined' ) {
              addressesFromCell.addresses[index] = addressesFromCell.addresses[index].replace(/['"<>]/g,'');
-             ExpressionSearchLog.log(addressesFromHdr.fullAddresses[index].toLowerCase() + ":" + addressesFromCell.addresses[index].toLowerCase());
              if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( addressesFromCell.addresses[index].toLowerCase() ) != -1)
                ret = addressesFromCell.addresses[index]; // if display name is part of full address, then use display name
            }

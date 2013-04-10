@@ -11,6 +11,7 @@
     if ":" seems like within normal string, advance without break.
     removed toLowerCase
     delete all white spaces including ' ', \t etc.
+    Using ExpressionSearchTokens
 */
 
 var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "ExpressionSearchTokens"];
@@ -22,11 +23,12 @@ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearc
 var ExpressionSearchTokens = {
   tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'],
                   body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], 
-                  days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'],
+                  days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'], headerre:['h', 'hr'],
                   status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
+  lastTokens: [ 'simple', 'regex', 'headerre' ], // tokens that should be the last one and no more tokens will be checked
   tokenInfo: { ' ': strings.get('info.blank'),
                after: strings.get('info.after'),
                all: strings.get('info.all'),
@@ -42,6 +44,7 @@ var ExpressionSearchTokens = {
                newer_than: strings.get('info.newer_than'),
                only: strings.get('info.only'), // Hi Validation Report, This is not a Event handler :-)
                regex: strings.get('info.regex'),
+               headerre: strings.get('info.headerre'),
                simple: strings.get('info.simple'),
                status: strings.get('info.status'),
                subject: strings.get('info.subject'),
@@ -85,10 +88,10 @@ ExpressionSearchTokens.init.apply(ExpressionSearchTokens);
 ////////// Tokenize
 
 function ADVANCE_TOKEN() {
-  // Added by Opera for simple/regex token, the remaining str will be treated as one str
-  // For simple/regex, there's no '-' operation
+  // Added by Opera for simple/regexheaderer token, the remaining str will be treated as one str
+  // For simple/regex/headerer, there's no '-' operation
   var currentToken = this.next_token ? this.next_token.tok : "";
-  if ( currentToken == 'simple' || currentToken == 'regex' ) {
+  if ( ExpressionSearchTokens.lastTokens.indexOf(currentToken) >= 0 ) {
     this.next_token = {
       kind: 'str',
       tok:this.str
