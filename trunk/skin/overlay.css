@@ -26,6 +26,10 @@
   color: grey;
 }
 
+.customHeadersShow{
+  color: grey;
+}
+
 .search-value-custom[searchAttribute^="expressionsearch#"] {
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }

@@ -8,14 +8,18 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 var ExpressionSearchLog = {
   popup: function(title, msg) {
-    try {
+    var image = "chrome://expressionsearch/skin/statusbar_icon.png";
+    // alert-service won't work with bb4win, use xul instead
+    /*try {
       Components.classes['@mozilla.org/alerts-service;1'].
                 getService(Components.interfaces.nsIAlertsService).
-                showAlertNotification(null, title, msg, false, '', null);
+                showAlertNotification(image, title, msg, false, '', null, "");
     } catch(e) {
       // prevents runtime error on platforms that don't implement nsIAlertsService
       this.logException(e);
-    }
+    }*/
+    var win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', '_blank', 'chrome,titlebar=no,popup=yes', null);
+    win.arguments = [image, title, msg, false, ''];
   },
   
   info: function(msg,popup) {
@@ -28,8 +32,10 @@ var ExpressionSearchLog = {
 
   log: function(msg,popup) {
     Services.console.logStringMessage(msg);
-    if ( typeof(popup)!='undefined' && popup )
-      this.popup("Warning!",msg);
+    if ( typeof(popup)!='undefined' ) {
+      if ( typeof(popup) == 'number' ) popup = 'Warning!';
+      this.popup(popup,msg);
+    }
   },
   
   // from errorUtils.js

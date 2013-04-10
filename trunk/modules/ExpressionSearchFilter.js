@@ -110,40 +110,34 @@ function _getRegEx(aSearchValue) {
   headerRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=363238
     // https://developer.mozilla.org/en-US/docs/Extensions/Thunderbird/customDBHeaders_Preference
+    // https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js msgHdrGetHeaders
     // the header and its regex are separated by a '~' or '=' in aSearchValue
     // 'List-Id=/all-test/i' will match all messages that have List-ID header, and it's content match /all-test/i
     // 'List-ID' will match all messages that have this header.
-    //ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
     // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
     // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
 
-    let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
-    while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
-    ExpressionSearchLog.log(str);
+    // let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
+    // while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
+    // ExpressionSearchLog.log(str);
     // flags:1 label:0 statusOfset:21 sender:<cc@some.com> recipients:swe-web@some.com subject:[swe-web] Error: Web Applications Down message-id:201202030701.q1371Noo014742@peopf999.some.com date:4f2b8643 dateReceived:4f2b864b priority:1 list-id:<swe-web.some.com> x-mime-autoconverted:from quoted-printable to 8bit by sympa.some.com id q1371O8j002081 msgCharSet:iso-8859-1 msgOffset:1f6e size:4728 numLines:180 storeToken:8046 threadParent:ffffffff msgThreadId:1f6e ProtoThreadFlags:0 sender_name:2453|swe-web@some.COM
     // Can't add content-type/receieved etc to customDBHeaders which thunderbird already parsed and removed from header
-
     
     let headerName = aSearchValue.toLowerCase();
-    let colonIndex = aSearchValue.indexOf('~');
-    if (colonIndex == -1) colonIndex = aSearchValue.indexOf('=');
-    if (colonIndex == -1) {
-      ExpressionSearchLog.log('name:' + headerName);
+    let splitIndex = aSearchValue.indexOf('~');
+    if (splitIndex == -1) splitIndex = aSearchValue.indexOf('=');
+    if (splitIndex == -1) {
       let headerValue = aMsgHdr.getStringProperty(headerName);
-      ExpressionSearchLog.log('value:' + headerValue + ":"+ aMsgHdr.getProperty(headerName) );
-      return aSearchOp != nsMsgSearchOp.Matches;
+      return ( ( headerValue != '' ) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch ) );
     }
-    headerName = aSearchValue.slice(0, colonIndex);
-    let regex = aSearchValue.slice(colonIndex + 1); 
+    headerName = aSearchValue.slice(0, splitIndex);
+    let regex = aSearchValue.slice(splitIndex + 1); 
     let searchValue;
     let searchFlags;
     [searchValue, searchFlags] = _getRegEx(regex);
     let regexp = new RegExp(searchValue, searchFlags);
     let headerValue = aMsgHdr.getStringProperty(headerName);
-    //return regexp.test(headerValue) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
-    
-    // https://github.com/protz/thunderbird-stdlib/blob/master/msgHdrUtils.js msgHdrGetHeaders
-    return false;
+    return regexp.test(headerValue) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
   let dayTime = new customerTermBase("dayTime", [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter]);
@@ -613,6 +607,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'only') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#toSomebodyOnly' };
       else if (e.tok == 'simple') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectSimple' };
       else if (e.tok == 'regex') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#subjectRegex' };
+      else if (e.tok == 'headerre') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#headerRegex' };
       else if (e.tok == 'date') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dateMatch' };
       else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
@@ -733,7 +728,7 @@ let ExperssionSearchFilter = {
       }
       if (e.tok == 'attachment' || e.tok == 'status')
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
-      else if (e.tok == 'date' )
+      else if ( e.tok == 'date' || e.tok == 'headerre' )
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches;
       else if (attr == nsMsgSearchAttrib.AgeInDays)
         op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;

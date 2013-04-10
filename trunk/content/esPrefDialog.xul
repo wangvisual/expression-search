@@ -65,7 +65,7 @@
         </hbox>
         <hbox>
           <button id="customHeadersButton" tooltip="customDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="window.showModalDialog('chrome://messenger/content/CustomHeaders.xul');"/> 
-          <textbox preference="pref_customHeaders" id="customHeadersText" disabled="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="customDBHeadersTooltip" flex="100"/>
+          <textbox preference="pref_customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="customDBHeadersTooltip" flex="100" class="customHeadersShow"/>
           <tooltip id="customDBHeadersTooltip">
             <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>
             <description class='tooltip-info' id="tooltip_customHeaders" preference="pref_customHeaders" preference-editable="true"/>
