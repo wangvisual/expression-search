@@ -95,6 +95,16 @@ in the <i>subject</i> fields of the message.
 </p><p>This pattern must be the last pattern. Case <b>sensitive</b> unless you have //i.
 </p></li><li><p>
 
+<b>headerre:List-Id=/all-test/i</b> or <b>h:list-id</b> or <b>h:sender=/^Bob/</b> or <b>hr:header~/^value/</b>
+</p>
+<p>This expression searches all messages in the current folder or view with <a href='https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions'>Regular Expressions</a>
+in the header of the message. The header should be already saved in Thunderbird's .msf database.
+You can <a href="https://developer.mozilla.org/en-US/docs/Extensions/Thunderbird/customDBHeaders_Preference">config</a> the headers in 'options/Search More Headers', If you added one header, it will only affect
+newly added emails unless you do 'repaire folder'.
+</p><p>This pattern must be the last pattern. Header is case insensitive, Value is case <b>sensitive</b> unless you have //i.
+If the value is empty, Any message has the header will match.
+</p></li><li><p>
+
 <b>attachment:yes</b> or <b>a:yes</b>
 </p>
 <p>This expression searches all messages in the current folder or view for an attachment,
@@ -102,7 +112,7 @@ Notice that it does not search for attachments named "yes".  You can also use "y
 "yes".  You can use "no", "n", or "0" to search for messages without attachments.
 </p></li><li><p>
 
-<b>filename:foo.doc</b> or <b>fi:image</b> or <b>fn:msword</b> or <b>attachment:html</b>
+<b>filename:foo.doc</b> or <b>fi:image</b> or <b>fn:msword</b> or <b>file:html</b>
 </p>
 <p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
 This expression searches all messages in the current folder or view for an attachment name or type. Case insensitive.
@@ -132,7 +142,7 @@ af:(3:0 -4:0) will search for messages in current view that <i>date</i> between 
 The internal format for compare is "yyyy/mm/dd hh:mm:ss", locale date is also supported.
 </p></li><li><p>
 
-<b>ag:3</b> or <b>da:3</b> or <b>age:3</b> or <b>days:(3 -5)</b>
+<b>ag:3</b> or <b>da:3</b> or <b>age:3</b> or <b>older_than:3</b> or <b>days:(3 -5)</b> or <b>age:today</b> or <b>newer_than:8week</b>
 </p>
 <p>This expression searches all messages in the current folder or view to match age in days.
 days:(3 -5) will search for messages that age between 3 to 5 days.
@@ -144,6 +154,12 @@ days:(3 -5) will search for messages that age between 3 to 5 days.
 in the body of the message. On large or remote folders it may take some time. Also, if you 
 combine this with other search operators like "from:", "subject:" or "to:" this will speed 
 things up considerably. 
+</p></li><li><p>
+
+<b>label:Important</b> or <b>tag:TODO</b> or <b>l:NA</b>
+</p>
+<p>This expression searches all messages in the current folder or view which has the tag
+Important. l:NA means all messages without tag.
 </p></li><li><p>
 
 <b>all: weekend plans</b>
@@ -268,7 +284,15 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <h3>Version history</h3>
 <ul><li>
 Version 0.8.5: <ul>
-<li>Added  options for show or hide text labels of 'quick filter' buttons</li>
+<li>Added options for show or hide text labels of 'quick filter' buttons</li>
+<li>Added regex search for headers</li>
+<li>Added newer_than/older_than support</li>
+<li>Support NA for tag search, Star for status search</li>
+<li>Added today/yesterday/day/month/year for days search</li>
+<li>Added status bar icon & tips</li>
+<li>Added donate buttons</li>
+<li>Fixed crash issue when ctrl2search on headers</li>
+<li>Compatible with TB5~TB23</li>
 </ul>
 </li><li>
 Version 0.8.4: <ul>
@@ -326,7 +350,7 @@ The "filename:" Search for filename/type in the attachment is experimental and m
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=338761'>Bug 338761</a> - searching body of emails for text doesn't match word-wrapped text
 </li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=363238'>Bug 363238</a> - saved searches fail for searches on x-headers
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=363238'><span class="bz_closed">Bug 363238</span></a> - saved searches fail for searches on x-headers
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=546925'>Bug 546925</a> - custom header search is non-functional ('Run search on server' of Edit/Find/Search Messages doesn't work any more)
 </li><li>

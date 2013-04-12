@@ -62,6 +62,9 @@ let ExpressionSearchChrome = {
   
   initPerf: function() {
     this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
+    if ( typeof(this.prefs.addObserver) == 'undefined' ) { // < TB13
+      this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    }
     this.prefs.addObserver("", this, false);
     try {
       this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
@@ -436,18 +439,20 @@ let ExpressionSearchChrome = {
     var QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
-      var allFolders = this.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      var numFolders = allFolders.Count();
-      for (var folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-        var folder = allFolders.GetElementAt(folderIndex).QueryInterface(Components.interfaces.nsIMsgFolder);
-        var uri = folder.URI;
-        // only add non-virtual non-new folders
+      let allDescendants;
+      if ( typeof(rootFolder.descendants) != 'undefined' ) { // bug 436089
+        allDescendants = rootFolder.descendants;
+      } else { // < TB 21
+        allDescendants = this.Cc["@mozilla.org/supports-array;1"].createInstance(this.Ci.nsISupportsArray);
+        rootFolder.ListDescendents(allDescendants);
+      }
+      for (let folder in fixIterator(allDescendants, this.Ci.nsIMsgFolder)) {
+        // only add non-virtual non-news folders
         if ( !folder.isSpecialFolder(nsMsgFolderFlags.Newsgroup,false) && !folder.isSpecialFolder(nsMsgFolderFlags.Virtual,false) ) {
           if (uriSearchString != "") {
             uriSearchString += "|";
           }
-          uriSearchString += uri;
+          uriSearchString += folder.URI;
         }
       }
     }

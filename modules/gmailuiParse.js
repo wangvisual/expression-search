@@ -42,7 +42,7 @@ var ExpressionSearchTokens = {
                filename: strings.get('info.filename'),
                from: strings.get('info.from'),
                newer_than: strings.get('info.newer_than'),
-               only: strings.get('info.only'), // Hi Validation Report, This is not a Event handler :-)
+               only: strings.get('info.only'),
                regex: strings.get('info.regex'),
                headerre: strings.get('info.headerre'),
                simple: strings.get('info.simple'),
@@ -56,7 +56,8 @@ var ExpressionSearchTokens = {
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;
-    for ( let name of ExpressionSearchTokens.allTokenArray ) {
+    //for ( let name of ExpressionSearchTokens.allTokenArray ) { // > TB13
+    ExpressionSearchTokens.allTokenArray.forEach( function(name, index, array) {
       if ( input.length == 0 || name.indexOf(input) == 0 ) {
         let fullName = name;
         if ( typeof(ExpressionSearchTokens.tokenMap[name]) != 'undefined' ) fullName = ExpressionSearchTokens.tokenMap[name];
@@ -67,7 +68,8 @@ var ExpressionSearchTokens = {
           ret.first = fullName;
         }
       }
-    }
+    //}
+    } );
     if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = ExpressionSearchTokens.tokenInfo[ret.first];
     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join('/') + " )";
     ret.matchString = Object.keys(ret.match).sort().join(', ');
@@ -76,9 +78,12 @@ var ExpressionSearchTokens = {
   init: function() { // init allTokenArray tokenMap allTokens
     for ( let token_standard_name in this.tokenDict ) {
       this.allTokenArray = this.allTokenArray.concat(token_standard_name, this.tokenDict[token_standard_name]);
-      for ( let token_alias of this.tokenDict[token_standard_name] ) {
+      /*for ( let token_alias of this.tokenDict[token_standard_name] ) { // > TB13
         this.tokenMap[token_alias] = token_standard_name;
-      }
+      }*/
+      this.tokenDict[token_standard_name].forEach( function(token_alias, index, array) {
+        ExpressionSearchTokens.tokenMap[token_alias] = token_standard_name;
+      } );
     }
     this.allTokens = this.allTokenArray.join('|'); 
   },
