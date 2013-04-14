@@ -1,7 +1,7 @@
 // Opera Wang, 2010/1/15
 // GPL V3 / MPL
 // debug utils
-
+"use strict";
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
 
 Components.utils.import("resource://gre/modules/Services.jsm");

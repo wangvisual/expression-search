@@ -1,6 +1,7 @@
 // Original by Ken Mixter for GMailUI, which is "GMailUI is completely free to use as you wish."
 // Opera Wang, 2010/1/15
 // GPL V3 / MPL
+"use strict";
 
 if ( typeof(ExpressionSearchChrome) != 'undefined' ) {
   throw "Expression Search already defined";
@@ -62,7 +63,7 @@ let ExpressionSearchChrome = {
   
   initPerf: function() {
     this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
-    if ( typeof(this.prefs.addObserver) == 'undefined' ) { // < TB13
+    if ( typeof(this.prefs.addObserver) == 'undefined' ) { // < TB13, Bug 718255
       this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
     }
     this.prefs.addObserver("", this, false);

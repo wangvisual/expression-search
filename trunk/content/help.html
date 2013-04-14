@@ -22,7 +22,7 @@
 
 <body>
 <div id=helpcontent>
-<p>Expression Search is an extension to Thunderbird (versions 3.0+) which add powerful message searching features.
+<p>Expression Search is an extension to Thunderbird (versions 5.0+) which add powerful message searching features.
 It's a modified version of GMailUI, written by Ken Mixter.</p>
 <p>
 Type "hello world" to search within the current view for this string in subject/from/to/cc.<br/>
@@ -154,6 +154,12 @@ days:(3 -5) will search for messages that age between 3 to 5 days.
 in the body of the message. On large or remote folders it may take some time. Also, if you 
 combine this with other search operators like "from:", "subject:" or "to:" this will speed 
 things up considerably. 
+</p></li><li><p>
+
+<b>bodyre:/hello.*world/i</b> or <b>br:tb.*crash</b>
+</p>
+<p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
+This expression searches the body of all messages in the current folder or view. Case sensitive.
 </p></li><li><p>
 
 <b>label:Important</b> or <b>tag:TODO</b> or <b>l:NA</b>
