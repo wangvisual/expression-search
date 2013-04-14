@@ -13,7 +13,7 @@
     delete all white spaces including ' ', \t etc.
     Using ExpressionSearchTokens
 */
-
+"use strict";
 var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "ExpressionSearchTokens"];
 
 let Cu = Components.utils;
@@ -22,37 +22,15 @@ Cu.import("resource:///modules/StringBundle.js");
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 var ExpressionSearchTokens = {
   tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'],
-                  body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], 
+                  body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], bodyre: ['br'],
                   days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'], headerre:['h', 'hr'],
                   status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
   lastTokens: [ 'simple', 'regex', 'headerre' ], // tokens that should be the last one and no more tokens will be checked
-  tokenInfo: { ' ': strings.get('info.blank'),
-               after: strings.get('info.after'),
-               all: strings.get('info.all'),
-               attachment: strings.get('info.attachment'),
-               bcc: strings.get('info.bcc'),
-               before: strings.get('info.before'),
-               body: strings.get('info.body'),
-               cc: strings.get('info.cc'),
-               date: strings.get('info.date'),
-               days: strings.get('info.days'),
-               filename: strings.get('info.filename'),
-               from: strings.get('info.from'),
-               newer_than: strings.get('info.newer_than'),
-               only: strings.get('info.only'),
-               regex: strings.get('info.regex'),
-               headerre: strings.get('info.headerre'),
-               simple: strings.get('info.simple'),
-               status: strings.get('info.status'),
-               subject: strings.get('info.subject'),
-               tag: strings.get('info.tag'),
-               to: strings.get('info.to'),
-               tonocc: strings.get('info.tonocc'),
-               gloda: strings.get('info.gloda'),
-             },
+  slowTokens: [ 'body', 'filename', 'br' ], // tokens that should search later than others
+  tokenInfo: { ' ': strings.get('info.blank') }, // others will be added through init
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;
@@ -75,8 +53,9 @@ var ExpressionSearchTokens = {
     ret.matchString = Object.keys(ret.match).sort().join(', ');
     return ret;
   },
-  init: function() { // init allTokenArray tokenMap allTokens
+  init: function() { // init allTokenArray tokenMap allTokens tokenInfo
     for ( let token_standard_name in this.tokenDict ) {
+      this.tokenInfo[token_standard_name] = strings.get('info.' + token_standard_name);
       this.allTokenArray = this.allTokenArray.concat(token_standard_name, this.tokenDict[token_standard_name]);
       /*for ( let token_alias of this.tokenDict[token_standard_name] ) { // > TB13
         this.tokenMap[token_alias] = token_standard_name;
@@ -85,7 +64,7 @@ var ExpressionSearchTokens = {
         ExpressionSearchTokens.tokenMap[token_alias] = token_standard_name;
       } );
     }
-    this.allTokens = this.allTokenArray.join('|'); 
+    this.allTokens = this.allTokenArray.join('|');
   },
 };
 ExpressionSearchTokens.init.apply(ExpressionSearchTokens);
@@ -662,8 +641,8 @@ function expr_sort(e) {
   //alert('expr_sort-'+e.tok);
 
   if (e.kind == 'spec') {
-    // body search is slow....
-    if ( e.tok == 'body' || e.tok == 'filename' )
+    // body search etc are slow....
+    if ( ExpressionSearchTokens.slowTokens.indexOf(e.tok) >= 0 )
       return 10;
     return 1;
   }

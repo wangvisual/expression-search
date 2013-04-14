@@ -1,3 +1,4 @@
+"use strict";
 function onLoad() {
   if ( Services.vc.compare(Application.version, "19") < 0) { // bug 363238
     // AddEventListner not works here, also setAttribute is too late

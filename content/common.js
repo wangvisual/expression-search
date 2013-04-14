@@ -1,6 +1,7 @@
 // Common functions
 // MPL/GPL
 // Opera.Wang 2011/03/21
+"use strict";
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/StringBundle.js");

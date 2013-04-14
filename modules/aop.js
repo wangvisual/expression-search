@@ -15,6 +15,7 @@
 // Changed by Opera.Wang@gmail.com to make it loadable as an module
 // Removed 'jQuery.' as jQuery maybe not avaliable
 // Removed IE stuff
+"use strict";
 
 var EXPORTED_SYMBOLS = ["ExpressionSearchaop"];
 
@@ -37,7 +38,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 	var getType = (function() {
     
         var topWins = Services.wm.getEnumerator(null);
-        var window;
+        var topWin;
         while (topWins.hasMoreElements()) {
             topWin = topWins.getNext();
             break;
