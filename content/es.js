@@ -356,9 +356,9 @@ let ExpressionSearchChrome = {
     ExpressionSearchChrome.showHideHelp(1, help.alias, help.info, help.matchString, term);
   },
   
-  onSearchKeyPress: function(event){
+  delayedOnSearchKeyPress: function(event) {
     ExpressionSearchChrome.isEnter = 0;
-    let searchValue = this.value; // this is aNode/my search text box, not updated with event.char yet
+    let searchValue = this.value; // this is aNode/my search text box, updated with event.char
     if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
       ExpressionSearchChrome.isEnter = 1;
       let panel = document.getElementById("qfb-text-search-upsell");
@@ -391,9 +391,14 @@ let ExpressionSearchChrome = {
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
       ExpressionSearchChrome.selectFirstMessage(); // no select message, but select pane
     else {
-      let self = this;
-      window.setTimeout( function(){ ExpressionSearchChrome.onTokenChange.apply(self) ;}, 1  ); // defer the call or this.value is still the old value
+      ExpressionSearchChrome.onTokenChange.apply(this);
     }
+  },
+  
+  onSearchKeyPress: function(event){
+    let self = this;
+    // defer the call or this.value is still the old value, not updated with event.char yet
+    window.setTimeout( function(){ ExpressionSearchChrome.delayedOnSearchKeyPress.call(self,event); }, 0);
   },
   
   onSearchBarBlur: function(event) {

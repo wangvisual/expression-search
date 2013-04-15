@@ -21,15 +21,15 @@ Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/StringBundle.js");
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 var ExpressionSearchTokens = {
-  tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'],
+  tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],
                   body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], bodyre: ['br'],
                   days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'], headerre:['h', 'hr'],
                   status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
-  lastTokens: [ 'simple', 'regex', 'headerre' ], // tokens that should be the last one and no more tokens will be checked
-  slowTokens: [ 'body', 'filename', 'br' ], // tokens that should search later than others
+  lastTokens: [ 'simple', 'regex', 'headerre', 'bodyre' ], // tokens that should be the last one and no more tokens will be checked
+  slowTokens: [ 'body', 'filename', 'bodyre' ], // tokens that should search later than others
   tokenInfo: { ' ': strings.get('info.blank') }, // others will be added through init
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
@@ -49,7 +49,7 @@ var ExpressionSearchTokens = {
     //}
     } );
     if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = ExpressionSearchTokens.tokenInfo[ret.first];
-    if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join('/') + " )";
+    if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join(', ') + " )";
     ret.matchString = Object.keys(ret.match).sort().join(', ');
     return ret;
   },
