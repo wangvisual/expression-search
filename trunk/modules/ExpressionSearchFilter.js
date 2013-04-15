@@ -645,6 +645,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
+      else if (e.tok == 'size' || e.tok == 'smaller') attr = nsMsgSearchAttrib.Size;
       else if (e.tok == 'before' || e.tok == 'after') attr = nsMsgSearchAttrib.Date;
       else if (e.tok == 'tag') {
         e.left.tok = this.get_key_from_tag(e.left.tok.toLowerCase());
@@ -758,6 +759,28 @@ let ExperssionSearchFilter = {
           e.left.tok = days * period;
         }
       }
+      if ( attr == nsMsgSearchAttrib.Size ) {
+        if ( e.tok == 'smaller' ) is_not = !is_not;
+        op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;
+        let match = e.left.tok.match(/^([-.\d]*)(\w*)/i); // default KB, can be M,G
+        if ( match.length == 3 ) {
+          let size = match[1];
+          let scale = match[2];
+          if ( scale == '' ) scale = 1;
+          if ( /^m/i.test(scale) ) {
+            scale = 1024;
+          } else if ( /^G/i.test(scale) ) {
+            scale = 1024 * 1024;
+          } else if ( /^K/i.test(scale) ) {
+            scale = 1;
+          } else if ( scale != 1 ) {
+            ExpressionSearchLog.log("unknow size scale:'"+scale+"', can be K,M,G", 1);
+            return;
+          }
+          e.left.tok = size * scale;
+        }
+      }
+      else if (e.tok == 'size' || e.tok == 'smaller') ;
       if (e.tok == 'attachment' || e.tok == 'status')
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
       else if ( e.tok == 'date' || e.tok == 'headerre' )

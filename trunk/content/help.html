@@ -116,6 +116,7 @@ Notice that it does not search for attachments named "yes".  You can also use "y
 </p>
 <p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
 This expression searches all messages in the current folder or view for an attachment name or type. Case insensitive.
+If you just want to search messages that have attachement, use attachment:yes instead of using this one.
 </p></li><li><p>
 
 <b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b> or <b>status:F</b>
@@ -148,6 +149,12 @@ The internal format for compare is "yyyy/mm/dd hh:mm:ss", locale date is also su
 days:(3 -5) will search for messages that age between 3 to 5 days.
 </p></li><li><p>
 
+<b>size:10</b> or <b>si:(0.5M -2M)</b> or <b>larger:1G</b> or <b>smaller:1024</b> or <b>sm:10</b>
+</p>
+<p>This expression searches all messages in the current folder or view to match size in KB or MB/GB.
+size:(3 -5) will search for messages that size is larger than 3KB and less than 5KB, that is 4.x KB.
+</p></li><li><p>
+
 <b>body:electric bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'electric bill' 
@@ -159,7 +166,8 @@ things up considerably.
 <b>bodyre:/hello.*world/i</b> or <b>br:tb.*crash</b>
 </p>
 <p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may crash Thunderbird.
-This expression searches the body of all messages in the current folder or view. Case sensitive.
+This expression searches the body of all messages in the current folder or view. Case sensitive and should be the last pattern.
+Use 'body:' instead of 'bodyre:' when possible.
 </p></li><li><p>
 
 <b>label:Important</b> or <b>tag:TODO</b> or <b>l:NA</b>
@@ -292,7 +300,9 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 Version 0.8.5: <ul>
 <li>Added options for show or hide text labels of 'quick filter' buttons</li>
 <li>Added regex search for headers</li>
+<li>Added regex search for body(experimental, may crash)</li>
 <li>Added newer_than/older_than support</li>
+<li>Added size/larger/smaller support</li>
 <li>Support NA for tag search, Star for status search</li>
 <li>Added today/yesterday/day/month/year for days search</li>
 <li>Added status bar icon & tips</li>
@@ -328,7 +338,7 @@ Version 0.8: <ul>
 <li>Hit Ctrl+B will focus on search box</li>
 <li>before/after search can now search time within day</li>
 <li>Added simple/regex/date search</li>
-<li>Added filename for attachment name/type search (experimental)</li>
+<li>Added filename for attachment name/type search (experimental, may crash)</li>
 </ul>
 </li><li>
 Version 0.7: Added 'status/is' search. Added 'before/after' search. Added numerical calculation.
@@ -348,7 +358,9 @@ Version 0.1: First version, changed from GMailUI to make it works for Thunderbir
 
 <h3>Known Issues of this extension or Thunderbird</h3>
 <ul><li>
-The "filename:" Search for filename/type in the attachment is experimental and may crash your Thunderbird.
+The "filename:" Search for filename/type in the attachment is experimental and may <span class='notice'>crash</span> your Thunderbird.
+</li><li>
+The "bodyre:" Search for regex in body is experimental and may <span class='notice'>crash</span> your Thunderbird.
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=124641'><span class="bz_closed">Bug 124641</span></a> - Thunderbird does not handle multi-line headers correctly when search term spans lines
 </li><li>
