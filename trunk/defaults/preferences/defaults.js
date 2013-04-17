@@ -12,5 +12,7 @@ pref("extensions.expressionsearch.showbuttonlabel", 0);
 
 pref("extensions.expressionsearch.c2s_enableCtrl", true);
 pref("extensions.expressionsearch.c2s_enableShift", false);
+pref("extensions.expressionsearch.c2s_enableCtrlReplace", true);
+pref("extensions.expressionsearch.c2s_enableShiftReplace", false);
 pref("extensions.expressionsearch.c2s_regexpMatch", "");
 pref("extensions.expressionsearch.c2s_regexpReplace", "");

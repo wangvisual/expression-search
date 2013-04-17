@@ -12,15 +12,17 @@
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;">
   <preferences>
-    <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool"/>
+    <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool" instantApply="true"/>
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
-    <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool"/>
-    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int"/>
+    <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool" instantApply="true"/>
+    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
-    <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int"/>
+    <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int" instantApply="true"/>
     <preference id="pref_c2s_enableCtrl" name="extensions.expressionsearch.c2s_enableCtrl" type="bool"/>
     <preference id="pref_c2s_enableShift" name="extensions.expressionsearch.c2s_enableShift" type="bool"/>
+    <preference id="pref_c2s_enableCtrlReplace" name="extensions.expressionsearch.c2s_enableCtrlReplace" type="bool"/>
+    <preference id="pref_c2s_enableShiftReplace" name="extensions.expressionsearch.c2s_enableShiftReplace" type="bool"/>
     <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
@@ -88,28 +90,42 @@
 
     <groupbox flex="1" id="expressionsearch-pane-c2ssetting">
       <caption label="&expressionsearch.dialog.c2s_settings;"/>
-        <checkbox preference="pref_c2s_enableCtrl" label="&expressionsearch.option.c2s_enableCtrl;"/>
-        <checkbox preference="pref_c2s_enableShift" label="&expressionsearch.option.c2s_enableShift;"/>
+        <grid id="c2sEnableGrid">
+            <columns>
+              <column flex="1"/>
+              <column flex="1"/>
+            </columns>
+            <rows>
+              <row>
+                <checkbox preference="pref_c2s_enableCtrl" label="&expressionsearch.option.c2s_enableCtrl;"/>
+                <checkbox preference="pref_c2s_enableShift" label="&expressionsearch.option.c2s_enableShift;"/>
+              </row>
+              <row>
+                <checkbox preference="pref_c2s_enableCtrlReplace" label="&expressionsearch.option.c2s_enableCtrlReplace;"/>
+                <checkbox preference="pref_c2s_enableShiftReplace" label="&expressionsearch.option.c2s_enableShiftReplace;"/>
+              </row>
+            </rows>
+          </grid>
         <text/>
         <hbox>
           <text value="&expressionsearch.dialog.c2s_replace_title;"/>
           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#c2s_Replace');"/>
         </hbox>
         <grid id="c2sRegexpGrid">
-            <columns>
-                <column flex="1"/>
-                <column flex="1000"/>
-            </columns>
-            <rows>
-                <row>
-                    <label value="&expressionsearch.dialog.c2s_match;"/>
-                    <textbox preference="pref_c2s_regexpMatch" id="c2sMatch"/>
-                </row>
-                <row>
-                    <label value="&expressionsearch.dialog.c2s_replace;"/>
-                    <textbox preference="pref_c2s_regexpReplace" id="c2sReplace"/>
-                </row>
-            </rows>
+          <columns>
+            <column flex="1"/>
+            <column flex="1000"/>
+          </columns>
+          <rows>
+            <row>
+              <label value="&expressionsearch.dialog.c2s_match;"/>
+              <textbox preference="pref_c2s_regexpMatch" id="c2sMatch"/>
+            </row>
+            <row>
+              <label value="&expressionsearch.dialog.c2s_replace;"/>
+              <textbox preference="pref_c2s_regexpReplace" id="c2sReplace"/>
+            </row>
+          </rows>
         </grid>
     </groupbox>
 

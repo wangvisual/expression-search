@@ -122,7 +122,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 		aspect.unweave = function() { 
 			source[method] = old;
-			pointcut = source = aspect = old = null;
+			source = aspect = old = null;
 		};
 
 		source[method] = aspect;
