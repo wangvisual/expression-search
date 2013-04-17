@@ -14,6 +14,7 @@
   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <keyset id="mailKeys">
     <key id="key_find_expression_search" key="&expressionsearch.focusSearch.key;" modifiers="&expressionsearch.focusSearch.mod;" oncommand="ExpressionSearchChrome.setFocus();"/>
+    <key id="key_back_to_original_folder" keycode="&expressionsearch.back2folder.keycode;" modifiers="&expressionsearch.back2folder.mod;" oncommand="ExpressionSearchChrome.back2OriginalFolder();"/>
   </keyset>
   <statusbar id="status-bar">
     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">

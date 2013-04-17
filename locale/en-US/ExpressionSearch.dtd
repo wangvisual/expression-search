@@ -4,6 +4,9 @@
 <!ENTITY expressionsearch.focusPeopleSearch.key  "f">
 <!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
 
+<!ENTITY expressionsearch.back2folder.keycode        "VK_LEFT">
+<!ENTITY expressionsearch.back2folder.mod        "accel">
+
 <!ENTITY about.about "About">
 <!ENTITY about.author "Author:">
 <!ENTITY about.help "Help">
@@ -30,6 +33,8 @@
 <!ENTITY expressionsearch.option.crash "Crash Reports">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
 <!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
+<!ENTITY expressionsearch.option.c2s_enableCtrlReplace "Use subject replace for Ctrl Combo">
+<!ENTITY expressionsearch.option.c2s_enableShiftReplace "Use subject replace for Shift Combo">
 
 <!ENTITY expressionsearch.dialog.title "Expression Search Options">
 <!ENTITY expressionsearch.dialog.settings "Settings">

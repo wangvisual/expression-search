@@ -4,6 +4,9 @@
 <!ENTITY expressionsearch.focusPeopleSearch.key  "f">
 <!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
 
+<!ENTITY expressionsearch.back2folder.keycode        "VK_LEFT">
+<!ENTITY expressionsearch.back2folder.mod        "accel">
+
 <!ENTITY about.about "关于">
 <!ENTITY about.author "作者:">
 <!ENTITY about.help "帮助">
@@ -30,6 +33,8 @@
 <!ENTITY expressionsearch.option.crash "查看雷鸟崩溃报告">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "邮件列表中按 Ctrl+鼠标右键 执行搜索">
 <!ENTITY expressionsearch.option.c2s_enableShift "邮件列表中按 Shift+鼠标右键 执行搜索">
+<!ENTITY expressionsearch.option.c2s_enableCtrlReplace "Ctrl组合搜索时使用下面的替换">
+<!ENTITY expressionsearch.option.c2s_enableShiftReplace "Shift组合搜索时使用下面的替换">
 
 <!ENTITY expressionsearch.dialog.title "Expression Search 首选项">
 <!ENTITY expressionsearch.dialog.settings "设置">

@@ -77,6 +77,8 @@ let ExpressionSearchChrome = {
       this.options.showbuttonlabel = this.prefs.getIntPref("showbuttonlabel"); // 0:auto 1:force show 2:force hide
       this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
       this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
+      this.options.c2s_enableCtrlReplace = this.prefs.getBoolPref("c2s_enableCtrlReplace");
+      this.options.c2s_enableShiftReplace = this.prefs.getBoolPref("c2s_enableShiftReplace");
       this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
       this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
       this.options.installed_version = this.prefs.getComplexValue('installed_version',this.Ci.nsISupportsString).data;
@@ -99,6 +101,8 @@ let ExpressionSearchChrome = {
        case "select_msg_on_enter":
        case "c2s_enableCtrl":
        case "c2s_enableShift":
+       case "c2s_enableCtrlReplace":
+       case "c2s_enableShiftReplace":
        case "enable_statusbar_info":
          this.options[data] = this.prefs.getBoolPref(data);
          break;
@@ -348,8 +352,8 @@ let ExpressionSearchChrome = {
   onTokenChange: function() {
     let searchValue = this.value;
     let start = searchValue.lastIndexOf(' ', this.selectionEnd > 0 ? this.selectionEnd - 1 : 0); // selectionEnd is index of the character after the selection
-    let currentString = searchValue.substring(start+1, this.selectionEnd);
-    currentString = currentString.replace(/:.*/,'');
+    //let currentString = searchValue.substring(start+1, this.selectionEnd).replace(/:.*/,'');
+    let currentString = searchValue.substring(start+1).replace(/[ :].*/,'');
     let help = ExpressionSearchTokens.mostFit(currentString);
     let term = undefined;
     if ( searchValue == '' ) term = ' ';
@@ -357,10 +361,11 @@ let ExpressionSearchChrome = {
   },
   
   delayedOnSearchKeyPress: function(event) {
-    ExpressionSearchChrome.isEnter = 0;
+    let me = ExpressionSearchChrome;
+    me.isEnter = 0;
     let searchValue = this.value; // this is aNode/my search text box, updated with event.char
     if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
-      ExpressionSearchChrome.isEnter = 1;
+      me.isEnter = 1;
       let panel = document.getElementById("qfb-text-search-upsell");
       if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
         if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
@@ -373,25 +378,27 @@ let ExpressionSearchChrome = {
             });
           }
         } else if ( event.ctrlKey || event.metaKey ) { // create quick search folder
-          ExperssionSearchFilter.latchQSFolderReq = ExpressionSearchChrome;
+          ExperssionSearchFilter.latchQSFolderReq = me;
           this._fireCommand(this);
         } else {
           let e = compute_expression(searchValue);
           if (e.kind == 'spec' && e.tok == 'calc') {
-            ExpressionSearchChrome.isEnter = 0; // showCalculationResult also will select the result.
-            ExpressionSearchChrome.showCalculationResult(e);
+            me.isEnter = 0; // showCalculationResult also will select the result.
+            me.showCalculationResult(e);
           }
         }
       }
     } // end of IsEnter
-    ExpressionSearchChrome.hideUpsellPanel(); // hide the panel when key press
+    me.hideUpsellPanel(); // hide the panel when key press
     // -- Keypresses for focus transferral
     if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) && !event.altKey )
-      ExpressionSearchChrome.selectFirstMessage(true);
+      me.selectFirstMessage(true);
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
-      ExpressionSearchChrome.selectFirstMessage(); // no select message, but select pane
-    else {
-      ExpressionSearchChrome.onTokenChange.apply(this);
+      me.selectFirstMessage(); // no select message, but select pane
+    else if (  ( event.ctrlKey || event.metaKey ) && event.keyCode == event.DOM_VK_LEFT ) { // Ctrl + <-- not works when focus in textbox
+      me.back2OriginalFolder();
+    } else {
+      me.onTokenChange.apply(this);
     }
   },
   
@@ -417,13 +424,24 @@ let ExpressionSearchChrome = {
   },
 
   initSearchInput: function() {
-    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    let aNode = document.getElementById(this.textBoxDomId);
     if ( aNode ) {
-      aNode.addEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true); // false will be after onComand, too late
-      //aNode.addEventListener("input", ExpressionSearchChrome.onTokenChange, true); // input can't get arrow key change but can get update when click2search
-      aNode.addEventListener("click", ExpressionSearchChrome.onTokenChange, true); // to track selectEnd change
-      aNode.addEventListener("blur", ExpressionSearchChrome.onSearchBarBlur, true);
-      aNode.addEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
+      aNode.addEventListener("keypress", this.onSearchKeyPress, true); // false will be after onComand, too late
+      //aNode.addEventListener("input", this.onTokenChange, true); // input can't get arrow key change but can get update when click2search
+      aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
+      aNode.addEventListener("blur", this.onSearchBarBlur, true);
+      aNode.addEventListener("focus", this.onSearchBarFocus, true);
+    }
+  },
+  
+  back2OriginalFolder: function() {
+    try {
+      let me = ExpressionSearchChrome;
+      if ( typeof(me.originalURI) == 'undefined' ) {
+        me.originalURI = gFolderDisplay.displayedFolder.rootFolder.URI;
+      }
+      SelectFolder(me.originalURI);
+    } catch (err) {
     }
   },
   
@@ -431,7 +449,7 @@ let ExpressionSearchChrome = {
   createQuickFolder: function(searchTerms) {
     const nsMsgFolderFlags = this.Ci.nsMsgFolderFlags;
     var currFolder = gFolderDisplay.displayedFolder;
-    var currURI = currFolder.URI;
+    this.originalURI = currFolder.URI;
     var rootFolder = currFolder.rootFolder; // nsIMsgFolder
     var QSFolderName = "ExpressionSearch";
     var uriSearchString = "";
@@ -484,7 +502,7 @@ let ExpressionSearchChrome = {
       VirtualFolderHelper.createNewVirtualFolder(QSFolderName, targetFolderParent, uriSearchString, searchTerms, false);
     }
 
-    if (currURI == QSFolderURI) {
+    if (this.originalURI == QSFolderURI) {
       // select another folder to force reload of our virtual folder
       SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
     }
@@ -584,7 +602,7 @@ let ExpressionSearchChrome = {
       var r_match = str.match(regexp);
       if ( !r_match ) return str;
       var res = new Array();
-      for (i = 0; i < r_match.length; i++ ) {
+      for (let i = 0; i < r_match.length; i++ ) {
           res.push( r_match[i].replace(regexp, ExpressionSearchChrome.options.c2s_regexpReplace) );
       }
       var out = res.join(" or ");
@@ -594,10 +612,11 @@ let ExpressionSearchChrome = {
   },
   
   onClicked: function(event) {
+    let me = ExpressionSearchChrome;
     if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
-    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    let aNode = document.getElementById(me.textBoxDomId);
     if ( !aNode ) return;
-    if ( ! ExpressionSearchChrome.CheckClickSearchEvent(event) ) return;
+    if ( ! me.CheckClickSearchEvent(event) ) return;
     var row = {}; var col = {}; var childElt = {};
     event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
     if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' || row.value < 0 || col.value == null ) return;
@@ -607,7 +626,9 @@ let ExpressionSearchChrome = {
     let msgHdr = gDBView.getMsgHdrAt(row.value);
     switch(col.value.id) {
        case "subjectCol":
-         sCellText = ExpressionSearchChrome.RegexpReplaceString( sCellText );
+         if ( ( me.options.c2s_enableCtrlReplace && event.ctrlKey ) || ( me.options.c2s_enableShiftReplace && event.shiftKey ) ) {
+           sCellText = me.RegexpReplaceString( sCellText );
+         }
          token = "simple";
          if ( sCellText.indexOf("(") == 0 )
            token = "s";
@@ -630,8 +651,8 @@ let ExpressionSearchChrome = {
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
            let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
            let treeView = treeBox.view;
-           var property = ExpressionSearchChrome.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-           var atomIn = ExpressionSearchChrome.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
+           var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+           var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
            treeView.getCellProperties(row.value,col.value,property);
            token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
          }
@@ -659,8 +680,9 @@ let ExpressionSearchChrome = {
     if ( sCellText == "" ) return;
     QuickFilterBarMuxer._showFilterBar(true);
     aNode.value = token + ":" + sCellText;
-    ExpressionSearchChrome.onTokenChange.apply(aNode);
-    ExpressionSearchChrome.isEnter = true; // So the email can be selected
+    aNode.selectionEnd = aNode.selectionStart = 1;
+    me.onTokenChange.apply(aNode);
+    me.isEnter = true; // So the email can be selected
     aNode._fireCommand(aNode);
     // Stop even bubbling
     event.preventDefault();
@@ -680,22 +702,23 @@ let ExpressionSearchChrome = {
   },
   
   initAfterLoad: function() {
-    window.removeEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
-    ExpressionSearchChrome.initSearchInput();
-    ExpressionSearchChrome.refreshFilterBar();
+    let me = ExpressionSearchChrome;
+    window.removeEventListener("load", me.initAfterLoad, false);
+    me.initSearchInput.apply(me);
+    me.refreshFilterBar();
     let threadPane = document.getElementById("threadTree");
     if ( threadPane )
-      threadPane.addEventListener("click", ExpressionSearchChrome.onClicked, true);
+      threadPane.addEventListener("click", me.onClicked, true);
       
     // first get my own version
-    ExpressionSearchChrome.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
+    me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
     try {
         // Gecko 2 and later
-        ExpressionSearchChrome.Cu.import("resource://gre/modules/AddonManager.jsm");
+        me.Cu.import("resource://gre/modules/AddonManager.jsm");
         // Async call!
         AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}", function(addon) {
-          ExpressionSearchChrome.options.current_version = addon.version;
-          ExpressionSearchChrome.firstRunAction.apply(ExpressionSearchChrome);
+          me.options.current_version = addon.version;
+          me.firstRunAction.apply(me);
       });
     } catch (ex) {
     }

@@ -18,7 +18,7 @@ var ExpressionSearchCommon = {
     }
   },
   loadURL: function(url) { // not support html anchor
-    Services.ww.openWindow(null, ExpressionSearchCommon.translateURL(url), null, "chrome=no,menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,centerscreen", null);
+    Services.ww.openWindow(null, ExpressionSearchCommon.translateURL(url), null, "chrome=no,menubar=no,status=no,location=no,resizable,scrollbars,centerscreen", null);
   },
   loadInTopWindow: function(url,anchor) {
     //openDialog will open another top window

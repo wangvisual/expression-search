@@ -50,6 +50,7 @@ var ExpressionSearchTokens = {
     } );
     if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = ExpressionSearchTokens.tokenInfo[ret.first];
     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join(', ') + " )";
+    if ( Object.keys(ret.match).length == 0 ) ret.match = ExpressionSearchTokens.tokenDict;
     ret.matchString = Object.keys(ret.match).sort().join(', ');
     return ret;
   },
