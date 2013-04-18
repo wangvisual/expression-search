@@ -17,6 +17,7 @@
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool" instantApply="true"/>
     <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
+    <preference id="perf_vf_intab" name="extensions.expressionsearch.load_virtual_folder_in_tab" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
     <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int" instantApply="true"/>
     <preference id="pref_c2s_enableCtrl" name="extensions.expressionsearch.c2s_enableCtrl" type="bool"/>
@@ -46,6 +47,7 @@
         </hbox>
         <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
         <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info;"/>
+        <checkbox preference="perf_vf_intab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
         <hbox align='center'>
           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
           <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">

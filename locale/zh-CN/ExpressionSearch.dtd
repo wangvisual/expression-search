@@ -23,6 +23,7 @@
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "总是不显示">
 <!ENTITY expressionsearch.option.showbuttonlabel " '快速搜索条' 按钮的文字">
 <!ENTITY expressionsearch.option.reusefolder "重新生成保存搜索时不改变选其中的文件夹选择">
+<!ENTITY expressionsearch.option.load_virtual_folder_in_tab "在新的Tab中打开保存搜索目录/虚拟目录">
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
 <!ENTITY expressionsearch.option.enable_verbose_info "在控制台中显示详细信息">
 <!ENTITY expressionsearch.option.enable_statusbar_info "输入时在状态栏以上显示帮助信息">

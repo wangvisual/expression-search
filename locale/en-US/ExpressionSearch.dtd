@@ -23,6 +23,7 @@
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "Always hide">
 <!ENTITY expressionsearch.option.showbuttonlabel "text label of 'Quick Filter' buttons">
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
+<!ENTITY expressionsearch.option.load_virtual_folder_in_tab "Load Saved Search folder in a new Tab">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">
 <!ENTITY expressionsearch.option.enable_statusbar_info "Show tooltips above status bar when type commands">

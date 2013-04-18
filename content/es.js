@@ -72,6 +72,7 @@ let ExpressionSearchChrome = {
       this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
       this.options.act_as_normal_filter = this.prefs.getBoolPref("act_as_normal_filter");
       this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+      this.options.load_virtual_folder_in_tab = this.prefs.getBoolPref("load_virtual_folder_in_tab");
       this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
       this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
       this.options.showbuttonlabel = this.prefs.getIntPref("showbuttonlabel"); // 0:auto 1:force show 2:force hide
@@ -98,6 +99,7 @@ let ExpressionSearchChrome = {
        case "hide_filter_label":
        case "act_as_normal_filter":
        case "reuse_existing_folder":
+       case "load_virtual_folder_in_tab":
        case "select_msg_on_enter":
        case "c2s_enableCtrl":
        case "c2s_enableShift":
@@ -122,6 +124,7 @@ let ExpressionSearchChrome = {
   hookedFunctions: [],
   initFunctionHook: function() {
     if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' ) return;
+
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
         let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
         let hasFilter = typeof(this.maybeActiveFilterer)=='object';
@@ -153,8 +156,7 @@ let ExpressionSearchChrome = {
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
       let aTerms = invocation.arguments[0];
       let aCloneTerms = invocation.arguments[1];
-      let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
-      if ( !aNode || !aNode.value ) return invocation.proceed();
+      if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
       let outTerms = aCloneTerms ? [] : aTerms;
       let term;
       if ( aCloneTerms ) {
@@ -226,22 +228,23 @@ let ExpressionSearchChrome = {
 
   unregister: function() {
     ExpressionSearchLog.info("Expression Search: unload...");
-    ExpressionSearchChrome.prefs.removeObserver("", ExpressionSearchChrome);
-    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    let me = ExpressionSearchChrome;
+    me.prefs.removeObserver("", me);
+    let aNode = me.textBoxNode;
     if ( aNode && aNode.removeEventListener ) {
-        aNode.removeEventListener("keypress", ExpressionSearchChrome.onSearchKeyPress, true);
-        //aNode.removeEventListener("input", ExpressionSearchChrome.onTokenChange, true);
-        aNode.removeEventListener("click", ExpressionSearchChrome.onTokenChange, true);
-        aNode.removeEventListener("blur", ExpressionSearchChrome.onSearchBarBlur, true);
-        aNode.removeEventListener("focus", ExpressionSearchChrome.onSearchBarFocus, true);
+        aNode.removeEventListener("keypress", me.onSearchKeyPress, true);
+        //aNode.removeEventListener("input", me.onTokenChange, true);
+        aNode.removeEventListener("click", me.onTokenChange, true);
+        aNode.removeEventListener("blur", me.onSearchBarBlur, true);
+        aNode.removeEventListener("focus", me.onSearchBarFocus, true);
     }
     let threadPane = document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
-      threadPane.RemoveEventListener("click", ExpressionSearchChrome.onClicked, true);
-    ExpressionSearchChrome.hookedFunctions.forEach( function(hooked, index, array) {
+      threadPane.RemoveEventListener("click", me.onClicked, true);
+    me.hookedFunctions.forEach( function(hooked, index, array) {
       hooked.unweave();
     } );
-    window.removeEventListener("unload", ExpressionSearchChrome.unregister, false);
+    window.removeEventListener("unload", me.unregister, false);
   },
   
   refreshFilterBar: function() {
@@ -415,7 +418,7 @@ let ExpressionSearchChrome = {
   },
   
   onSearchBarFocus: function(event) {
-    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    let aNode = ExpressionSearchChrome.textBoxNode;
     if ( aNode ) {
       if ( aNode.value == '' ) QuickFilterBarMuxer._showFilterBar(true);
       ExpressionSearchChrome.isFocus = true;
@@ -424,13 +427,15 @@ let ExpressionSearchChrome = {
   },
 
   initSearchInput: function() {
-    let aNode = document.getElementById(this.textBoxDomId);
+    let aNode = this.textBoxNode = document.getElementById(this.textBoxDomId);
     if ( aNode ) {
       aNode.addEventListener("keypress", this.onSearchKeyPress, true); // false will be after onComand, too late
       //aNode.addEventListener("input", this.onTokenChange, true); // input can't get arrow key change but can get update when click2search
       aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
       aNode.addEventListener("blur", this.onSearchBarBlur, true);
       aNode.addEventListener("focus", this.onSearchBarFocus, true);
+    } else {
+      ExpressionSearchLog.log("Expression Search: Can't find my textbox", "Error");
     }
   },
   
@@ -481,6 +486,10 @@ let ExpressionSearchChrome = {
       }
     }
 
+    if ( this.options.load_virtual_folder_in_tab ) {
+      // if loadTab later, will get 'Error: There is no active filterer but we want one.'
+      ExpressionSearchCommon.loadTab( {folder:rootFolder, type:'folder'} );
+    }
     //Check if folder exists already
     if (targetFolderParent.containsChildNamed(QSFolderName)) {
       // modify existing folder
@@ -507,7 +516,6 @@ let ExpressionSearchChrome = {
       SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
     }
     SelectFolder(QSFolderURI);
-    //ExpressionSearchCommon.loadTab( {folder: msgFolder, type:'folder'} ); // load in Tab, cause getFilter error
   },
 
   // select first message, expand first container if closed
@@ -516,8 +524,7 @@ let ExpressionSearchChrome = {
       let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
       let treeView = treeBox.view; //nsITreeView
       let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
-      let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
-      if ( aNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
+      if ( ExpressionSearchChrome.textBoxNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
         if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
           treeView.toggleOpenState(0);
         if ( typeof(needSelect) == 'undefined' || needSelect ) {
@@ -614,7 +621,7 @@ let ExpressionSearchChrome = {
   onClicked: function(event) {
     let me = ExpressionSearchChrome;
     if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
-    let aNode = document.getElementById(me.textBoxDomId);
+    let aNode = ExpressionSearchChrome.textBoxNode;
     if ( !aNode ) return;
     if ( ! me.CheckClickSearchEvent(event) ) return;
     var row = {}; var col = {}; var childElt = {};
@@ -725,10 +732,9 @@ let ExpressionSearchChrome = {
   },
 
   setFocus: function() {
-    let aNode = document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( ExpressionSearchChrome.options.move2bar==0 && !QuickFilterBarMuxer.activeFilterer.visible )
       QuickFilterBarMuxer._showFilterBar(true);
-    aNode.focus();
+    ExpressionSearchChrome.textBoxNode.focus();
   },
 
 };

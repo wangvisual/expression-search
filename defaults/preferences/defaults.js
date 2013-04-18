@@ -3,6 +3,7 @@ pref("extensions.expressionsearch.hide_normal_filer", true);
 pref("extensions.expressionsearch.hide_filter_label", false);
 pref("extensions.expressionsearch.act_as_normal_filter", true);
 pref("extensions.expressionsearch.reuse_existing_folder", false);
+pref("extensions.expressionsearch.load_virtual_folder_in_tab", false);
 pref("extensions.expressionsearch.select_msg_on_enter", false);
 pref("extensions.expressionsearch.enable_verbose_info", false);
 pref("extensions.expressionsearch.enable_statusbar_info", true);
