@@ -26,8 +26,8 @@
 
 <body>
 <div id=helpcontent>
-<p>Expression Search is an extension to Thunderbird (versions 5.0+) which add powerful message searching features.
-It's a modified version of GMailUI, written by Ken Mixter.</p>
+<p>Expression Search / GMailUI is an extension to Thunderbird (versions 5.0+) which add powerful message searching features.
+Init by Ken Mixter, Maintaining by Opera Wang.</p>
 <p>
 Type "hello world" to search within the current view for this string in subject/from/to/cc.<br/>
 Type "from:fred to:tom attachment:yes" to see all messages from Fred to Tom in the current view that have an attachment.<br/>
@@ -321,6 +321,8 @@ Version 0.8.5: <ul>
 <li>Added status bar icon & tips</li>
 <li>Added donate buttons</li>
 <li>Fixed crash issue when ctrl2search on headers</li>
+<li>Fixed bugs for Ctrl+Enter launch gloda search when no messages found</li>
+<li>Fixed bugs for pined quick search buttons not work when switch between folders</li>
 <li>Compatible with TB5~TB23</li>
 </ul>
 </li><li>
@@ -433,6 +435,10 @@ Olivier - Suggest for Shift/Ctrl+Enter
 Paul Sednaoui - Suggest for 'only' search
 </li><li>
 Randolf Ebelt - Find a bug when search with complicate expressions
+</li><li>
+Olivier Brodeur - Find a bug when no messages found, gloda launched when Ctrl+Enter
+</li><li>
+Lee Yeoh - Find a bug for pined quick search buttons not work
 </li><li>
 Tom Zhu - Suggest for Enter to focus message pane, and validations before release.
 </li></ul>

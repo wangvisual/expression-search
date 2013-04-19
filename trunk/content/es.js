@@ -371,7 +371,10 @@ let ExpressionSearchChrome = {
       me.isEnter = 1;
       let panel = document.getElementById("qfb-text-search-upsell");
       if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
-        if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
+        if ( event.ctrlKey || event.metaKey ) { // create quick search folder
+          ExperssionSearchFilter.latchQSFolderReq = me;
+          this._fireCommand(this);
+        } else if ( GlodaIndexer.enabled && ( panel.state=="open" || event.shiftKey || searchValue.toLowerCase().indexOf('g:') == 0 ) ) { // gloda
           searchValue = ExperssionSearchFilter.expression2gloda(searchValue);
           if ( searchValue != '' ) {
             //this._fireCommand(this); // just for selection, but no use as TB will unselect it
@@ -380,9 +383,6 @@ let ExpressionSearchChrome = {
               searcher: new GlodaMsgSearcher(null, searchValue)
             });
           }
-        } else if ( event.ctrlKey || event.metaKey ) { // create quick search folder
-          ExperssionSearchFilter.latchQSFolderReq = me;
-          this._fireCommand(this);
         } else {
           let e = compute_expression(searchValue);
           if (e.kind == 'spec' && e.tok == 'calc') {
@@ -487,6 +487,9 @@ let ExpressionSearchChrome = {
     }
 
     if ( this.options.load_virtual_folder_in_tab ) {
+      // select folders to clear the search box
+      SelectFolder(QSFolderURI);
+      SelectFolder(this.originalURI);
       // if loadTab later, will get 'Error: There is no active filterer but we want one.'
       ExpressionSearchCommon.loadTab( {folder:rootFolder, type:'folder'} );
     }
