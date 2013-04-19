@@ -505,7 +505,7 @@ let ExperssionSearchFilter = {
     // (Currently we always return "nosale" to make sure our panel is closed;
     //  this might be overkill but unless it becomes a performance problem, it
     //  keeps us safe from weird stuff.)
-    //ExpressionSearchLog.log('aViewWrapper.dbView:'+aViewWrapper.dbView.viewType+":"+aViewWrapper.dbView.numMsgsInView+":"+aViewWrapper.dbView.rowCount+":"+aViewWrapper.dbView.viewFlags);
+    // ExpressionSearchLog.log( 'aViewWrapper.dbView:'+aViewWrapper.dbView.viewType+":"+aViewWrapper.dbView.numMsgsInView + ":" + aViewWrapper.dbView.rowCount + ":" + aViewWrapper.dbView.viewFlags );
     if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || aViewWrapper.dbView.rowCount /* Bug 574799 */ || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
       
