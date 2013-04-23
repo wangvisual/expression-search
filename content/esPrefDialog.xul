@@ -10,7 +10,8 @@
      title="&expressionsearch.dialog.title;"
      onload="onLoad();"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-<prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;">
+<prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;" style="overflow: auto;">
+  
   <preferences>
     <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool" instantApply="true"/>
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
