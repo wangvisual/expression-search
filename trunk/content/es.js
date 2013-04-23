@@ -240,7 +240,7 @@ let ExpressionSearchChrome = {
     }
     let threadPane = document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
-      threadPane.RemoveEventListener("click", me.onClicked, true);
+      threadPane.RemoveEventListener("contextmenu", me.onContextMenu, true);
     me.hookedFunctions.forEach( function(hooked, index, array) {
       hooked.unweave();
     } );
@@ -620,8 +620,8 @@ let ExpressionSearchChrome = {
         out = "(" + out + ")";
       return out;
   },
-  
-  onClicked: function(event) {
+
+  onContextMenu: function(event) {
     let me = ExpressionSearchChrome;
     if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
     let aNode = ExpressionSearchChrome.textBoxNode;
@@ -693,10 +693,11 @@ let ExpressionSearchChrome = {
     aNode.selectionEnd = aNode.selectionStart = 1;
     me.onTokenChange.apply(aNode);
     me.isEnter = true; // So the email can be selected
-    aNode._fireCommand(aNode);
-    // Stop even bubbling
+    // Stop event bubbling
     event.preventDefault();
     event.stopPropagation();
+    aNode._fireCommand(aNode);
+    return false;
   },
   
   firstRunAction: function() {
@@ -717,8 +718,10 @@ let ExpressionSearchChrome = {
     me.initSearchInput.apply(me);
     me.refreshFilterBar();
     let threadPane = document.getElementById("threadTree");
-    if ( threadPane )
-      threadPane.addEventListener("click", me.onClicked, true);
+    if ( threadPane ) {
+      // On Mac, contextmenu is fired before onclick, thus even break onclick  still has context menu
+      threadPane.addEventListener("contextmenu", me.onContextMenu, true);
+    }
       
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
