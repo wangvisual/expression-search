@@ -607,18 +607,22 @@ let ExpressionSearchChrome = {
   //Replace string using user-defined regexp. If not match, return original strings. 
   //If multiple matches, return all replaces, concatinated with OR operator
   RegexpReplaceString : function( str ) {
-      if ( ExpressionSearchChrome.options.c2s_regexpMatch.length == 0 ) return str;
-      var regexp = new RegExp(ExpressionSearchChrome.options.c2s_regexpMatch, "gi");
-      var r_match = str.match(regexp);
+    if ( ExpressionSearchChrome.options.c2s_regexpMatch.length == 0 ) return str;
+	try {
+      let regexp = new RegExp(ExpressionSearchChrome.options.c2s_regexpMatch, "gi"); // with g modifier, r_match[0] is the first match intead of whole match string
+      let r_match = str.match(regexp);
       if ( !r_match ) return str;
-      var res = new Array();
-      for (let i = 0; i < r_match.length; i++ ) {
-          res.push( r_match[i].replace(regexp, ExpressionSearchChrome.options.c2s_regexpReplace) );
-      }
-      var out = res.join(" or ");
+      let res = r_match.map( function(match) {
+        return match.replace(regexp, ExpressionSearchChrome.options.c2s_regexpReplace);
+      });
+      let out = res.join(" or ");
       if ( res.length > 1)
         out = "(" + out + ")";
       return out;
+    } catch (err) {
+      ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex '" + ExpressionSearchChrome.options.c2s_regexpMatch + "'", 1);
+      return str;
+    }
   },
 
   onContextMenu: function(event) {
