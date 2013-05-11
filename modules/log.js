@@ -60,7 +60,12 @@ var ExpressionSearchLog = {
     else {
       for (let i in o) {
         try {
-          let t = typeof o[i];
+          let t = "";
+          try {
+            t = typeof(o[i]);
+          } catch (err) {
+            s += pfx + tee + " (exception) " + err + "\n";
+          }
           switch (t) {
             case "function":
               let sfunc = String(o[i]).split("\n");
@@ -84,6 +89,8 @@ var ExpressionSearchLog = {
               else
                 s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
               break;
+            case "":
+              break;
             default:
               s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
           }
@@ -98,21 +105,22 @@ var ExpressionSearchLog = {
     return s;
   },
   
-  logObject: function(obj, name, maxDepth, curDepth)
-  {
+  logObject: function(obj, name, maxDepth, curDepth) {
     this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
   },
-  
+
   logException: function(e) {
-    var msg = "Caught Exception";
+    let msg = "Caught Exception";
     if ( e.name && e.message ) {
       msg += " " + e.name + ": " + e.message + "\n";
-    }
-    if ( e.stack ) {
+    } else if ( e.stack ) {
       msg += e.stack;
     } else if ( e.fileName && e.lineNumber ) {
       msg += "@ " + e.fileName + ":" + e.lineNumber + "\n";
+    } else {
+      msg += " " + e + "\n";
     }
-    this.log(msg);
+    this.log(msg, "Exception");
   },
+
 };
