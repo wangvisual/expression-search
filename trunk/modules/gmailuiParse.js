@@ -143,27 +143,15 @@ function ADVANCE_TOKEN() {
   // not a single-char token, so scan it all in.
   var tok = "";
   if (!this.calc) {
-    //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
-    //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
-    /*while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
-      if ( this.str[0] == ':' && ExpressionSearchTokens.allTokens.test(tok) ) break;
-      tok+=this.str[0];
-      this.str = this.str.substr(1);
-    }*/
     let splitTokens = new RegExp('^('+ExpressionSearchTokens.allTokens+")(:.*)");
     let splitResult = splitTokens.exec(this.str);
+    //By Opera: if ":" seems like within normal string, advance without break.
+    if ( splitResult == null ) splitResult = /^([^\s\(\)]+)([\s\(\)].*)/.exec(this.str);
     if ( splitResult != null ) {
-      tok = splitResult[1];
-      this.str = splitResult[2];
+      [, tok, this.str] = splitResult;
     } else {
-      splitResult = /^([^\s\(\)]+)([\s\(\)].*)/.exec(this.str);
-      if ( splitResult != null ) {
-        tok = splitResult[1];
-        this.str = splitResult[2];
-      } else {
-        tok = this.str;
-        this.str = "";
-      }
+      tok = this.str;
+      this.str = "";
     }
     if (this.cant_be_calc) {
       // don't bother autodetecting calculator expr if disqualified already
@@ -239,7 +227,6 @@ function TokenizerFactory()
 
   return r;
 }
-
 
 ////////// Search expression parser
 
@@ -369,9 +356,6 @@ function parse_leaf(T, is_sexpr) {
   return x;
 }
 
-
-
-
 ////////// Calculator expression parser
 
 //
@@ -389,7 +373,6 @@ function parse_leaf(T, is_sexpr) {
 //    { kind: 'op', str:'+', left: <expr1>, right: <expr2> }
 //
 //
-
 function cparse_leaf(T) {
   if (T.is_tok('g', '(')) {
     T.advance_token();
@@ -448,12 +431,7 @@ function cparse_expr(T) {
   return e;
 }
 
-
-
-
 //////////// Expression Printer
-
-
 function expr_tostring(e) {
   if (e.kind == 'str') {
     return "'"+e.tok+"'";
@@ -504,14 +482,10 @@ function expr_tostring_infix(e) {
   return "(unknown-"+e.kind+")";
 }
 
-
-
-
 ////////////// Search expression transforms
 
 // deep copy
 // clone a tree.
-
 function expr_deep_copy(e) {
   if (e.left == undefined)
     return { kind: e.kind, tok: e.tok };
@@ -542,11 +516,6 @@ function expr_rotate(e) {
   e.left = e.right;
   e.right = t;
 } 
-
-
-
-
-
 
 // distribute (from (or a (not b))) to (or (from a) (not (from b)))
 function expr_distribute_spec(e,c) {
@@ -594,7 +563,6 @@ function expr_add_header_search(e) {
     e.right = expr_add_header_search(e.right);
   return e;
 }
-
 
 // apply demorgan's law and negations:
 // convert (not (or a b))  to  (and (not a) (not b))
@@ -659,11 +627,9 @@ function expr_sort(e) {
   return cleft+cright;
 }
 
-
 // distribute or into ands.  required because that's how the search
 // term expression works (ors are assumed lower precedence than ands).
 // (or b (and c d)) => (and (or b c) (or b d))
-
 function expr_distribute_left(e)
 {
   return make_and(make_or(e.left.left, e.right),
