@@ -6,9 +6,8 @@
 
 var EXPORTED_SYMBOLS = ["ExperssionSearchFilter", "ExpressionSearchVariable"];
 
-let Cu = Components.utils;
-let Ci = Components.interfaces;
-let Cc = Components.classes;
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
+const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
 Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
@@ -18,9 +17,6 @@ Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and pa
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
 Cu.import("resource:///modules/StringBundle.js");
-let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
-let nsMsgSearchOp = Ci.nsMsgSearchOp;
-let nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
@@ -41,7 +37,7 @@ function _getRegEx(aSearchValue) {
   /*
    * If there are no flags added, you can add a regex expression without
    * / delimiters. If we detect a / though, we will look for flags and
-   * add them to the regex search. See bug m165.
+   * add them to the regex search.
    */
   let searchValue = aSearchValue;
   let searchFlags = "";
@@ -62,10 +58,12 @@ function _getRegEx(aSearchValue) {
     self.name = strings.get(nameId);
     self.needsBody = false;
     self._isValid = function _isValid(aSearchScope) {
-      if ( aSearchScope==Ci.nsMsgSearchScope.LDAP || aSearchScope==Ci.nsMsgSearchScope.LDAPAnd || aSearchScope==Ci.nsMsgSearchScope.LocalAB|| aSearchScope==Ci.nsMsgSearchScope.LocalABAnd ) return false;
+      if ( aSearchScope==nsMsgSearchScope.LDAP || aSearchScope==nsMsgSearchScope.LDAPAnd || aSearchScope==nsMsgSearchScope.LocalAB|| aSearchScope==nsMsgSearchScope.LocalABAnd ) return false;
       if ( ! self.needsBody ) return true;
-      if ( aSearchScope==Ci.nsMsgSearchScope.offlineMail || aSearchScope==Ci.nsMsgSearchScope.offlineMailFilter || aSearchScope==Ci.nsMsgSearchScope.localNewsBody || aSearchScope==Ci.nsMsgSearchScope.localNewsJunkBody ) return true;
+      if ( aSearchScope==nsMsgSearchScope.offlineMail || aSearchScope==nsMsgSearchScope.offlineMailFilter
+        || aSearchScope==nsMsgSearchScope.localNewsBody || aSearchScope==nsMsgSearchScope.localNewsJunkBody ) return true;
       return false;
+      //onlineManual 
     };
     self.getEnabled = function _getEnabled(scope, op) {
       return self._isValid(scope);
@@ -100,7 +98,7 @@ function _getRegEx(aSearchValue) {
   
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
   // case sensitive, not like normal subject search
-  // TODO: remove this as this bug was fixed
+  // Now the bug was fixed after TB5.0, but still usefull when subject contains special characters
   let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
@@ -737,9 +735,8 @@ let ExperssionSearchFilter = {
         // today == -1, yesterday == -2, day == '', week *=7, month *= 30?, year *= 365
         let match = e.left.tok.match(/^([-.\d]*)(\w*)/);
         if ( match.length == 3 ) {
-          let days = match[1];
+          let [, days, period] = match;
           if ( days == '' ) days = 1;
-          let period = match[2];
           if ( period == '' ) period = 1;
           if (/^t/i.test(period)) { // today
             period = 1;
@@ -764,8 +761,7 @@ let ExperssionSearchFilter = {
         op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;
         let match = e.left.tok.match(/^([-.\d]*)(\w*)/i); // default KB, can be M,G
         if ( match.length == 3 ) {
-          let size = match[1];
-          let scale = match[2];
+          let [, size, scale] = match;
           if ( scale == '' ) scale = 1;
           if ( /^m/i.test(scale) ) {
             scale = 1024;
