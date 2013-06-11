@@ -32,44 +32,21 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 	var _around			= 5;
 	var _intro			= 6;
 	var _regexEnabled = true;
-	var _arguments = 'arguments';
 	var _undef = 'undefined';
 
-	var getType = (function() {
-    
-        var topWins = Services.wm.getEnumerator(null);
-        var topWin;
-        while (topWins.hasMoreElements()) {
-            topWin = topWins.getNext();
-            break;
+    var isFunc = function(obj) {
+      let type = typeof(obj);
+      if ( type == 'function' && typeof(obj.call) != _undef ) return true;
+      if ( type == 'object' && obj ) {
+        let className = Object.prototype.toString.call( /** @type {Object} */ (obj));
+        if ((className == '[object Function]' || typeof obj.call != _undef
+                                              && typeof obj.propertyIsEnumerable != _undef
+                                              && !obj.propertyIsEnumerable('call'))) {
+          return true;
         }
-	 
-		var toString = Object.prototype.toString,
-			toStrings = {},
-			nodeTypes = { 1: 'element', 3: 'textnode', 9: 'document', 11: 'fragment' },
-			types = 'Arguments Array Boolean Date Document Element Error Fragment Function NodeList Null Number Object RegExp String TextNode Undefined Window'.split(' ');
-	 
-		for (var i = types.length; i--; ) {
-			var type = types[i], constructor = topWin[type];
-			if (constructor) {
-				try { toStrings[toString.call(new constructor)] = type.toLowerCase(); }
-				catch (e) { }
-			}
-		}
-	 
-		return function(item) {
-			return item == null && (item === undefined ? _undef : 'null') ||
-				item.nodeType && nodeTypes[item.nodeType] ||
-				typeof item.length == 'number' && (
-					item.callee && _arguments ||
-					item.alert && 'window' ||
-					item.item && 'nodelist') ||
-				toStrings[toString.call(item)];
-		};
-	 
-	})();
-
-	var isFunc = function(obj) { return getType(obj) == 'function'; };
+      }
+      return false;
+    };
 
 	/**
 	 * Private weaving function.
