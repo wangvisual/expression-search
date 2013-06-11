@@ -53,4 +53,4 @@
 
 <!ENTITY expressionsearch.menu.donate.label "Donate">
 <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
-<!ENTITY expressionsearch.menu.donate.pay "paypal">
+<!ENTITY expressionsearch.menu.donate.pay "mozilla">

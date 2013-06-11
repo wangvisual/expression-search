@@ -136,7 +136,7 @@
       <caption label="&expressionsearch.dialog.help;"/>
       <vbox align="center">
         <hbox>
-          <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('paypal');" />
+          <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('mozilla');" />
           <label value="               " flex="100"/>
           <image style="cursor:pointer;" src="donate-with-alipay.png" onclick="ExpressionSearchCommon.loadDonate('alipay');" />
         </hbox>

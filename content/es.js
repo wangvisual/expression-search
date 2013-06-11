@@ -28,10 +28,10 @@ let ExpressionSearchChrome = {
     try {
       if ( this.isInited == 0 ) {
         ExpressionSearchLog.info("Expression Search: init...");
-        this.isInited = new Date().getTime();
         this.importModules();
         this.initPerf();
         this.initFunctionHook();
+        this.isInited = new Date().getTime();
       } else ExpressionSearchLog.log("Expression Search:Warning, init again",1);
     } catch (err) {
       ExpressionSearchLog.logException(err);
@@ -68,22 +68,10 @@ let ExpressionSearchChrome = {
     }
     this.prefs.addObserver("", this, false);
     try {
-      this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
-      this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
-      this.options.act_as_normal_filter = this.prefs.getBoolPref("act_as_normal_filter");
-      this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
-      this.options.load_virtual_folder_in_tab = this.prefs.getBoolPref("load_virtual_folder_in_tab");
-      this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
-      this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
-      this.options.showbuttonlabel = this.prefs.getIntPref("showbuttonlabel"); // 0:auto 1:force show 2:force hide
-      this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
-      this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
-      this.options.c2s_enableCtrlReplace = this.prefs.getBoolPref("c2s_enableCtrlReplace");
-      this.options.c2s_enableShiftReplace = this.prefs.getBoolPref("c2s_enableShiftReplace");
-      this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
-      this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
-      this.options.installed_version = this.prefs.getComplexValue('installed_version',this.Ci.nsISupportsString).data;
-      this.options.enable_statusbar_info = this.prefs.getBoolPref("enable_statusbar_info");
+      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "showbuttonlabel", 
+       "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace", "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
+        ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
+      } );
     } catch ( err ) {
       ExpressionSearchLog.logException(err);
     }
@@ -93,32 +81,36 @@ let ExpressionSearchChrome = {
   observe: function(subject, topic, data) {
     if (topic != "nsPref:changed") {
        return;
-     }
-     switch(data) {
-       case "hide_normal_filer":
-       case "hide_filter_label":
-       case "act_as_normal_filter":
-       case "reuse_existing_folder":
-       case "load_virtual_folder_in_tab":
-       case "select_msg_on_enter":
-       case "c2s_enableCtrl":
-       case "c2s_enableShift":
-       case "c2s_enableCtrlReplace":
-       case "c2s_enableShiftReplace":
-       case "enable_statusbar_info":
-         this.options[data] = this.prefs.getBoolPref(data);
-         break;
-       case "move2bar":
-       case "showbuttonlabel":
-         this.options[data] = this.prefs.getIntPref(data);
-         break;
-       case "c2s_regexpMatch":
-       case "c2s_regexpReplace":
-         this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
-         break;
-     }
-     if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' )
-       this.refreshFilterBar();
+    }
+    switch(data) {
+      case "hide_normal_filer":
+      case "hide_filter_label":
+      case "act_as_normal_filter":
+      case "reuse_existing_folder":
+      case "load_virtual_folder_in_tab":
+      case "select_msg_on_enter":
+      case "c2s_enableCtrl":
+      case "c2s_enableShift":
+      case "c2s_enableCtrlReplace":
+      case "c2s_enableShiftReplace":
+      case "enable_statusbar_info":
+      case "enable_verbose_info":
+        this.options[data] = this.prefs.getBoolPref(data);
+        break;
+      case "move2bar": // 0:keep, 1:toolbar, 2:menubar
+      case "showbuttonlabel": // 0:auto 1:force show 2:force hide
+        this.options[data] = this.prefs.getIntPref(data);
+        break;
+      case "c2s_regexpMatch":
+      case "c2s_regexpReplace":
+      case "installed_version":
+        this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
+      default:
+        break;
+    }
+    if ( !this.isInited ) return;
+    if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' || data == 'enable_verbose_info' )
+      this.refreshFilterBar();
   },
 
   hookedFunctions: [],
@@ -285,12 +277,22 @@ let ExpressionSearchChrome = {
       else if ( this.options.move2bar == 1 ) {
         dest = 'mail-bar3';
         reference = document.getElementById('qfb-show-filter-bar');
-      }
-      else if ( this.options.move2bar == 2 )
+      } else if ( this.options.move2bar == 2 )
         dest = 'mail-toolbar-menubar2';
       let toolbar = document.getElementById(dest);
       let needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
       toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
+    }
+    
+    let spacer = document.getElementById('qfb-filter-bar-spacer');
+    if ( spacer ) {
+      if ( this.options.move2bar == 0 ) {
+        spacer.setAttribute('flex', '200');
+        spacer.style.flex = '200 1';
+      } else {
+        spacer.removeAttribute('flex');
+        spacer.style.flex = '1 200 auto';
+      }
     }
     
     let collapsible = document.getElementById('quick-filter-bar-collapsible-buttons');
@@ -312,6 +314,14 @@ let ExpressionSearchChrome = {
             QuickFilterBarMuxer.onOverflow.apply(QuickFilterBarMuxer);
           }
         }
+      }
+    }
+    
+    let menu = document.getElementById('expression-search-context-menu');
+    if ( menu ) {
+      for ( let menuitem of menu.childNodes ) {
+        menuitem.style.display = ( this.options['enable_verbose_info'] ) ? "" : "none";
+        if ( menuitem.tagName == "menuseparator" ) break;
       }
     }
   },
