@@ -7,15 +7,14 @@
   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <script type="application/x-javascript" src="chrome://expressionsearch/content/es.js"/>
   <hbox id="quick-filter-bar-main-bar">
-    <label id="qfb-results-label" flex="5" minwidth="0"/>
-    <textbox id="expression-search-textbox" flex="5" insertafter="qfb-qs-textbox"
+    <textbox id="expression-search-textbox" insertafter="qfb-qs-textbox"
              type="search"
              emptytextbase="&expressionsearch.textbox.emptyText.base;"
              timeout="1000"
              maxlength="192"
              width="320"
-             maxwidth="480"
-             minwidth="280">
-    </textbox>
+             maxwidth="500"
+             minwidth="280"
+    />
   </hbox>
 </overlay>
