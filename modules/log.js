@@ -41,25 +41,26 @@ var ExpressionSearchLog = {
   // from errorUtils.js
   objectTreeAsString: function(o, recurse, compress, level) {
     let s = "";
-    if (recurse === undefined)
-      recurse = 0;
-    if (level === undefined)
-      level = 0;
-    if (compress === undefined)
-      compress = true;
     let pfx = "";
-
-    for (var junk = 0; junk < level; junk++)
-      pfx += (compress) ? "| " : "|  ";
-
-    let tee = (compress) ? "+ " : "+- ";
-
-    if (typeof(o) != "object") {
-      s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
-    }
-    else {
-      for (let i in o) {
-        try {
+    let tee = "";
+    try {
+      if (recurse === undefined)
+        recurse = 0;
+      if (level === undefined)
+        level = 0;
+      if (compress === undefined)
+        compress = true;
+      
+      for (let junk = 0; junk < level; junk++)
+        pfx += (compress) ? "| " : "|  ";
+      
+      tee = (compress) ? "+ " : "+- ";
+      
+      if (typeof(o) != "object") {
+        s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
+      }
+      else {
+        for (let i in o) {
           let t = "";
           try {
             t = typeof(o[i]);
@@ -69,7 +70,7 @@ var ExpressionSearchLog = {
           switch (t) {
             case "function":
               let sfunc = String(o[i]).split("\n");
-              if (sfunc[2] == "    [native code]")
+              if ( typeof(sfunc[2]) != 'undefined' && sfunc[2] == "    [native code]" )
                 sfunc = "[native code]";
               else
                 sfunc = sfunc.length + " lines";
@@ -94,12 +95,12 @@ var ExpressionSearchLog = {
             default:
               s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
           }
-        } catch (ex) {
-          s += pfx + tee + " (exception) " + ex + "\n";
+          if (!compress)
+            s += pfx + "|\n";
         }
-        if (!compress)
-          s += pfx + "|\n";
       }
+    } catch (ex) {
+      s += pfx + tee + " (exception) " + ex + "\n";
     }
     s += pfx + "*\n";
     return s;
@@ -110,17 +111,23 @@ var ExpressionSearchLog = {
   },
 
   logException: function(e) {
-    let msg = "Caught Exception";
+    let msg = "";
     if ( e.name && e.message ) {
-      msg += " " + e.name + ": " + e.message + "\n";
-    } else if ( e.stack ) {
+      msg += e.name + ": " + e.message + "\n";
+    }
+    if ( e.stack ) {
       msg += e.stack;
-    } else if ( e.fileName && e.lineNumber ) {
-      msg += "@ " + e.fileName + ":" + e.lineNumber + "\n";
-    } else {
+      //Components.utils.reportError(e.stack);
+    }
+    if ( e.location ) {
+      msg += e.location + "\n";
+    }
+    if ( e.filename && e.lineNumber ) {
+      msg += "@ " + e.filename + ":" + e.lineNumber + "(" + e.columnNumber + ")\n";
+    }
+    if ( msg == '' ){
       msg += " " + e + "\n";
     }
-    this.log(msg, "Exception");
+    this.log("Caught Exception " + msg, "Exception");
   },
-
 };
