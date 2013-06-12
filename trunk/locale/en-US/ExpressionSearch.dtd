@@ -26,7 +26,9 @@
 <!ENTITY expressionsearch.option.load_virtual_folder_in_tab "Load Saved Search folder in a new Tab">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
 <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">
-<!ENTITY expressionsearch.option.enable_statusbar_info "Show tooltips above status bar when type commands">
+<!ENTITY expressionsearch.option.enable_statusbar_info1 "Show search tooltips for">
+<!ENTITY expressionsearch.option.enable_statusbar_info2 "s when type, hide it">
+<!ENTITY expressionsearch.option.enable_statusbar_info3 "s later after search was done or lost focus">
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
 <!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
 <!ENTITY expressionsearch.option.help "Help">
@@ -50,6 +52,9 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
+
+<!ENTITY expressionsearch.tooltip.helpLine1 "You can disable this tooltip in option dialog">
+<!ENTITY expressionsearch.tooltip.helpLine2 "Please type keyword to search">
 
 <!ENTITY expressionsearch.menu.donate.label "Donate">
 <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
