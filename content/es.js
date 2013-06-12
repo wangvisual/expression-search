@@ -68,7 +68,7 @@ let ExpressionSearchChrome = {
     }
     this.prefs.addObserver("", this, false);
     try {
-      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "showbuttonlabel", 
+      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
        "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace", "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
         ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
       } );
@@ -99,6 +99,8 @@ let ExpressionSearchChrome = {
         break;
       case "move2bar": // 0:keep, 1:toolbar, 2:menubar
       case "showbuttonlabel": // 0:auto 1:force show 2:force hide
+      case "statusbar_info_showtime":
+      case "statusbar_info_hidetime":
         this.options[data] = this.prefs.getIntPref(data);
         break;
       case "c2s_regexpMatch":
@@ -347,16 +349,16 @@ let ExpressionSearchChrome = {
       if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
       if ( typeof(line3) != 'undefined' ) tooltip3.textContent = line3;
       if ( typeof(line4) != 'undefined' ) tooltip4.textContent = line4;
-      if ( !ExpressionSearchChrome.options.enable_statusbar_info ) return;
+      if ( !this.options.enable_statusbar_info ) return;
       if ( this.helpTimer > 0 ) {
         window.clearTimeout( this.helpTimer );
         this.helpTimer = 0;
       }
-      let time2hide = 2000;
+      let time2hide = this.options['statusbar_info_hidetime'] * 1000;
       if ( show ) {
         tooltip.openPopup(statusbaricon, "before_start", 0, 0, false, true, null);
-        time2hide = 5000;
-        if ( ExpressionSearchChrome.isFocus ) time2hide = 10000;
+        time2hide = this.options['statusbar_info_showtime'] * 1000;
+        //if ( this.isFocus ) time2hide *= 2;
       }
       this.helpTimer = window.setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
     }

@@ -29,6 +29,8 @@
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
     <preference id="pref_enable_statusbar_info" name="extensions.expressionsearch.enable_statusbar_info" type="bool"/>
+    <preference id="pref_statusbar_info_showtime" name="extensions.expressionsearch.statusbar_info_showtime" type="int"/>
+    <preference id="pref_statusbar_info_hidetime" name="extensions.expressionsearch.statusbar_info_hidetime" type="int"/>
     <preference id="pref_virtual_folder_path" name="extensions.expressionsearch.virtual_folder_path" type="string"/>
     <preference id="pref_customHeaders" name="mailnews.customHeaders" type="string"/>
     <preference id="pref_customDBHeaders" name="mailnews.customDBHeaders" type="string"/>
@@ -47,7 +49,13 @@
           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
         </hbox>
         <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
-        <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info;"/>
+        <hbox align='center'>
+          <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info1;"/>
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_showtime" hidespinbuttons="true" size='2'/>
+          <label value="&expressionsearch.option.enable_statusbar_info2;"/>
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_hidetime" hidespinbuttons="true" size='2'/>
+          <label value="&expressionsearch.option.enable_statusbar_info3;"/>
+        </hbox>
         <checkbox preference="perf_vf_intab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
         <hbox align='center'>
           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />

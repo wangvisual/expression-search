@@ -88,7 +88,9 @@ function _getRegEx(aSearchValue) {
   let subjectRegex = new customerTermBase("subjectRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   subjectRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
-    var subject = aMsgHdr.mime2DecodedSubject;
+    // Upon putting subject into msg db, all Re:'s are stripped and MSG_FLAG_HAS_RE flag is set. 
+    let subject = aMsgHdr.mime2DecodedSubject || '';
+    if ( aMsgHdr.flags & Ci.nsMsgMessageFlags.HasRe ) subject = "Re: " + subject; // mailnews.localizedRe ?
     let searchValue;
     let searchFlags;
     [searchValue, searchFlags] = _getRegEx(aSearchValue);

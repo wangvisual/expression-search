@@ -34,6 +34,11 @@
   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
 }
 
+.expressionsearch_pref_input {
+  margin: 0px;
+  padding: 0px;
+}
+
 /* make the main bar looks better when placed on menubar/toolbar */
 #mail-bar3 #quick-filter-bar-main-bar,
 #mail-toolbar-menubar2 #quick-filter-bar-main-bar {

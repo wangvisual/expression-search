@@ -18,8 +18,8 @@
   </keyset>
   <statusbar id="status-bar">
     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
-      <description id="expression-search-tooltip-line1" class="tooltip-token"> </description>
-      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info"> </description></hbox>
+      <description id="expression-search-tooltip-line1" class="tooltip-token">&expressionsearch.tooltip.helpLine1;</description>
+      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info">&expressionsearch.tooltip.helpLine2;</description></hbox>
       <description id="expression-search-tooltip-line3" class="tooltip-match"> </description>
       <description id="expression-search-tooltip-line4" class="tooltip-term"> </description>
     </tooltip>
