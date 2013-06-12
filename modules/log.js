@@ -111,23 +111,26 @@ var ExpressionSearchLog = {
   },
 
   logException: function(e) {
-    let msg = "";
+    let scriptError = Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError);
+    let msg = "Caught Exception ";
     if ( e.name && e.message ) {
       msg += e.name + ": " + e.message + "\n";
     }
     if ( e.stack ) {
       msg += e.stack;
-      //Components.utils.reportError(e.stack);
     }
     if ( e.location ) {
       msg += e.location + "\n";
     }
-    if ( e.filename && e.lineNumber ) {
-      msg += "@ " + e.filename + ":" + e.lineNumber + "(" + e.columnNumber + ")\n";
-    }
     if ( msg == '' ){
       msg += " " + e + "\n";
     }
-    this.log("Caught Exception " + msg, "Exception");
+    let fileName= e.fileName || e.filename || Components.stack.caller.filename;
+    let lineNumber= e.lineNumber || Components.stack.caller.lineNumber;
+    let sourceLine= e.sourceLine || Components.stack.caller.sourceLine;
+    scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, scriptError.errorFlag, "chrome javascript");
+    Services.console.logMessage(scriptError);
+    this.popup("Exception", msg);
   },
+
 };

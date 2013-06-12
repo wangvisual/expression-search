@@ -587,10 +587,9 @@ let ExpressionSearchChrome = {
       }
     } else if (e.kind == 'num') {
       return e;
-    } else {
-      ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result',1);
-      return { kind: 'error', tok: 'internal' };
     }
+    ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result',1);
+    return { kind: 'error', tok: 'internal' };
   },
 
   showCalculationResult: function(e) {
@@ -675,10 +674,14 @@ let ExpressionSearchChrome = {
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
            let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
            let treeView = treeBox.view;
-           var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-           var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
-           treeView.getCellProperties(row.value,col.value,property);
-           token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
+           if (Components.interfacesByID["{C06DC4D3-63A2-4422-A0A3-5F2EDDECA8C1}"]) { // < TB22
+             var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+             var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
+             treeView.getCellProperties(row.value, col.value, property);
+             token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
+           } else {
+             token = treeView.getCellProperties(row.value, col.value).indexOf("in") >= 0 ? "f" : "t";
+           }
          }
          let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
          let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
@@ -711,7 +714,7 @@ let ExpressionSearchChrome = {
     event.preventDefault();
     event.stopPropagation();
     aNode._fireCommand(aNode);
-    return false;
+    return;
   },
   
   firstRunAction: function() {
