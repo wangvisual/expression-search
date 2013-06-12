@@ -18,7 +18,7 @@ var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "Expression
 
 let Cu = Components.utils;
 Cu.import("resource://expressionsearch/log.js");
-Cu.import("resource:///modules/StringBundle.js");
+Cu.import("resource://gre/modules/StringBundle.js");
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 var ExpressionSearchTokens = {
   tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],

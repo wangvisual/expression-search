@@ -9,14 +9,14 @@ var EXPORTED_SYMBOLS = ["ExperssionSearchFilter", "ExpressionSearchVariable"];
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
 Cu.import("resource://expressionsearch/log.js");
-Cu.import("resource:///modules/quickFilterManager.js");
+Cu.import("resource://gre/modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");
-Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
-Cu.import("resource:///modules/gloda/indexer.js");
-Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
-Cu.import("resource:///modules/StringBundle.js");
+Cu.import("resource://app/modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
+Cu.import("resource://app/modules/gloda/indexer.js");
+Cu.import("resource://app/modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
+Cu.import("resource://gre/modules/StringBundle.js");
 let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
