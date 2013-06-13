@@ -52,6 +52,7 @@ var ExpressionSearchTokens = {
     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join(', ') + " )";
     if ( Object.keys(ret.match).length == 0 ) ret.match = ExpressionSearchTokens.tokenDict;
     ret.matchString = Object.keys(ret.match).sort().join(', ');
+    if ( ret.alias == ' ' ) ret.alias = strings.get('info.disable');
     return ret;
   },
   init: function() { // init allTokenArray tokenMap allTokens tokenInfo

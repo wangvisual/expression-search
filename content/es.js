@@ -189,33 +189,35 @@ let ExpressionSearchChrome = {
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
       let self = this;
       let args = invocation.arguments;
-      if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
-        ExpressionSearchVariable.startreq = new Date().getTime();
-      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
+      let v = ExpressionSearchVariable;
+      if ( v.startreq == Number.MAX_VALUE )
+        v.startreq = new Date().getTime();
+      if ( v.resuming || v.stopping || v.startreq > v.stopreq ) {
         window.setTimeout( function(){self.associateView.apply(self,args);}, 10  );
         return;
       }
-      ExpressionSearchVariable.starting = true;
-      ExpressionSearchVariable.stopped = false;
+      v.starting = true;
+      v.stopped = false;
       invocation.proceed();
-      ExpressionSearchVariable.starting = false;
-      ExpressionSearchVariable.startreq = Number.MAX_VALUE;
+      v.starting = false;
+      v.startreq = Number.MAX_VALUE;
     })[0] );
     
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
       let self = this;
       let args = invocation.arguments;
-      if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
-        ExpressionSearchVariable.stopreq = new Date().getTime();
-      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
+      let v = ExpressionSearchVariable;
+      if ( v.stopreq == Number.MAX_VALUE )
+        v.stopreq = new Date().getTime();
+      if ( v.resuming || v.starting || v.stopreq > v.startreq ) {
         window.setTimeout( function(){self.dissociateView.apply(self,args);}, 10  );
         return;
       }
-      ExpressionSearchVariable.stopping = true;
+      v.stopping = true;
       invocation.proceed();
-      ExpressionSearchVariable.stopped = true;
-      ExpressionSearchVariable.stopping = false;
-      ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
+      v.stopped = true;
+      v.stopping = false;
+      v.stopreq = Number.MAX_VALUE;
     })[0] );
     
   },
