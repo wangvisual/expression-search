@@ -46,18 +46,18 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
     this.Cu.import("resource://expressionsearch/aop.js");
     // for hook functions for attachment search
-    this.Cu.import("resource://app/modules/searchSpec.js");
+    this.Cu.import("resource:///modules/searchSpec.js");
     // general services
     this.Cu.import("resource://gre/modules/Services.jsm");
     this.Cu.import("resource:///modules/mailServices.js");
     // for create quick search folder
-    this.Cu.import("resource://app/modules/virtualFolderWrapper.js");
-    this.Cu.import("resource://app/modules/iteratorUtils.jsm");
-    this.Cu.import("resource://app/modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
+    this.Cu.import("resource:///modules/virtualFolderWrapper.js");
+    this.Cu.import("resource:///modules/iteratorUtils.jsm");
+    this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
     // need to know whehter gloda enabled
-    this.Cu.import("resource://app/modules/gloda/indexer.js");
+    this.Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
-    //Cu.import("resource://app/modules/gloda/msg_search.js");
+    //Cu.import("resource:///modules/gloda/msg_search.js");
     this.Cu.import("resource://expressionsearch/ExpressionSearchFilter.js");
   },
   
@@ -323,10 +323,11 @@ let ExpressionSearchChrome = {
     
     let menu = document.getElementById('expression-search-context-menu');
     if ( menu ) {
-      for ( let menuitem of menu.childNodes ) {
+      for (let i = 0; i < menu.childNodes.length; i++ ) {
+        let menuitem = menu.childNodes[i];
         menuitem.style.display = ( this.options['enable_verbose_info'] ) ? "" : "none";
         if ( menuitem.tagName == "menuseparator" ) break;
-      }
+      };
     }
   },
   
