@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
+
+<!-- This might can be in another addon, but the usage might be low -->
+<overlay id="esVirtualFolderListDialogOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <dialog id="searchFolderWindow">
+    <hbox align='center' insertbefore="folderPickerTree">
+      <button label='Select All' oncommand='return esVirtualFolderSelector.changeAllFolder(true);'/>
+      <button label='Clear All' oncommand='return esVirtualFolderSelector.changeAllFolder(false);'/>
+      <label value='When click, change:'/>
+      <menulist id='esFolderType'>
+        <menupopup>
+          <menuitem label="Current Only;" value="0"/>
+          <menuitem label="Current &amp; Children;" value="1"/>
+          <menuitem label="Current &amp; Descendants;" value="2"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+  </dialog>
+  <!-- hook ReverseStateFromNode -->
+  <script type="application/x-javascript" src="chrome://expressionsearch/content/esVirtualFolderListDialog.js"/>
+</overlay>
