@@ -35,7 +35,7 @@ var ExpressionSearchTokens = {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;
     //for ( let name of ExpressionSearchTokens.allTokenArray ) { // > TB13
-    ExpressionSearchTokens.allTokenArray.forEach( function(name, index, array) {
+    ExpressionSearchTokens.allTokenArray.forEach( function(name) {
       if ( input.length == 0 || name.indexOf(input) == 0 ) {
         let fullName = name;
         if ( typeof(ExpressionSearchTokens.tokenMap[name]) != 'undefined' ) fullName = ExpressionSearchTokens.tokenMap[name];
