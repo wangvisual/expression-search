@@ -59,3 +59,10 @@
 <!ENTITY expressionsearch.menu.donate.label "Donate">
 <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
 <!ENTITY expressionsearch.menu.donate.pay "mozilla">
+
+<!ENTITY expressionsearch.virtualfolder.selectall "Select All">
+<!ENTITY expressionsearch.virtualfolder.clearall "Clear All">
+<!ENTITY expressionsearch.virtualfolder.modelabel "When click change:">
+<!ENTITY expressionsearch.virtualfolder.modesingle "Current Only">
+<!ENTITY expressionsearch.virtualfolder.modechild "Current &amp; Children">
+<!ENTITY expressionsearch.virtualfolder.modedescendants "Current &amp; Descendants">
