@@ -1,0 +1,1079 @@
+Index: C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.dtd
+===================================================================
+--- C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.dtd	(revision 128)
++++ C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.dtd	(revision 143)
+@@ -26,7 +26,9 @@
+ <!ENTITY expressionsearch.option.load_virtual_folder_in_tab "在新的Tab中打开保存搜索目录/虚拟目录">
+ <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">
+ <!ENTITY expressionsearch.option.enable_verbose_info "在控制台中显示详细信息">
+-<!ENTITY expressionsearch.option.enable_statusbar_info "输入时在状态栏以上显示帮助信息">
++<!ENTITY expressionsearch.option.enable_statusbar_info1 "输入时显示">
++<!ENTITY expressionsearch.option.enable_statusbar_info2 "秒的帮助信息，在搜索完成或者失去焦点后">
++<!ENTITY expressionsearch.option.enable_statusbar_info3 "秒自动隐藏">
+ <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "当按下Ctrl+Enter键时，在下面目录里创建或更新ExpressionSearch虚拟目录:">
+ <!ENTITY expressionsearch.option.use_root_folder "当前目录的根目录">
+ <!ENTITY expressionsearch.option.help "帮助">
+@@ -51,6 +53,16 @@
+ <!ENTITY expressionsearch.dialog.c2s_match "匹配">
+ <!ENTITY expressionsearch.dialog.c2s_replace "替换">
+ 
++<!ENTITY expressionsearch.tooltip.helpLine1 "您可以在选项里面关闭此提示">
++<!ENTITY expressionsearch.tooltip.helpLine2 "请输入表达式进行搜索">
++
+ <!ENTITY expressionsearch.menu.donate.label "资助">
+ <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/alipay.ico">
+-<!ENTITY expressionsearch.menu.donate.pay "alipay">
+\ No newline at end of file
++<!ENTITY expressionsearch.menu.donate.pay "alipay">
++
++<!ENTITY expressionsearch.virtualfolder.selectall "选择所有">
++<!ENTITY expressionsearch.virtualfolder.clearall "清空选择">
++<!ENTITY expressionsearch.virtualfolder.modelabel "鼠标单击时改变">
++<!ENTITY expressionsearch.virtualfolder.modesingle "仅当前项">
++<!ENTITY expressionsearch.virtualfolder.modechild "当前项以及子节点">
++<!ENTITY expressionsearch.virtualfolder.modedescendants "当前项以及以下所有子节点">
+Index: C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.properties
+===================================================================
+--- C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.properties	(revision 128)
++++ C:/design/expression-search/trunk/locale/zh-CN/ExpressionSearch.properties	(revision 143)
+@@ -10,6 +10,7 @@
+ bodyRegex=正文 (正则表达式) (警告! 可能导致崩溃)
+ 
+ # for tooltip information
++info.disable=您可以在选项里面关闭此提示
+ info.blank=请输入表达式进行搜索
+ info.after=after:Mar 10, 2011\naf:(2011/03/01 -2011/03/09)\nafter:Mon, 25 Dec 1995 13:30:00 GMT\naf:(3:0 -4:0) 将搜索每天3到4点的邮件
+ info.all=搜索所有from, to, cc, 或者subject以及body符合的邮件
+Index: C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.dtd
+===================================================================
+--- C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.dtd	(revision 128)
++++ C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.dtd	(revision 143)
+@@ -26,7 +26,9 @@
+ <!ENTITY expressionsearch.option.load_virtual_folder_in_tab "Load Saved Search folder in a new Tab">
+ <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
+ <!ENTITY expressionsearch.option.enable_verbose_info "Show verbose information in error console">
+-<!ENTITY expressionsearch.option.enable_statusbar_info "Show tooltips above status bar when type commands">
++<!ENTITY expressionsearch.option.enable_statusbar_info1 "Show search tooltips for">
++<!ENTITY expressionsearch.option.enable_statusbar_info2 "s when type, hide it">
++<!ENTITY expressionsearch.option.enable_statusbar_info3 "s later after search was done or lost focus">
+ <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
+ <!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
+ <!ENTITY expressionsearch.option.help "Help">
+@@ -51,6 +53,16 @@
+ <!ENTITY expressionsearch.dialog.c2s_match "Match">
+ <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
+ 
++<!ENTITY expressionsearch.tooltip.helpLine1 "You can disable this tooltip in option dialog">
++<!ENTITY expressionsearch.tooltip.helpLine2 "Please type keyword to search">
++
+ <!ENTITY expressionsearch.menu.donate.label "Donate">
+ <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
+-<!ENTITY expressionsearch.menu.donate.pay "paypal">
++<!ENTITY expressionsearch.menu.donate.pay "mozilla">
++
++<!ENTITY expressionsearch.virtualfolder.selectall "Select All">
++<!ENTITY expressionsearch.virtualfolder.clearall "Clear All">
++<!ENTITY expressionsearch.virtualfolder.modelabel "When click change:">
++<!ENTITY expressionsearch.virtualfolder.modesingle "Current Only">
++<!ENTITY expressionsearch.virtualfolder.modechild "Current &amp; Children">
++<!ENTITY expressionsearch.virtualfolder.modedescendants "Current &amp; Descendants">
+Index: C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.properties
+===================================================================
+--- C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.properties	(revision 128)
++++ C:/design/expression-search/trunk/locale/en-US/ExpressionSearch.properties	(revision 143)
+@@ -10,6 +10,7 @@
+ bodyRegex=Body (RegEx) (Warning! May Crash)
+ 
+ # for tooltip information
++info.disable=You can disable this tooltip in option dialog
+ info.blank=Please type keywords to search
+ info.after=after:Mar 10, 2011\naf:(2011/03/01 -2011/03/09)\nafter:Mon, 25 Dec 1995 13:30:00 GMT\naf:(3:0 -4:0) will search for messages in current view that date between 3am to 4am EVERY day
+ info.all=search message within from, to, cc, or subject fields, and the body
+Index: C:/design/expression-search/trunk/install.rdf
+===================================================================
+--- C:/design/expression-search/trunk/install.rdf	(revision 128)
++++ C:/design/expression-search/trunk/install.rdf	(revision 143)
+@@ -5,7 +5,7 @@
+     <em:type>2</em:type>
+     <em:name>Expression Search / Google Mail UI</em:name>
+     <em:homepageURL>http://code.google.com/p/expression-search/</em:homepageURL>
+-    <em:version>0.8.5</em:version>
++    <em:version>0.8.6</em:version>
+     <em:creator>Opera Wang</em:creator>
+     <em:contributor>Ken Mixter</em:contributor>
+     <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view.</em:description>
+Index: C:/design/expression-search/trunk/chrome.manifest
+===================================================================
+--- C:/design/expression-search/trunk/chrome.manifest	(revision 128)
++++ C:/design/expression-search/trunk/chrome.manifest	(revision 143)
+@@ -7,6 +7,7 @@
+ overlay	chrome://messenger/content/quickFilterBar.xul	chrome://expressionsearch/content/esQuickFilterBar.xul
+ overlay	chrome://messenger/content/mailWindowOverlay.xul	chrome://expressionsearch/content/esMailWindowOverlay.xul
+ overlay	chrome://messenger/content/addressbook/addressbook.xul	chrome://expressionsearch/content/esAddressbook.xul
++overlay	chrome://messenger/content/virtualFolderListDialog.xul	chrome://expressionsearch/content/esVirtualFolderListDialog.xul
+ #overlay chrome://messenger/content/messenger.xul chrome://expressionsearch/content/esMessenger.xul
+ 
+ # for customer search terms
+Index: C:/design/expression-search/trunk/skin/overlay.css
+===================================================================
+--- C:/design/expression-search/trunk/skin/overlay.css	(revision 128)
++++ C:/design/expression-search/trunk/skin/overlay.css	(revision 143)
+@@ -34,6 +34,11 @@
+   -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
+ }
+ 
++.expressionsearch_pref_input {
++  margin: 0px;
++  padding: 0px;
++}
++
+ /* make the main bar looks better when placed on menubar/toolbar */
+ #mail-bar3 #quick-filter-bar-main-bar,
+ #mail-toolbar-menubar2 #quick-filter-bar-main-bar {
+@@ -61,3 +66,21 @@
+ #quick-filter-bar-collapsible-buttons.showlabel toolbarbutton label.toolbarbutton-text {
+   display: inline;
+ }
++
++/* if the width is not enough, make others more flexiable to make my box shown */
++#qfb-filter-bar-spacer {
++  /* do in es.js based on position */
++}
++
++#qfb-results-label {
++  flex: 5 1;
++  min-width: 10px;
++}
++
++#expression-search-textbox {
++  flex: 5 1;
++}
++
++.titlebar-placeholder {
++  flex: 0.1 100;
++}
+Index: C:/design/expression-search/trunk/release.bat
+===================================================================
+--- C:/design/expression-search/trunk/release.bat	(revision 128)
++++ C:/design/expression-search/trunk/release.bat	(revision 143)
+@@ -1,4 +1,5 @@
+-set zip="c:\Program Files\7-Zip\7z.exe" a -tzip -mx1 -r
++set PATH=c:\Program Files (x86)\7-Zip;c:\Program Files\7-Zip;d:\Program Files (x86)\7-Zip;d:\Program Files\7-Zip
++set zip=7z.exe a -tzip -mx1 -r
+ set AllFiles=content locale skin defaults modules chrome.manifest icon.png install.rdf
+ del gmailui-*-tb.xpi
+-%zip% gmailui-0.8.5-tb.xpi %AllFiles% -xr!.svn
++%zip% gmailui-0.8.6-tb.xpi %AllFiles% -xr!.svn
+Index: C:/design/expression-search/trunk/defaults/preferences/defaults.js
+===================================================================
+--- C:/design/expression-search/trunk/defaults/preferences/defaults.js	(revision 128)
++++ C:/design/expression-search/trunk/defaults/preferences/defaults.js	(revision 143)
+@@ -7,6 +7,8 @@
+ pref("extensions.expressionsearch.select_msg_on_enter", false);
+ pref("extensions.expressionsearch.enable_verbose_info", false);
+ pref("extensions.expressionsearch.enable_statusbar_info", true);
++pref("extensions.expressionsearch.statusbar_info_showtime", 10);
++pref("extensions.expressionsearch.statusbar_info_hidetime", 2);
+ pref("extensions.expressionsearch.virtual_folder_path", "");
+ pref("extensions.expressionsearch.move2bar", 0);
+ pref("extensions.expressionsearch.showbuttonlabel", 0);
+Index: C:/design/expression-search/trunk/modules/ExpressionSearchFilter.js
+===================================================================
+--- C:/design/expression-search/trunk/modules/ExpressionSearchFilter.js	(revision 128)
++++ C:/design/expression-search/trunk/modules/ExpressionSearchFilter.js	(revision 143)
+@@ -6,21 +6,17 @@
+ 
+ var EXPORTED_SYMBOLS = ["ExperssionSearchFilter", "ExpressionSearchVariable"];
+ 
+-let Cu = Components.utils;
+-let Ci = Components.interfaces;
+-let Cc = Components.classes;
++const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
++const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
+ Cu.import("resource://expressionsearch/log.js");
+-Cu.import("resource:///modules/quickFilterManager.js");
++Cu.import("resource://gre/modules/quickFilterManager.js");
+ Cu.import("resource://expressionsearch/gmailuiParse.js");
+ Cu.import("resource://gre/modules/Services.jsm");
+ Cu.import("resource:///modules/mailServices.js");
+ Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
+ Cu.import("resource:///modules/gloda/indexer.js");
+ Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
+-Cu.import("resource:///modules/StringBundle.js");
+-let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
+-let nsMsgSearchOp = Ci.nsMsgSearchOp;
+-let nsMsgMessageFlags = Ci.nsMsgMessageFlags;
++Cu.import("resource://gre/modules/StringBundle.js");
+ let Application = null;
+ try {
+   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
+@@ -41,7 +37,7 @@
+   /*
+    * If there are no flags added, you can add a regex expression without
+    * / delimiters. If we detect a / though, we will look for flags and
+-   * add them to the regex search. See bug m165.
++   * add them to the regex search.
+    */
+   let searchValue = aSearchValue;
+   let searchFlags = "";
+@@ -62,10 +58,12 @@
+     self.name = strings.get(nameId);
+     self.needsBody = false;
+     self._isValid = function _isValid(aSearchScope) {
+-      if ( aSearchScope==Ci.nsMsgSearchScope.LDAP || aSearchScope==Ci.nsMsgSearchScope.LDAPAnd || aSearchScope==Ci.nsMsgSearchScope.LocalAB|| aSearchScope==Ci.nsMsgSearchScope.LocalABAnd ) return false;
++      if ( aSearchScope==nsMsgSearchScope.LDAP || aSearchScope==nsMsgSearchScope.LDAPAnd || aSearchScope==nsMsgSearchScope.LocalAB|| aSearchScope==nsMsgSearchScope.LocalABAnd ) return false;
+       if ( ! self.needsBody ) return true;
+-      if ( aSearchScope==Ci.nsMsgSearchScope.offlineMail || aSearchScope==Ci.nsMsgSearchScope.offlineMailFilter || aSearchScope==Ci.nsMsgSearchScope.localNewsBody || aSearchScope==Ci.nsMsgSearchScope.localNewsJunkBody ) return true;
++      if ( aSearchScope==nsMsgSearchScope.offlineMail || aSearchScope==nsMsgSearchScope.offlineMailFilter
++        || aSearchScope==nsMsgSearchScope.localNewsBody || aSearchScope==nsMsgSearchScope.localNewsJunkBody ) return true;
+       return false;
++      //onlineManual 
+     };
+     self.getEnabled = function _getEnabled(scope, op) {
+       return self._isValid(scope);
+@@ -90,7 +88,9 @@
+   let subjectRegex = new customerTermBase("subjectRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+   subjectRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+     // aMsgHdr.subject is mime encoded, also aMsgHdr.subject may has line breaks in it
+-    var subject = aMsgHdr.mime2DecodedSubject;
++    // Upon putting subject into msg db, all Re:'s are stripped and MSG_FLAG_HAS_RE flag is set. 
++    let subject = aMsgHdr.mime2DecodedSubject || '';
++    if ( aMsgHdr.flags & Ci.nsMsgMessageFlags.HasRe ) subject = "Re: " + subject; // mailnews.localizedRe ?
+     let searchValue;
+     let searchFlags;
+     [searchValue, searchFlags] = _getRegEx(aSearchValue);
+@@ -100,7 +100,7 @@
+   
+   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
+   // case sensitive, not like normal subject search
+-  // TODO: remove this as this bug was fixed
++  // Now the bug was fixed after TB5.0, but still usefull when subject contains special characters
+   let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+   subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
+@@ -737,9 +737,8 @@
+         // today == -1, yesterday == -2, day == '', week *=7, month *= 30?, year *= 365
+         let match = e.left.tok.match(/^([-.\d]*)(\w*)/);
+         if ( match.length == 3 ) {
+-          let days = match[1];
++          let [, days, period] = match;
+           if ( days == '' ) days = 1;
+-          let period = match[2];
+           if ( period == '' ) period = 1;
+           if (/^t/i.test(period)) { // today
+             period = 1;
+@@ -764,8 +763,7 @@
+         op = is_not ? nsMsgSearchOp.IsLessThan : nsMsgSearchOp.IsGreaterThan;
+         let match = e.left.tok.match(/^([-.\d]*)(\w*)/i); // default KB, can be M,G
+         if ( match.length == 3 ) {
+-          let size = match[1];
+-          let scale = match[2];
++          let [, size, scale] = match;
+           if ( scale == '' ) scale = 1;
+           if ( /^m/i.test(scale) ) {
+             scale = 1024;
+Index: C:/design/expression-search/trunk/modules/aop.js
+===================================================================
+--- C:/design/expression-search/trunk/modules/aop.js	(revision 128)
++++ C:/design/expression-search/trunk/modules/aop.js	(revision 143)
+@@ -32,45 +32,22 @@
+ 	var _around			= 5;
+ 	var _intro			= 6;
+ 	var _regexEnabled = true;
+-	var _arguments = 'arguments';
+ 	var _undef = 'undefined';
+ 
+-	var getType = (function() {
+-    
+-        var topWins = Services.wm.getEnumerator(null);
+-        var topWin;
+-        while (topWins.hasMoreElements()) {
+-            topWin = topWins.getNext();
+-            break;
++    var isFunc = function(obj) {
++      let type = typeof(obj);
++      if ( type == 'function' && typeof(obj.call) != _undef ) return true;
++      if ( type == 'object' && obj ) {
++        let className = Object.prototype.toString.call( /** @type {Object} */ (obj));
++        if ((className == '[object Function]' || typeof obj.call != _undef
++                                              && typeof obj.propertyIsEnumerable != _undef
++                                              && !obj.propertyIsEnumerable('call'))) {
++          return true;
+         }
+-	 
+-		var toString = Object.prototype.toString,
+-			toStrings = {},
+-			nodeTypes = { 1: 'element', 3: 'textnode', 9: 'document', 11: 'fragment' },
+-			types = 'Arguments Array Boolean Date Document Element Error Fragment Function NodeList Null Number Object RegExp String TextNode Undefined Window'.split(' ');
+-	 
+-		for (var i = types.length; i--; ) {
+-			var type = types[i], constructor = topWin[type];
+-			if (constructor) {
+-				try { toStrings[toString.call(new constructor)] = type.toLowerCase(); }
+-				catch (e) { }
+-			}
+-		}
+-	 
+-		return function(item) {
+-			return item == null && (item === undefined ? _undef : 'null') ||
+-				item.nodeType && nodeTypes[item.nodeType] ||
+-				typeof item.length == 'number' && (
+-					item.callee && _arguments ||
+-					item.alert && 'window' ||
+-					item.item && 'nodelist') ||
+-				toStrings[toString.call(item)];
+-		};
+-	 
+-	})();
++      }
++      return false;
++    };
+ 
+-	var isFunc = function(obj) { return getType(obj) == 'function'; };
+-
+ 	/**
+ 	 * Private weaving function.
+ 	 */
+Index: C:/design/expression-search/trunk/modules/log.js
+===================================================================
+--- C:/design/expression-search/trunk/modules/log.js	(revision 128)
++++ C:/design/expression-search/trunk/modules/log.js	(revision 143)
+@@ -41,30 +41,36 @@
+   // from errorUtils.js
+   objectTreeAsString: function(o, recurse, compress, level) {
+     let s = "";
+-    if (recurse === undefined)
+-      recurse = 0;
+-    if (level === undefined)
+-      level = 0;
+-    if (compress === undefined)
+-      compress = true;
+     let pfx = "";
+-
+-    for (var junk = 0; junk < level; junk++)
+-      pfx += (compress) ? "| " : "|  ";
+-
+-    let tee = (compress) ? "+ " : "+- ";
+-
+-    if (typeof(o) != "object") {
+-      s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
+-    }
+-    else {
+-      for (let i in o) {
+-        try {
+-          let t = typeof o[i];
++    let tee = "";
++    try {
++      if (recurse === undefined)
++        recurse = 0;
++      if (level === undefined)
++        level = 0;
++      if (compress === undefined)
++        compress = true;
++      
++      for (let junk = 0; junk < level; junk++)
++        pfx += (compress) ? "| " : "|  ";
++      
++      tee = (compress) ? "+ " : "+- ";
++      
++      if (typeof(o) != "object") {
++        s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
++      }
++      else {
++        for (let i in o) {
++          let t = "";
++          try {
++            t = typeof(o[i]);
++          } catch (err) {
++            s += pfx + tee + " (exception) " + err + "\n";
++          }
+           switch (t) {
+             case "function":
+               let sfunc = String(o[i]).split("\n");
+-              if (sfunc[2] == "    [native code]")
++              if ( typeof(sfunc[2]) != 'undefined' && sfunc[2] == "    [native code]" )
+                 sfunc = "[native code]";
+               else
+                 sfunc = sfunc.length + " lines";
+@@ -84,35 +90,48 @@
+               else
+                 s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
+               break;
++            case "":
++              break;
+             default:
+               s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
+           }
+-        } catch (ex) {
+-          s += pfx + tee + " (exception) " + ex + "\n";
++          if (!compress)
++            s += pfx + "|\n";
+         }
+-        if (!compress)
+-          s += pfx + "|\n";
+       }
++    } catch (ex) {
++      s += pfx + tee + " (exception) " + ex + "\n";
+     }
+     s += pfx + "*\n";
+     return s;
+   },
+   
+-  logObject: function(obj, name, maxDepth, curDepth)
+-  {
++  logObject: function(obj, name, maxDepth, curDepth) {
+     this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
+   },
+-  
++
+   logException: function(e) {
+-    var msg = "Caught Exception";
++    let scriptError = Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError);
++    let msg = "";
+     if ( e.name && e.message ) {
+-      msg += " " + e.name + ": " + e.message + "\n";
++      msg += e.name + ": " + e.message + "\n";
+     }
+     if ( e.stack ) {
+       msg += e.stack;
+-    } else if ( e.fileName && e.lineNumber ) {
+-      msg += "@ " + e.fileName + ":" + e.lineNumber + "\n";
+     }
+-    this.log(msg);
++    if ( e.location ) {
++      msg += e.location + "\n";
++    }
++    if ( msg == '' ){
++      msg += " " + e + "\n";
++    }
++    msg = 'Caught Exception ' + msg;
++    let fileName= e.fileName || e.filename || Components.stack.caller.filename;
++    let lineNumber= e.lineNumber || Components.stack.caller.lineNumber;
++    let sourceLine= e.sourceLine || Components.stack.caller.sourceLine;
++    scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, scriptError.errorFlag, "chrome javascript");
++    Services.console.logMessage(scriptError);
++    this.popup("Exception", msg);
+   },
++
+ };
+Index: C:/design/expression-search/trunk/modules/gmailuiParse.js
+===================================================================
+--- C:/design/expression-search/trunk/modules/gmailuiParse.js	(revision 128)
++++ C:/design/expression-search/trunk/modules/gmailuiParse.js	(revision 143)
+@@ -18,7 +18,7 @@
+ 
+ let Cu = Components.utils;
+ Cu.import("resource://expressionsearch/log.js");
+-Cu.import("resource:///modules/StringBundle.js");
++Cu.import("resource://gre/modules/StringBundle.js");
+ let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
+ var ExpressionSearchTokens = {
+   tokenDict: { from: ['f'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],
+@@ -35,7 +35,7 @@
+     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
+     let distance = 100;
+     //for ( let name of ExpressionSearchTokens.allTokenArray ) { // > TB13
+-    ExpressionSearchTokens.allTokenArray.forEach( function(name, index, array) {
++    ExpressionSearchTokens.allTokenArray.forEach( function(name) {
+       if ( input.length == 0 || name.indexOf(input) == 0 ) {
+         let fullName = name;
+         if ( typeof(ExpressionSearchTokens.tokenMap[name]) != 'undefined' ) fullName = ExpressionSearchTokens.tokenMap[name];
+@@ -52,6 +52,7 @@
+     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join(', ') + " )";
+     if ( Object.keys(ret.match).length == 0 ) ret.match = ExpressionSearchTokens.tokenDict;
+     ret.matchString = Object.keys(ret.match).sort().join(', ');
++    if ( ret.alias == ' ' ) ret.alias = strings.get('info.disable');
+     return ret;
+   },
+   init: function() { // init allTokenArray tokenMap allTokens tokenInfo
+@@ -143,27 +144,15 @@
+   // not a single-char token, so scan it all in.
+   var tok = "";
+   if (!this.calc) {
+-    //Changed the following while loop by Opera: if ":" seems like within normal string, advance without break.
+-    //while(this.str.length && !/[\s:\(\)]/.test(this.str[0])) {
+-    /*while(this.str.length && !/[\s\(\)]/.test(this.str[0])) {
+-      if ( this.str[0] == ':' && ExpressionSearchTokens.allTokens.test(tok) ) break;
+-      tok+=this.str[0];
+-      this.str = this.str.substr(1);
+-    }*/
+     let splitTokens = new RegExp('^('+ExpressionSearchTokens.allTokens+")(:.*)");
+     let splitResult = splitTokens.exec(this.str);
++    //By Opera: if ":" seems like within normal string, advance without break.
++    if ( splitResult == null ) splitResult = /^([^\s\(\)]+)([\s\(\)].*)/.exec(this.str);
+     if ( splitResult != null ) {
+-      tok = splitResult[1];
+-      this.str = splitResult[2];
++      [, tok, this.str] = splitResult;
+     } else {
+-      splitResult = /^([^\s\(\)]+)([\s\(\)].*)/.exec(this.str);
+-      if ( splitResult != null ) {
+-        tok = splitResult[1];
+-        this.str = splitResult[2];
+-      } else {
+-        tok = this.str;
+-        this.str = "";
+-      }
++      tok = this.str;
++      this.str = "";
+     }
+     if (this.cant_be_calc) {
+       // don't bother autodetecting calculator expr if disqualified already
+@@ -240,7 +229,6 @@
+   return r;
+ }
+ 
+-
+ ////////// Search expression parser
+ 
+ //
+@@ -369,9 +357,6 @@
+   return x;
+ }
+ 
+-
+-
+-
+ ////////// Calculator expression parser
+ 
+ //
+@@ -389,7 +374,6 @@
+ //    { kind: 'op', str:'+', left: <expr1>, right: <expr2> }
+ //
+ //
+-
+ function cparse_leaf(T) {
+   if (T.is_tok('g', '(')) {
+     T.advance_token();
+@@ -448,12 +432,7 @@
+   return e;
+ }
+ 
+-
+-
+-
+ //////////// Expression Printer
+-
+-
+ function expr_tostring(e) {
+   if (e.kind == 'str') {
+     return "'"+e.tok+"'";
+@@ -504,14 +483,10 @@
+   return "(unknown-"+e.kind+")";
+ }
+ 
+-
+-
+-
+ ////////////// Search expression transforms
+ 
+ // deep copy
+ // clone a tree.
+-
+ function expr_deep_copy(e) {
+   if (e.left == undefined)
+     return { kind: e.kind, tok: e.tok };
+@@ -543,11 +518,6 @@
+   e.right = t;
+ } 
+ 
+-
+-
+-
+-
+-
+ // distribute (from (or a (not b))) to (or (from a) (not (from b)))
+ function expr_distribute_spec(e,c) {
+   if (e.kind == 'spec') {
+@@ -595,7 +565,6 @@
+   return e;
+ }
+ 
+-
+ // apply demorgan's law and negations:
+ // convert (not (or a b))  to  (and (not a) (not b))
+ // convert (not (and a b)) to  (or  (not a) (not b))
+@@ -659,11 +628,9 @@
+   return cleft+cright;
+ }
+ 
+-
+ // distribute or into ands.  required because that's how the search
+ // term expression works (ors are assumed lower precedence than ands).
+ // (or b (and c d)) => (and (or b c) (or b d))
+-
+ function expr_distribute_left(e)
+ {
+   return make_and(make_or(e.left.left, e.right),
+Index: C:/design/expression-search/trunk/content/es.js
+===================================================================
+--- C:/design/expression-search/trunk/content/es.js	(revision 128)
++++ C:/design/expression-search/trunk/content/es.js	(revision 143)
+@@ -28,10 +28,10 @@
+     try {
+       if ( this.isInited == 0 ) {
+         ExpressionSearchLog.info("Expression Search: init...");
+-        this.isInited = new Date().getTime();
+         this.importModules();
+         this.initPerf();
+         this.initFunctionHook();
++        this.isInited = new Date().getTime();
+       } else ExpressionSearchLog.log("Expression Search:Warning, init again",1);
+     } catch (err) {
+       ExpressionSearchLog.logException(err);
+@@ -68,22 +68,10 @@
+     }
+     this.prefs.addObserver("", this, false);
+     try {
+-      this.options.hide_normal_filer = this.prefs.getBoolPref("hide_normal_filer");
+-      this.options.hide_filter_label = this.prefs.getBoolPref("hide_filter_label");
+-      this.options.act_as_normal_filter = this.prefs.getBoolPref("act_as_normal_filter");
+-      this.options.reuse_existing_folder = this.prefs.getBoolPref("reuse_existing_folder");
+-      this.options.load_virtual_folder_in_tab = this.prefs.getBoolPref("load_virtual_folder_in_tab");
+-      this.options.select_msg_on_enter = this.prefs.getBoolPref("select_msg_on_enter");
+-      this.options.move2bar = this.prefs.getIntPref("move2bar"); // 0:keep, 1:toolbar, 2:menubar
+-      this.options.showbuttonlabel = this.prefs.getIntPref("showbuttonlabel"); // 0:auto 1:force show 2:force hide
+-      this.options.c2s_enableCtrl = this.prefs.getBoolPref("c2s_enableCtrl");
+-      this.options.c2s_enableShift = this.prefs.getBoolPref("c2s_enableShift");
+-      this.options.c2s_enableCtrlReplace = this.prefs.getBoolPref("c2s_enableCtrlReplace");
+-      this.options.c2s_enableShiftReplace = this.prefs.getBoolPref("c2s_enableShiftReplace");
+-      this.options.c2s_regexpMatch = this.prefs.getComplexValue('c2s_regexpMatch',this.Ci.nsISupportsString).data;
+-      this.options.c2s_regexpReplace = this.prefs.getComplexValue('c2s_regexpReplace',this.Ci.nsISupportsString).data;
+-      this.options.installed_version = this.prefs.getComplexValue('installed_version',this.Ci.nsISupportsString).data;
+-      this.options.enable_statusbar_info = this.prefs.getBoolPref("enable_statusbar_info");
++      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
++       "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace", "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
++        ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
++      } );
+     } catch ( err ) {
+       ExpressionSearchLog.logException(err);
+     }
+@@ -93,32 +81,38 @@
+   observe: function(subject, topic, data) {
+     if (topic != "nsPref:changed") {
+        return;
+-     }
+-     switch(data) {
+-       case "hide_normal_filer":
+-       case "hide_filter_label":
+-       case "act_as_normal_filter":
+-       case "reuse_existing_folder":
+-       case "load_virtual_folder_in_tab":
+-       case "select_msg_on_enter":
+-       case "c2s_enableCtrl":
+-       case "c2s_enableShift":
+-       case "c2s_enableCtrlReplace":
+-       case "c2s_enableShiftReplace":
+-       case "enable_statusbar_info":
+-         this.options[data] = this.prefs.getBoolPref(data);
+-         break;
+-       case "move2bar":
+-       case "showbuttonlabel":
+-         this.options[data] = this.prefs.getIntPref(data);
+-         break;
+-       case "c2s_regexpMatch":
+-       case "c2s_regexpReplace":
+-         this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
+-         break;
+-     }
+-     if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' )
+-       this.refreshFilterBar();
++    }
++    switch(data) {
++      case "hide_normal_filer":
++      case "hide_filter_label":
++      case "act_as_normal_filter":
++      case "reuse_existing_folder":
++      case "load_virtual_folder_in_tab":
++      case "select_msg_on_enter":
++      case "c2s_enableCtrl":
++      case "c2s_enableShift":
++      case "c2s_enableCtrlReplace":
++      case "c2s_enableShiftReplace":
++      case "enable_statusbar_info":
++      case "enable_verbose_info":
++        this.options[data] = this.prefs.getBoolPref(data);
++        break;
++      case "move2bar": // 0:keep, 1:toolbar, 2:menubar
++      case "showbuttonlabel": // 0:auto 1:force show 2:force hide
++      case "statusbar_info_showtime":
++      case "statusbar_info_hidetime":
++        this.options[data] = this.prefs.getIntPref(data);
++        break;
++      case "c2s_regexpMatch":
++      case "c2s_regexpReplace":
++      case "installed_version":
++        this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
++      default:
++        break;
++    }
++    if ( !this.isInited ) return;
++    if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' || data == 'enable_verbose_info' )
++      this.refreshFilterBar();
+   },
+ 
+   hookedFunctions: [],
+@@ -195,33 +189,35 @@
+     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
+       let self = this;
+       let args = invocation.arguments;
+-      if ( ExpressionSearchVariable.startreq == Number.MAX_VALUE )
+-        ExpressionSearchVariable.startreq = new Date().getTime();
+-      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.stopping || ExpressionSearchVariable.startreq > ExpressionSearchVariable.stopreq ) {
++      let v = ExpressionSearchVariable;
++      if ( v.startreq == Number.MAX_VALUE )
++        v.startreq = new Date().getTime();
++      if ( v.resuming || v.stopping || v.startreq > v.stopreq ) {
+         window.setTimeout( function(){self.associateView.apply(self,args);}, 10  );
+         return;
+       }
+-      ExpressionSearchVariable.starting = true;
+-      ExpressionSearchVariable.stopped = false;
++      v.starting = true;
++      v.stopped = false;
+       invocation.proceed();
+-      ExpressionSearchVariable.starting = false;
+-      ExpressionSearchVariable.startreq = Number.MAX_VALUE;
++      v.starting = false;
++      v.startreq = Number.MAX_VALUE;
+     })[0] );
+     
+     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
+       let self = this;
+       let args = invocation.arguments;
+-      if ( ExpressionSearchVariable.stopreq == Number.MAX_VALUE )
+-        ExpressionSearchVariable.stopreq = new Date().getTime();
+-      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
++      let v = ExpressionSearchVariable;
++      if ( v.stopreq == Number.MAX_VALUE )
++        v.stopreq = new Date().getTime();
++      if ( v.resuming || v.starting || v.stopreq > v.startreq ) {
+         window.setTimeout( function(){self.dissociateView.apply(self,args);}, 10  );
+         return;
+       }
+-      ExpressionSearchVariable.stopping = true;
++      v.stopping = true;
+       invocation.proceed();
+-      ExpressionSearchVariable.stopped = true;
+-      ExpressionSearchVariable.stopping = false;
+-      ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
++      v.stopped = true;
++      v.stopping = false;
++      v.stopreq = Number.MAX_VALUE;
+     })[0] );
+     
+   },
+@@ -285,14 +281,24 @@
+       else if ( this.options.move2bar == 1 ) {
+         dest = 'mail-bar3';
+         reference = document.getElementById('qfb-show-filter-bar');
+-      }
+-      else if ( this.options.move2bar == 2 )
++      } else if ( this.options.move2bar == 2 )
+         dest = 'mail-toolbar-menubar2';
+       let toolbar = document.getElementById(dest);
+       let needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
+       toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
+     }
+     
++    let spacer = document.getElementById('qfb-filter-bar-spacer');
++    if ( spacer ) {
++      if ( this.options.move2bar == 0 ) {
++        spacer.setAttribute('flex', '200');
++        spacer.style.flex = '200 1';
++      } else {
++        spacer.removeAttribute('flex');
++        spacer.style.flex = '1 200 auto';
++      }
++    }
++    
+     let collapsible = document.getElementById('quick-filter-bar-collapsible-buttons');
+     if ( collapsible && collapsible.classList ) {
+       collapsible.classList.remove("hidelabel");
+@@ -314,6 +320,15 @@
+         }
+       }
+     }
++    
++    let menu = document.getElementById('expression-search-context-menu');
++    if ( menu ) {
++      for (let i = 0; i < menu.childNodes.length; i++ ) {
++        let menuitem = menu.childNodes[i];
++        menuitem.style.display = ( this.options['enable_verbose_info'] ) ? "" : "none";
++        if ( menuitem.tagName == "menuseparator" ) break;
++      };
++    }
+   },
+   
+   hideUpsellPanel: function() {
+@@ -337,16 +352,16 @@
+       if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
+       if ( typeof(line3) != 'undefined' ) tooltip3.textContent = line3;
+       if ( typeof(line4) != 'undefined' ) tooltip4.textContent = line4;
+-      if ( !ExpressionSearchChrome.options.enable_statusbar_info ) return;
++      if ( !this.options.enable_statusbar_info ) return;
+       if ( this.helpTimer > 0 ) {
+         window.clearTimeout( this.helpTimer );
+         this.helpTimer = 0;
+       }
+-      let time2hide = 2000;
++      let time2hide = this.options['statusbar_info_hidetime'] * 1000;
+       if ( show ) {
+         tooltip.openPopup(statusbaricon, "before_start", 0, 0, false, true, null);
+-        time2hide = 5000;
+-        if ( ExpressionSearchChrome.isFocus ) time2hide = 10000;
++        time2hide = this.options['statusbar_info_showtime'] * 1000;
++        //if ( this.isFocus ) time2hide *= 2;
+       }
+       this.helpTimer = window.setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
+     }
+@@ -577,10 +592,9 @@
+       }
+     } else if (e.kind == 'num') {
+       return e;
+-    } else {
+-      ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result',1);
+-      return { kind: 'error', tok: 'internal' };
+     }
++    ExpressionSearchLog.log('Expression Search: unexpected expression tree when calculating result',1);
++    return { kind: 'error', tok: 'internal' };
+   },
+ 
+   showCalculationResult: function(e) {
+@@ -665,10 +679,14 @@
+          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
+            let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
+            let treeView = treeBox.view;
+-           var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+-           var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
+-           treeView.getCellProperties(row.value,col.value,property);
+-           token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
++           if (Components.interfacesByID["{C06DC4D3-63A2-4422-A0A3-5F2EDDECA8C1}"]) { // < TB22
++             var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
++             var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
++             treeView.getCellProperties(row.value, col.value, property);
++             token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
++           } else {
++             token = treeView.getCellProperties(row.value, col.value).indexOf("in") >= 0 ? "f" : "t";
++           }
+          }
+          let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
+          let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
+@@ -701,7 +719,7 @@
+     event.preventDefault();
+     event.stopPropagation();
+     aNode._fireCommand(aNode);
+-    return false;
++    return;
+   },
+   
+   firstRunAction: function() {
+Index: C:/design/expression-search/trunk/content/help.html
+===================================================================
+--- C:/design/expression-search/trunk/content/help.html	(revision 128)
++++ C:/design/expression-search/trunk/content/help.html	(revision 143)
+@@ -307,6 +307,15 @@
+ <a name="version_history"></a>
+ <h3>Version history</h3>
+ <ul><li>
++Version 0.8.6: <ul>
++<li>getCellProperties API change for TB22</li>
++<li>Add options for tooltip show/hide time</li>
++<li>change the flexibility of other element to make my search box bigger</li>
++<li>Add "Re: " to subject if it's a reply email for subject regex search</li>
++<li>Add 'Select All', 'Clear All' & select mode when modify virtual folder's folders.</li>
++<li>Fix bug: Donate through palpay directly not working because I'm in China</li>
++</ul>
++</li><li>
+ Version 0.8.5: <ul>
+ <li>Added options for show or hide text labels of 'quick filter' buttons</li>
+ <li>Added options to seperate subject replacment for Ctrl/Shift+RightClick</li>
+Index: C:/design/expression-search/trunk/content/esVirtualFolderListDialog.xul
+===================================================================
+--- C:/design/expression-search/trunk/content/esVirtualFolderListDialog.xul	(revision 0)
++++ C:/design/expression-search/trunk/content/esVirtualFolderListDialog.xul	(revision 143)
+@@ -0,0 +1,23 @@
++<?xml version="1.0"?>
++
++<!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
++
++<!-- This might can be in another addon, but the usage might be low -->
++<overlay id="esVirtualFolderListDialogOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
++  <dialog id="searchFolderWindow">
++    <hbox align='center' insertbefore="folderPickerTree">
++      <button label='&expressionsearch.virtualfolder.selectall;' oncommand='return esVirtualFolderSelector.changeAllFolder(true);'/>
++      <button label='&expressionsearch.virtualfolder.clearall;' oncommand='return esVirtualFolderSelector.changeAllFolder(false);'/>
++      <label value='&expressionsearch.virtualfolder.modelabel;'/>
++      <menulist id='esFolderType'>
++        <menupopup>
++          <menuitem label="&expressionsearch.virtualfolder.modesingle;" value="0"/>
++          <menuitem label="&expressionsearch.virtualfolder.modechild;" value="1"/>
++          <menuitem label="&expressionsearch.virtualfolder.modedescendants;" value="2"/>
++        </menupopup>
++      </menulist>
++    </hbox>
++  </dialog>
++  <!-- hook ReverseStateFromNode -->
++  <script type="application/x-javascript" src="chrome://expressionsearch/content/esVirtualFolderListDialog.js"/>
++</overlay>
+Index: C:/design/expression-search/trunk/content/esVirtualFolderListDialog.js
+===================================================================
+--- C:/design/expression-search/trunk/content/esVirtualFolderListDialog.js	(revision 0)
++++ C:/design/expression-search/trunk/content/esVirtualFolderListDialog.js	(revision 143)
+@@ -0,0 +1,60 @@
++"use strict";
++
++const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm } = Components;
++Cu.import("resource:///modules/mailServices.js");
++Cu.import("resource:///modules/iteratorUtils.jsm");
++Cu.import("resource://expressionsearch/aop.js");
++Cu.import("resource://expressionsearch/log.js");
++
++let esVirtualFolderSelector = {
++  hookedFunctions: [],
++  Load: function() {
++    try {
++      window.removeEventListener("load", esVirtualFolderSelector.Load, false);
++      // How to deal with multi select and reverse?
++      esVirtualFolderSelector.hookedFunctions.push( ExpressionSearchaop.around( {target: window, method: 'ReverseStateFromNode'}, function(invocation) {
++        let result = invocation.proceed(); // change folder's state first
++        let typeSel = document.getElementById('esFolderType');
++        let row = invocation.arguments[0];
++        let folder = GetFolderResource(row).QueryInterface(Ci.nsIMsgFolder);
++        if ( !typeSel || typeSel.value == 0 || !gFolderPickerTree.view.isContainer(row) || gFolderPickerTree.view.isContainerEmpty(row) || !folder) return result;
++        esVirtualFolderSelector.changeSubFolder(typeSel.value, folder);
++        return result;
++      })[0] );
++    } catch (err) {
++      ExpressionSearchLog.logException(err);
++    }
++  },
++  
++  changeSubFolder: function(type, folder) {
++    try {
++      for (let child in fixIterator(folder.subFolders, Ci.nsIMsgFolder)) {
++        child.setInVFEditSearchScope( folder.inVFEditSearchScope, false /* subscope, not implemented */ );
++        if ( type == 2 && child.hasSubFolders && child.numSubFolders > 0 ) {
++          esVirtualFolderSelector.changeSubFolder(type, child);
++        }
++      }
++    } catch (err) {
++      ExpressionSearchLog.logException(err);
++    }
++  },
++  
++  changeAllFolder: function(state) {
++    try {
++      // not work for TB 5 & not inclue root dir
++      //let allFolders = MailServices.accounts.allFolders;
++      //for (let folder in fixIterator(allFolders, Ci.nsIMsgFolder))
++      //  folder.setInVFEditSearchScope(state, false);
++      let accounts = MailServices.accounts.accounts;
++      for ( let account in fixIterator(accounts, Ci.nsIMsgAccount) ) {
++        account.incomingServer.rootFolder.setInVFEditSearchScope(state, false);
++        esVirtualFolderSelector.changeSubFolder(2, account.incomingServer.rootFolder);
++      }
++    } catch (err) {
++      ExpressionSearchLog.logException(err);
++    }
++  },
++
++};
++
++window.addEventListener("load", esVirtualFolderSelector.Load, false);
+Index: C:/design/expression-search/trunk/content/common.js
+===================================================================
+--- C:/design/expression-search/trunk/content/common.js	(revision 128)
++++ C:/design/expression-search/trunk/content/common.js	(revision 143)
+@@ -4,7 +4,7 @@
+ "use strict";
+ Components.utils.import("resource://gre/modules/Services.jsm");
+ Components.utils.import("resource:///modules/mailServices.js");
+-Components.utils.import("resource:///modules/StringBundle.js");
++Components.utils.import("resource://gre/modules/StringBundle.js");
+ var ExpressionSearchCommon = {
+   strings: new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"),
+   translateURL: function(url,anchor) {
+Index: C:/design/expression-search/trunk/content/esQuickFilterBar.xul
+===================================================================
+--- C:/design/expression-search/trunk/content/esQuickFilterBar.xul	(revision 128)
++++ C:/design/expression-search/trunk/content/esQuickFilterBar.xul	(revision 143)
+@@ -7,14 +7,14 @@
+   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
+   <script type="application/x-javascript" src="chrome://expressionsearch/content/es.js"/>
+   <hbox id="quick-filter-bar-main-bar">
+-    <textbox id="expression-search-textbox" flex="5" insertafter="qfb-qs-textbox"
++    <textbox id="expression-search-textbox" insertafter="qfb-qs-textbox"
+              type="search"
+              emptytextbase="&expressionsearch.textbox.emptyText.base;"
+              timeout="1000"
+              maxlength="192"
+              width="320"
+-             maxwidth="480"
+-             minwidth="280">
+-    </textbox>
++             maxwidth="500"
++             minwidth="280"
++    />
+   </hbox>
+ </overlay>
+Index: C:/design/expression-search/trunk/content/esPrefDialog.xul
+===================================================================
+--- C:/design/expression-search/trunk/content/esPrefDialog.xul	(revision 128)
++++ C:/design/expression-search/trunk/content/esPrefDialog.xul	(revision 143)
+@@ -29,6 +29,8 @@
+     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
+     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
+     <preference id="pref_enable_statusbar_info" name="extensions.expressionsearch.enable_statusbar_info" type="bool"/>
++    <preference id="pref_statusbar_info_showtime" name="extensions.expressionsearch.statusbar_info_showtime" type="int"/>
++    <preference id="pref_statusbar_info_hidetime" name="extensions.expressionsearch.statusbar_info_hidetime" type="int"/>
+     <preference id="pref_virtual_folder_path" name="extensions.expressionsearch.virtual_folder_path" type="string"/>
+     <preference id="pref_customHeaders" name="mailnews.customHeaders" type="string"/>
+     <preference id="pref_customDBHeaders" name="mailnews.customDBHeaders" type="string"/>
+@@ -47,7 +49,13 @@
+           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
+         </hbox>
+         <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
+-        <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info;"/>
++        <hbox align='center'>
++          <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info1;"/>
++          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_showtime" hidespinbuttons="true" size='2'/>
++          <label value="&expressionsearch.option.enable_statusbar_info2;"/>
++          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_hidetime" hidespinbuttons="true" size='2'/>
++          <label value="&expressionsearch.option.enable_statusbar_info3;"/>
++        </hbox>
+         <checkbox preference="perf_vf_intab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
+         <hbox align='center'>
+           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
+@@ -136,7 +144,7 @@
+       <caption label="&expressionsearch.dialog.help;"/>
+       <vbox align="center">
+         <hbox>
+-          <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('paypal');" />
++          <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('mozilla');" />
+           <label value="               " flex="100"/>
+           <image style="cursor:pointer;" src="donate-with-alipay.png" onclick="ExpressionSearchCommon.loadDonate('alipay');" />
+         </hbox>
+Index: C:/design/expression-search/trunk/content/esMailWindowOverlay.xul
+===================================================================
+--- C:/design/expression-search/trunk/content/esMailWindowOverlay.xul	(revision 128)
++++ C:/design/expression-search/trunk/content/esMailWindowOverlay.xul	(revision 143)
+@@ -18,13 +18,16 @@
+   </keyset>
+   <statusbar id="status-bar">
+     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
+-      <description id="expression-search-tooltip-line1" class="tooltip-token"> </description>
+-      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info"> </description></hbox>
++      <description id="expression-search-tooltip-line1" class="tooltip-token">&expressionsearch.tooltip.helpLine1;</description>
++      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info">&expressionsearch.tooltip.helpLine2;</description></hbox>
+       <description id="expression-search-tooltip-line3" class="tooltip-match"> </description>
+       <description id="expression-search-tooltip-line4" class="tooltip-term"> </description>
+     </tooltip>
+     <popupset>
+        <menupopup id="expression-search-context-menu">
++          <menuitem label="about:memory" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadURL('about:memory?verbose');"/>
++          <menuitem label="about:crashes" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadTab('about:crashes');"/>
++          <menuseparator/>
+           <menuitem label="&expressionsearch.dialog.settings;" class="menuitem-iconic" image="chrome://messenger/skin/accountcentral/account-settings.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul');"/>
+           <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://global/skin/icons/question-64.png" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
+           <menuitem label="&expressionsearch.menu.donate.label;" class="menuitem-iconic" image="&expressionsearch.menu.donate.image;" oncommand="ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;');"/>
