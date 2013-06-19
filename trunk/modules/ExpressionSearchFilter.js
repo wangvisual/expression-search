@@ -274,7 +274,7 @@ function _getRegEx(aSearchValue) {
     let haveAttachment = false;
     let complete = false;
     
-    MsgHdrToMimeMessage(aMsgHdr, function(aMsgHdr, aMimeMsg) { // async call back function
+    MsgHdrToMimeMessage(aMsgHdr, null, function(aMsgHdr, aMimeMsg) { // async call back function
       for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
         if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
           haveAttachment = true;
@@ -285,7 +285,7 @@ function _getRegEx(aSearchValue) {
         }
       }
       complete = true;
-    });
+    }, false/*allow download*/, {saneBodySize: true});
     
     // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
     let thread = Services.tm.currentThread;
