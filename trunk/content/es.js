@@ -346,7 +346,7 @@ let ExpressionSearchChrome = {
     let tooltip2 = document.getElementById("expression-search-tooltip-line2");
     let tooltip3 = document.getElementById("expression-search-tooltip-line3");
     let tooltip4 = document.getElementById("expression-search-tooltip-line4");
-    let statusbaricon = document.getElementById("status-bar-expressionsearch");
+    let statusbaricon = document.getElementById("expression-search-status-bar");
     if ( tooltip && tooltip1 && tooltip2 && tooltip3 && tooltip4 && statusbaricon ) {
       if ( typeof(line1) != 'undefined' ) tooltip1.textContent = line1;
       if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
@@ -399,7 +399,7 @@ let ExpressionSearchChrome = {
             });
           }
         } else {
-          let e = compute_expression(searchValue);
+          let e = ExpressionSearchComputeExpression(searchValue);
           if (e.kind == 'spec' && e.tok == 'calc') {
             me.isEnter = 0; // showCalculationResult also will select the result.
             me.showCalculationResult(e);
@@ -602,7 +602,7 @@ let ExpressionSearchChrome = {
     // compute the result of this calculation
     var r = this.calculateResult(e);
     // print the expression,
-    var lhs = expr_tostring_infix(e);
+    var lhs = ExpressionSearchExprToStringInfix(e);
     var rhs = '' + ((r.kind == 'num') ? r.tok : "<<ERROR: "+r.tok+">>");
     var x = document.getElementById('expression-search-textbox');
     x.value = lhs + " = " + rhs;

@@ -387,14 +387,14 @@ let ExperssionSearchFilter = {
         if ( aSearchString == '' ) {
           return;
         }
-        var e = compute_expression(aSearchString);
+        var e = ExpressionSearchComputeExpression(aSearchString);
         if ( ExperssionSearchFilter.latchQSFolderReq ) {
           let terms = aTerms.slice();
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,terms);
           ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [terms]);
           ExperssionSearchFilter.latchQSFolderReq = 0;
         } else {
-          ExpressionSearchLog.info("Experssion Search Statements: "+expr_tostring_infix(e));
+          ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
           if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
