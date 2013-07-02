@@ -13,8 +13,8 @@
 <overlay id="esMailWindowOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
   <keyset id="mailKeys">
-    <key id="key_find_expression_search" key="&expressionsearch.focusSearch.key;" modifiers="&expressionsearch.focusSearch.mod;" oncommand="ExpressionSearchChrome.setFocus();"/>
-    <key id="key_back_to_original_folder" keycode="&expressionsearch.back2folder.keycode;" modifiers="&expressionsearch.back2folder.mod;" oncommand="ExpressionSearchChrome.back2OriginalFolder();"/>
+    <key key="&expressionsearch.focusSearch.key;" modifiers="&expressionsearch.focusSearch.mod;" oncommand="ExpressionSearchChrome.setFocus();"/>
+    <key keycode="&expressionsearch.back2folder.keycode;" modifiers="&expressionsearch.back2folder.mod;" oncommand="ExpressionSearchChrome.back2OriginalFolder();"/>
   </keyset>
   <statusbar id="status-bar">
     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
@@ -25,16 +25,17 @@
     </tooltip>
     <popupset>
        <menupopup id="expression-search-context-menu">
-          <menuitem label="about:memory" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadURL('about:memory?verbose');"/>
+          <menuitem label="about:config" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadURL('about:config');"/>
           <menuitem label="about:crashes" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadTab('about:crashes');"/>
-          <menuseparator/>
+          <menuitem label="about:memory" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadURL('about:memory?verbose');"/>
+          <menuseparator/> <!-- items before seprator and the seprator it self will only shown if verbose -->
           <menuitem label="&expressionsearch.dialog.settings;" class="menuitem-iconic" image="chrome://messenger/skin/accountcentral/account-settings.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul');"/>
           <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://global/skin/icons/question-64.png" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
           <menuitem label="&expressionsearch.menu.donate.label;" class="menuitem-iconic" image="&expressionsearch.menu.donate.image;" oncommand="ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;');"/>
           <menuitem label="&about.about;" class="menuitem-iconic" image="chrome://expressionsearch/skin/statusbar_icon.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul');"/>
        </menupopup>
     </popupset>
-    <statusbarpanel id="status-bar-expressionsearch"
+    <statusbarpanel id="expression-search-status-bar"
       class="statusbarpanel-iconic"
       label="Expression Search"
       src="chrome://expressionsearch/skin/statusbar_icon.png"

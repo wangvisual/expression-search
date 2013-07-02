@@ -14,7 +14,7 @@
     Using ExpressionSearchTokens
 */
 "use strict";
-var EXPORTED_SYMBOLS = ["compute_expression", "expr_tostring_infix", "ExpressionSearchTokens"];
+var EXPORTED_SYMBOLS = ["ExpressionSearchComputeExpression", "ExpressionSearchExprToStringInfix", "ExpressionSearchTokens"];
 
 let Cu = Components.utils;
 Cu.import("resource://expressionsearch/log.js");
@@ -452,7 +452,7 @@ function expr_tostring(e) {
   return "(unknown-"+e.kind+")";
 }
 
-function expr_tostring_infix(e) {
+function ExpressionSearchExprToStringInfix(e) {
   if (e.kind == 'str') {
     return "'"+e.tok+"'";
   } 
@@ -468,7 +468,7 @@ function expr_tostring_infix(e) {
       r = ")";
     }
     if (e.right == undefined) {
-      return e.tok+" "+l+expr_tostring_infix(e.left)+r;
+      return e.tok+" "+l+ExpressionSearchExprToStringInfix(e.left)+r;
     } else {
       var l2 = "";
       var r2 = "";
@@ -477,7 +477,7 @@ function expr_tostring_infix(e) {
 	l2 = "(";
 	r2 = ")";
       }
-      return l+expr_tostring_infix(e.left)+r+" "+e.tok+" "+l2+expr_tostring_infix(e.right)+r2;
+      return l+ExpressionSearchExprToStringInfix(e.left)+r+" "+e.tok+" "+l2+ExpressionSearchExprToStringInfix(e.right)+r2;
     }
   }
   return "(unknown-"+e.kind+")";
@@ -653,7 +653,7 @@ function expr_distribute_down_ors(e) {
   return e;
 }
 
-function compute_expression(s) {
+function ExpressionSearchComputeExpression(s) {
   var tkz = TokenizerFactory();
 
   // autodetect if the outermost level is a calc specifier.
