@@ -54,6 +54,7 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource:///modules/virtualFolderWrapper.js");
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
     this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
+    this.Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
     // need to know whehter gloda enabled
     this.Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
@@ -479,7 +480,7 @@ let ExpressionSearchChrome = {
     }
     let virtual_folder_path = this.prefs.getCharPref('virtual_folder_path'); // '' or 'mailbox://nobody@Local%20Folders/Archive'
     let targetFolderParent = rootFolder;
-    if ( virtual_folder_path != '' ) targetFolderParent = GetMsgFolderFromUri(virtual_folder_path, true);
+    if ( virtual_folder_path != '' ) targetFolderParent = MailUtils.getFolderForURI(virtual_folder_path, true);
     var QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
@@ -511,7 +512,7 @@ let ExpressionSearchChrome = {
     //Check if folder exists already
     if (targetFolderParent.containsChildNamed(QSFolderName)) {
       // modify existing folder
-      var msgFolder = GetMsgFolderFromUri(QSFolderURI);
+      var msgFolder = MailUtils.getFolderForURI(QSFolderURI);
       if (!msgFolder.isSpecialFolder(nsMsgFolderFlags.Virtual,false)) {
         alert('Expression Search: Non search folder '+QSFolderName+' is in the way');
         return;
