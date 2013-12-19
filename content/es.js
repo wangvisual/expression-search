@@ -27,7 +27,7 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource://expressionsearch/log.js"); // load log first
     try {
       if ( this.isInited == 0 ) {
-        ExpressionSearchLog.info("Expression Search: init...");
+        ExpressionSearchLog.log("Expression Search: init...", false, true);
         this.importModules();
         this.initPerf();
         this.initFunctionHook();
@@ -111,6 +111,7 @@ let ExpressionSearchChrome = {
       default:
         break;
     }
+    if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
     if ( !this.isInited ) return;
     if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' || data == 'enable_verbose_info' )
       this.refreshFilterBar();

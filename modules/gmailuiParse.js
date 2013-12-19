@@ -170,7 +170,7 @@ function ADVANCE_TOKEN() {
 
   // identify special tokens
 
-  if (this.str[0] == ':') {
+  if ( this.str.length && this.str[0] == ':' ) {
     this.str = this.str.substr(1);
     let testToken = new RegExp('^(?:' + ExpressionSearchTokens.allTokens + ')$');
     if ( testToken.test(tok) ) {
