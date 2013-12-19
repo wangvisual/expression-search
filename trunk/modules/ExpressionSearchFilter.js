@@ -250,7 +250,7 @@ function _getRegEx(aSearchValue) {
         try {
           self.searchSession.pauseSearch(); // may call many times
         } catch (err) {
-          ExpressionSearchLog.logException(err);
+          ExpressionSearchLog.logException(err, false);
         }
         if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
         return self.matchFunc.call(self, aMsgHdr, aSearchValue, aSearchOp);

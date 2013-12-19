@@ -2,37 +2,57 @@
 // GPL V3 / MPL
 // debug utils
 "use strict";
-var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
-
 Components.utils.import("resource://gre/modules/Services.jsm");
-
-var ExpressionSearchLog = {
+var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
+const popupImage = "chrome://expressionsearch/skin/statusbar_icon.png";
+let ExpressionSearchLog = {
+  scriptError : Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError),
   popup: function(title, msg) {
-    var image = "chrome://expressionsearch/skin/statusbar_icon.png";
     // alert-service won't work with bb4win, use xul instead
-    /*try {
-      Components.classes['@mozilla.org/alerts-service;1'].
-                getService(Components.interfaces.nsIAlertsService).
-                showAlertNotification(image, title, msg, false, '', null, "");
-    } catch(e) {
-      // prevents runtime error on platforms that don't implement nsIAlertsService
-      this.logException(e);
-    }*/
-    var win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', '_blank', 'chrome,titlebar=no,popup=yes', null);
-    win.arguments = [image, title, msg, false, ''];
+    let win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', '_blank', 'chrome,titlebar=no,popup=yes', null);
+    win.arguments = [popupImage, title, msg, false, ''];
   },
   
-  info: function(msg,popup) {
-    let verbose = true;
-    try {
-      verbose = Services.prefs.getBranch("extensions.expressionsearch.").getBoolPref("enable_verbose_info");
-    } catch(e){}
-    if (verbose) this.log(msg,popup);
+  now: function() { //author: meizz
+    let format = "yyyy-MM-dd hh:mm:ss.SSS ";
+    let time = new Date();
+    let o = {
+      "M+" : time.getMonth()+1, //month
+      "d+" : time.getDate(),    //day
+      "h+" : time.getHours(),   //hour
+      "m+" : time.getMinutes(), //minute
+      "s+" : time.getSeconds(), //second
+      "q+" : Math.floor((time.getMonth()+3)/3),  //quarter
+      "S+" : time.getMilliseconds() //millisecond
+    }
+    
+    if(/(y+)/.test(format)) format=format.replace(RegExp.$1,
+      (time.getFullYear()+"").substr(4 - RegExp.$1.length));
+    for(let k in o)if(new RegExp("("+ k +")").test(format))
+      format = format.replace(RegExp.$1,
+        RegExp.$1.length==1 ? o[k] :
+          ("000"+ o[k]).substr((""+ o[k]).length+3-RegExp.$1.length));
+    return format;
+  },
+  
+  verbose: false,
+  setVerbose: function(verbose) {
+    this.verbose = verbose;
   },
 
-  log: function(msg,popup) {
-    Services.console.logStringMessage(msg);
-    if ( typeof(popup)!='undefined' ) {
+  info: function(msg,popup) {
+    if (!this.verbose) return;
+    this.log(this.now() + msg,popup,true);
+  },
+
+  log: function(msg,popup,info) {
+    if ( typeof(info) != 'undefined' && info ) {
+      Services.console.logStringMessage(msg);
+    } else {
+      this.scriptError.init(msg, Components.stack.caller.filename, Components.stack.caller.sourceLine, Components.stack.caller.lineNumber, null, this.scriptError.warningFlag, "chrome javascript");
+      Services.console.logMessage(this.scriptError);
+    }
+    if (popup) {
       if ( typeof(popup) == 'number' ) popup = 'Warning!';
       this.popup(popup,msg);
     }
@@ -109,11 +129,10 @@ var ExpressionSearchLog = {
   logObject: function(obj, name, maxDepth, curDepth) {
     this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
   },
-
-  logException: function(e) {
-    let scriptError = Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError);
+  
+  logException: function(e, popup) {
     let msg = "";
-    if ( e.name && e.message ) {
+    if ( typeof(e.name) != 'undefined' && typeof(e.message) != 'undefined' ) {
       msg += e.name + ": " + e.message + "\n";
     }
     if ( e.stack ) {
@@ -129,9 +148,9 @@ var ExpressionSearchLog = {
     let fileName= e.fileName || e.filename || Components.stack.caller.filename;
     let lineNumber= e.lineNumber || Components.stack.caller.lineNumber;
     let sourceLine= e.sourceLine || Components.stack.caller.sourceLine;
-    scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, scriptError.errorFlag, "chrome javascript");
-    Services.console.logMessage(scriptError);
-    this.popup("Exception", msg);
+    this.scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, this.scriptError.errorFlag, "chrome javascript");
+    Services.console.logMessage(this.scriptError);
+    if ( typeof(popup) == 'undefined' || popup ) this.popup("Exception", msg);
   },
-
+  
 };
