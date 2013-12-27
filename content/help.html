@@ -109,6 +109,13 @@ newly added emails unless you do 'repaire folder'.
 If the value is empty, Any message has the header will match.
 </p></li><li><p>
 
+<b>fromre:/^begin/i</b> or <b>fr:end$</b>
+</p>
+<p>This expression searches all messages in the current folder or view with <a href='https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions'>Regular Expressions</a>
+in the <i>from</i> fields of the message.
+</p><p>This pattern must be the last pattern. Case <b>sensitive</b> unless you have //i.
+</p></li><li><p>
+
 <b>attachment:yes</b> or <b>a:yes</b>
 </p>
 <p>This expression searches all messages in the current folder or view for an attachment,
@@ -307,6 +314,11 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 0.8.7: <ul>
+<li>Compatible with TB29 nightly</li>
+<li>Added regex search for from</li>
+</ul>
+</li><li>
 Version 0.8.6: <ul>
 <li>getCellProperties API change for TB22</li>
 <li>Add options for tooltip show/hide time</li>

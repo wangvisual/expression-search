@@ -160,6 +160,14 @@ function _getRegEx(aSearchValue) {
   bccSearch.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     return (GlodaUtils.deMime(aMsgHdr.bccList).toLowerCase().indexOf(aSearchValue.toLowerCase()) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
   };
+  
+  let fromRegex = new customerTermBase("fromRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  fromRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    let searchValue, searchFlags;
+    [searchValue, searchFlags] = _getRegEx(aSearchValue);
+    let regexp = new RegExp(searchValue, searchFlags);
+    return regexp.test(aMsgHdr.mime2DecodedAuthor) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+  };
 
   let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   toSomebodyOnly.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
@@ -326,6 +334,7 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(subjectRegex);
   filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(headerRegex);
+  filterService.addCustomTerm(fromRegex);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
   filterService.addCustomTerm(attachmentNameOrType);
@@ -642,6 +651,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'date') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#dateMatch' };
       else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
       else if (e.tok == 'bodyre') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#bodyRegex' };
+      else if (e.tok == 'fromre') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#fromRegex' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;
