@@ -41,9 +41,9 @@ function _getRegEx(aSearchValue) {
    */
   let searchValue = aSearchValue;
   let searchFlags = "";
-  if (aSearchValue.charAt(0) == "/")
-  {
+  if (aSearchValue.charAt(0) == "/") {
     let lastSlashIndex = aSearchValue.lastIndexOf("/");
+    if ( lastSlashIndex == 0 ) lastSlashIndex = aSearchValue.length;
     searchValue = aSearchValue.substring(1, lastSlashIndex);
     searchFlags = aSearchValue.substring(lastSlashIndex + 1);
   }
@@ -118,9 +118,10 @@ function _getRegEx(aSearchValue) {
     // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
     // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
 
-    // let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
-    // while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
-    // ExpressionSearchLog.log(str);
+     let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
+     while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
+     ExpressionSearchLog.log(str);
+     ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
     // flags:1 label:0 statusOfset:21 sender:<cc@some.com> recipients:swe-web@some.com subject:[swe-web] Error: Web Applications Down message-id:201202030701.q1371Noo014742@peopf999.some.com date:4f2b8643 dateReceived:4f2b864b priority:1 list-id:<swe-web.some.com> x-mime-autoconverted:from quoted-printable to 8bit by sympa.some.com id q1371O8j002081 msgCharSet:iso-8859-1 msgOffset:1f6e size:4728 numLines:180 storeToken:8046 threadParent:ffffffff msgThreadId:1f6e ProtoThreadFlags:0 sender_name:2453|swe-web@some.COM
     // Can't add content-type/receieved etc to customDBHeaders which thunderbird already parsed and removed from header
     
@@ -167,6 +168,15 @@ function _getRegEx(aSearchValue) {
     [searchValue, searchFlags] = _getRegEx(aSearchValue);
     let regexp = new RegExp(searchValue, searchFlags);
     return regexp.test(aMsgHdr.mime2DecodedAuthor) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+  };
+  
+  let toRegex = new customerTermBase("toRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  toRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    let searchValue, searchFlags;
+    [searchValue, searchFlags] = _getRegEx(aSearchValue);
+    let regexp = new RegExp(searchValue, searchFlags);
+    // TODO, use recipients, ccList & bccList, 'BBB@b.com, YYY@x.com'
+    return regexp.test(aMsgHdr.mime2DecodedRecipients) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
   let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
@@ -335,6 +345,7 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(subjectSimple);
   filterService.addCustomTerm(headerRegex);
   filterService.addCustomTerm(fromRegex);
+  filterService.addCustomTerm(toRegex);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
   filterService.addCustomTerm(attachmentNameOrType);
@@ -652,6 +663,7 @@ let ExperssionSearchFilter = {
       else if (e.tok == 'filename') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#attachmentNameOrType' };
       else if (e.tok == 'bodyre') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#bodyRegex' };
       else if (e.tok == 'fromre') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#fromRegex' };
+      else if (e.tok == 'tore') attr = { type:nsMsgSearchAttrib.Custom, customId: 'expressionsearch#toRegex' };
       else if (e.tok == 'body') attr = nsMsgSearchAttrib.Body;
       else if (e.tok == 'attachment') attr = nsMsgSearchAttrib.HasAttachmentStatus;
       else if (e.tok == 'status') attr = nsMsgSearchAttrib.MsgStatus;

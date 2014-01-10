@@ -21,14 +21,14 @@ Cu.import("resource://expressionsearch/log.js");
 Cu.import("resource://gre/modules/StringBundle.js");
 let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
 var ExpressionSearchTokens = {
-  tokenDict: { from: ['f'], fromre: ['fr'], to: ['t', 'toorcc'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],
+  tokenDict: { from: ['f'], fromre: ['fr'], to: ['t', 'toorcc'], tore: ['tr'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],
                   body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], bodyre: ['br'],
                   days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'], headerre:['h', 'hr'],
                   status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
-  lastTokens: [ 'simple', 'regex', 'headerre', 'bodyre', 'fromre' ], // tokens that should be the last one and no more tokens will be checked
+  lastTokens: [ 'simple', 'regex', 'headerre', 'bodyre', 'fromre', 'tore' ], // tokens that should be the last one and no more tokens will be checked
   slowTokens: [ 'body', 'filename', 'bodyre' ], // tokens that should search later than others
   tokenInfo: { ' ': strings.get('info.blank') }, // others will be added through init
   mostFit: function(input) {
