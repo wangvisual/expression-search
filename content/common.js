@@ -4,15 +4,14 @@
 "use strict";
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
-Components.utils.import("resource://gre/modules/StringBundle.js");
 var ExpressionSearchCommon = {
-  strings: new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties"),
+  strings: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
   translateURL: function(url,anchor) {
     if ( typeof(anchor) == 'undefined' ) anchor = '';
     if ( url.indexOf(':') != -1 )
       return url+anchor;
     try {
-      return ExpressionSearchCommon.strings.get(url)+anchor;
+      return ExpressionSearchCommon.strings.GetStringFromName(url)+anchor;
     } catch (e) {
       return url+anchor;
     }
