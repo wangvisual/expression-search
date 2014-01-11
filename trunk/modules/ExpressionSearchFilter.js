@@ -16,7 +16,6 @@ Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
-Cu.import("resource://gre/modules/StringBundle.js");
 let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
@@ -31,7 +30,7 @@ var ExpressionSearchVariable = {
   stopped: false,
 };
 
-let strings = new StringBundle("chrome://expressionsearch/locale/ExpressionSearch.properties");
+let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
 
 function _getRegEx(aSearchValue) {
   /*
@@ -55,7 +54,7 @@ function _getRegEx(aSearchValue) {
   function customerTermBase(nameId, Operators){
     let self = this; // In constructors, this is always your instance. Just for safe.
     self.id = "expressionsearch#" + nameId;
-    self.name = strings.get(nameId);
+    self.name = strings.GetStringFromName(nameId);
     self.needsBody = false;
     self._isValid = function _isValid(aSearchScope) {
       if ( aSearchScope==nsMsgSearchScope.LDAP || aSearchScope==nsMsgSearchScope.LDAPAnd || aSearchScope==nsMsgSearchScope.LocalAB|| aSearchScope==nsMsgSearchScope.LocalABAnd ) return false;
@@ -118,10 +117,10 @@ function _getRegEx(aSearchValue) {
     // flags, label, statusOfset, sender, recipients, ccList, subject, message-id, references, date, dateReceived
     // priority, msgCharSet, size, numLines, offlineMsgSize, threadParent, msgThreadId, ProtoThreadFlags, gloda-id, sender_name, gloda-dirty, recipient_names
 
-     let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
-     while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
-     ExpressionSearchLog.log(str);
-     ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
+    // let e = aMsgHdr.propertyEnumerator; let str = "property:\n";
+    // while ( e.hasMore() ) { let k = e.getNext(); str += k + ":" + aMsgHdr.getStringProperty(k) + "\n"; }
+    // ExpressionSearchLog.log(str);
+    // ExpressionSearchLog.logObject(aMsgHdr,'aMsgHdr',0);
     // flags:1 label:0 statusOfset:21 sender:<cc@some.com> recipients:swe-web@some.com subject:[swe-web] Error: Web Applications Down message-id:201202030701.q1371Noo014742@peopf999.some.com date:4f2b8643 dateReceived:4f2b864b priority:1 list-id:<swe-web.some.com> x-mime-autoconverted:from quoted-printable to 8bit by sympa.some.com id q1371O8j002081 msgCharSet:iso-8859-1 msgOffset:1f6e size:4728 numLines:180 storeToken:8046 threadParent:ffffffff msgThreadId:1f6e ProtoThreadFlags:0 sender_name:2453|swe-web@some.COM
     // Can't add content-type/receieved etc to customDBHeaders which thunderbird already parsed and removed from header
     
@@ -175,13 +174,16 @@ function _getRegEx(aSearchValue) {
     let searchValue, searchFlags;
     [searchValue, searchFlags] = _getRegEx(aSearchValue);
     let regexp = new RegExp(searchValue, searchFlags);
-    // TODO, use recipients, ccList & bccList, 'BBB@b.com, YYY@x.com'
-    return regexp.test(aMsgHdr.mime2DecodedRecipients) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=522886
+    // parseMailAddresses will do mimeDecode
+    let to = aMsgHdr.mime2DecodedTo ? mime2DecodedRecipients : GlodaUtils.parseMailAddresses([aMsgHdr.recipients, aMsgHdr.ccList, aMsgHdr.bccList].join(', ')).fullAddresses.join(', ');
+    return regexp.test(to) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
   let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   toSomebodyOnly.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let mailRecipients = GlodaUtils.parseMailAddresses(aMsgHdr.mime2DecodedRecipients.toLowerCase());
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=522886 / https://bugzilla.mozilla.org/show_bug.cgi?id=699588
+    let mailRecipients = GlodaUtils.parseMailAddresses( ( aMsgHdr.mime2DecodedTo || aMsgHdr.mime2DecodedRecipients ).toLowerCase() );
     let searchRecipients = GlodaUtils.parseMailAddresses(aSearchValue.toLowerCase()); 
     let match = ( mailRecipients.count == searchRecipients.count );
     match = match && searchRecipients.addresses.every( function(searchOne, index, array) {

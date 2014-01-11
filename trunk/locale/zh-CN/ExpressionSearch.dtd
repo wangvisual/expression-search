@@ -5,7 +5,7 @@
 <!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
 
 <!ENTITY expressionsearch.back2folder.keycode        "VK_LEFT">
-<!ENTITY expressionsearch.back2folder.mod        "accel">
+<!ENTITY expressionsearch.back2folder.mod        "accel alt">
 
 <!ENTITY about.about "关于">
 <!ENTITY about.author "作者:">

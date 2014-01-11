@@ -415,11 +415,9 @@ let ExpressionSearchChrome = {
       me.selectFirstMessage(true);
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
       me.selectFirstMessage(); // no select message, but select pane
-    else if (  ( event.ctrlKey || event.metaKey ) && event.keyCode == event.DOM_VK_LEFT ) { // Ctrl + <-- not works when focus in textbox
-      me.back2OriginalFolder();
-    } else {
-      me.onTokenChange.apply(this);
-    }
+    //else if (  event.altKey && ( event.ctrlKey || event.metaKey ) && event.keyCode == event.DOM_VK_LEFT ) // Ctrl + <-- not works when focus in textbox
+    //  me.back2OriginalFolder();
+    else me.onTokenChange.apply(this);
   },
   
   onSearchKeyPress: function(event){
