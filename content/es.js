@@ -290,14 +290,21 @@ let ExpressionSearchChrome = {
       toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
     }
     
+    let resultsLabel = document.getElementById("qfb-results-label");
+    if ( resultsLabel ) {
+      if ( typeof(resultsLabel._saved_minWidth) == 'undefined' ) resultsLabel._saved_minWidth = resultsLabel.getAttribute('minwidth') || 1;
+      let layout = Services.prefs.getIntPref("mail.pane_config.dynamic"); 
+      document.getElementById("qfb-results-label").setAttribute('minwidth', ( this.options.move2bar == 0 && layout == kVerticalMailLayout ) ? 0 : resultsLabel._saved_minWidth );
+    }
+
     let spacer = document.getElementById('qfb-filter-bar-spacer');
     if ( spacer ) {
       if ( this.options.move2bar == 0 ) {
-        spacer.setAttribute('flex', '200');
-        spacer.style.flex = '200 1';
+        spacer.setAttribute('flex', '2000');
+        spacer.style.flex = '2000 1';
       } else {
         spacer.removeAttribute('flex');
-        spacer.style.flex = '1 200 auto';
+        spacer.style.flex = '1 2000 auto';
       }
     }
     

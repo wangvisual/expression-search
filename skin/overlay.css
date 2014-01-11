@@ -46,7 +46,6 @@
   -moz-box-flex: 1;
   flex: 1;
   background-color: transparent;
-  border: 0 solid red;
 }
 
 /* fix the result label color issue when placed on menubar/toolbar */
@@ -70,11 +69,14 @@
 /* if the width is not enough, make others more flexiable to make my box shown */
 #qfb-filter-bar-spacer {
   /* do in es.js based on position */
+  margin: 0px;
+  padding: 0px;
 }
 
 #qfb-results-label {
+  margin: 0px;
+  padding: 0px;
   flex: 5 1;
-  min-width: 10px;
 }
 
 #expression-search-textbox {
