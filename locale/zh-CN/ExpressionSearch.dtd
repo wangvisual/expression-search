@@ -22,6 +22,12 @@
 <!ENTITY expressionsearch.option.showbuttonlabel.show "总是显示">
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "总是不显示">
 <!ENTITY expressionsearch.option.showbuttonlabel " '快速搜索条' 按钮的文字">
+<!ENTITY expressionsearch.option.results_label_size.before "当没有搜索">
+<!ENTITY expressionsearch.option.results_label_size.auto "且雷鸟处于垂直拆分并且表达式搜索框处于快速搜索栏时最小化"搜索结果"的">
+<!ENTITY expressionsearch.option.results_label_size.show "时保持"搜索结果"的原始">
+<!ENTITY expressionsearch.option.results_label_size.hide "时最小化"搜索结果"的">
+<!ENTITY expressionsearch.option.results_label_size.after "大小">
+<!ENTITY expressionsearch.option.results_label_size.tip "                             这里 &#8600;">
 <!ENTITY expressionsearch.option.reusefolder "重新生成保存搜索时不改变选其中的文件夹选择">
 <!ENTITY expressionsearch.option.load_virtual_folder_in_tab "在新的Tab中打开保存搜索目录/虚拟目录">
 <!ENTITY expressionsearch.option.select_on_enter "按回车选中第一条邮件">

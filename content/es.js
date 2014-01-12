@@ -69,7 +69,7 @@ let ExpressionSearchChrome = {
     }
     this.prefs.addObserver("", this, false);
     try {
-      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
+      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
        "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace", "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
         ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
       } );
@@ -102,6 +102,7 @@ let ExpressionSearchChrome = {
       case "showbuttonlabel": // 0:auto 1:force show 2:force hide
       case "statusbar_info_showtime":
       case "statusbar_info_hidetime":
+      case "results_label_size": // 0: hide when on filter bar and vertical layout , 1: show 2: hide
         this.options[data] = this.prefs.getIntPref(data);
         break;
       case "c2s_regexpMatch":
@@ -113,7 +114,7 @@ let ExpressionSearchChrome = {
     }
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
     if ( !this.isInited ) return;
-    if ( data=='hide_normal_filer' || data=='hide_filter_label' || data == 'move2bar' || data == 'showbuttonlabel' || data == 'enable_verbose_info' )
+    if ( ['hide_normal_filer', 'hide_filter_label', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
       this.refreshFilterBar();
   },
 
@@ -289,16 +290,10 @@ let ExpressionSearchChrome = {
       let needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
       toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
     }
-    
-    let resultsLabel = document.getElementById("qfb-results-label");
-    if ( resultsLabel ) {
-      if ( typeof(resultsLabel._saved_minWidth) == 'undefined' ) resultsLabel._saved_minWidth = resultsLabel.getAttribute('minwidth') || 1;
-      let layout = Services.prefs.getIntPref("mail.pane_config.dynamic"); 
-      document.getElementById("qfb-results-label").setAttribute('minwidth', ( this.options.move2bar == 0 && layout == kVerticalMailLayout ) ? 0 : resultsLabel._saved_minWidth );
-    }
 
     let spacer = document.getElementById('qfb-filter-bar-spacer');
     if ( spacer ) {
+      spacer.setAttribute('minwidth', 0);
       if ( this.options.move2bar == 0 ) {
         spacer.setAttribute('flex', '2000');
         spacer.style.flex = '2000 1';
@@ -308,6 +303,19 @@ let ExpressionSearchChrome = {
       }
     }
     
+    let resultsLabel = document.getElementById("qfb-results-label");
+    if ( resultsLabel ) {
+      if ( typeof(resultsLabel._saved_minWidth) == 'undefined' ) resultsLabel._saved_minWidth = resultsLabel.getAttribute('minwidth') || 1;
+      let layout = Services.prefs.getIntPref("mail.pane_config.dynamic"); 
+      let minWidth = ( this.options.results_label_size == 2 || ( this.options.results_label_size == 0 &&  this.options.move2bar == 0 && layout == kVerticalMailLayout ) ) ? 0 : resultsLabel._saved_minWidth;
+      resultsLabel.setAttribute('minwidth', minWidth);
+      if ( minWidth == 0 ) delete resultsLabel.style.width;
+      if ( spacer ) {
+        if ( minWidth == 0 ) spacer.style.width = "1px";
+        else spacer.style.width = "15px";
+      }
+    }
+
     let collapsible = document.getElementById('quick-filter-bar-collapsible-buttons');
     if ( collapsible && collapsible.classList ) {
       collapsible.classList.remove("hidelabel");

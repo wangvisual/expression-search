@@ -17,6 +17,7 @@
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
     <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool" instantApply="true"/>
     <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
+    <preference id="pref_results_label_size" name="extensions.expressionsearch.results_label_size" type="int" instantApply="true"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="perf_vf_intab" name="extensions.expressionsearch.load_virtual_folder_in_tab" type="bool"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
@@ -76,10 +77,25 @@
           </menulist>
           <text value='&expressionsearch.option.showbuttonlabel;' />
         </hbox>
+        <hbox align='center' tooltip="esResultsLabelTooltip">
+          <text value='&expressionsearch.option.results_label_size.before;' />
+          <menulist preference='pref_results_label_size'>
+            <menupopup tooltip="esResultsLabelTooltip">
+              <menuitem label="&expressionsearch.option.results_label_size.auto;" value="0"/>
+              <menuitem label="&expressionsearch.option.results_label_size.show;" value="1"/>
+              <menuitem label="&expressionsearch.option.results_label_size.hide;" value="2"/>
+            </menupopup>
+          </menulist>
+          <text value='&expressionsearch.option.results_label_size.after;' />
+          <tooltip id="esResultsLabelTooltip">
+            <description value="&expressionsearch.option.results_label_size.tip;"/>
+            <image src="chrome://expressionsearch/content/results_label_size.jpg"/>
+          </tooltip>
+        </hbox>
         <hbox>
-          <button id="customHeadersButton" tooltip="customDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="window.showModalDialog('chrome://messenger/content/CustomHeaders.xul');"/> 
-          <textbox preference="pref_customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="customDBHeadersTooltip" flex="100" class="customHeadersShow"/>
-          <tooltip id="customDBHeadersTooltip">
+          <button id="customHeadersButton" tooltip="esCustomDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="window.showModalDialog('chrome://messenger/content/CustomHeaders.xul');"/> 
+          <textbox preference="pref_customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
+          <tooltip id="esCustomDBHeadersTooltip">
             <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>
             <description class='tooltip-info' id="tooltip_customHeaders" preference="pref_customHeaders" preference-editable="true"/>
             <description class='tooltip-info' preference="pref_customDBHeaders" preference-editable="true"/>

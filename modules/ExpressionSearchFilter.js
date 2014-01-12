@@ -269,9 +269,7 @@ function _getRegEx(aSearchValue) {
         if ( typeof(self.timer) != 'undefined' ) self.topWin.clearTimeout(self.timer);
         try {
           self.searchSession.pauseSearch(); // may call many times
-        } catch (err) {
-          ExpressionSearchLog.logException(err, false);
-        }
+        } catch (err) {}
         if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
         return self.matchFunc.call(self, aMsgHdr, aSearchValue, aSearchOp);
       } catch ( err ) {
