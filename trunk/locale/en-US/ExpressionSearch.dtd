@@ -22,6 +22,12 @@
 <!ENTITY expressionsearch.option.showbuttonlabel.show "Always show">
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "Always hide">
 <!ENTITY expressionsearch.option.showbuttonlabel "text label of 'Quick Filter' buttons">
+<!ENTITY expressionsearch.option.results_label_size.before "">
+<!ENTITY expressionsearch.option.results_label_size.auto "While in vertical layout and expression search in QuickSearchBar, minimum the">
+<!ENTITY expressionsearch.option.results_label_size.show "Keep the original">
+<!ENTITY expressionsearch.option.results_label_size.hide "Always minimum the">
+<!ENTITY expressionsearch.option.results_label_size.after "size of 'search results' when not active">
+<!ENTITY expressionsearch.option.results_label_size.tip "                             here &#8600;">
 <!ENTITY expressionsearch.option.reusefolder "Keep selected folders for saved search">
 <!ENTITY expressionsearch.option.load_virtual_folder_in_tab "Load Saved Search folder in a new Tab">
 <!ENTITY expressionsearch.option.select_on_enter "Select first message after hit enter">
