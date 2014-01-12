@@ -18,8 +18,12 @@
     color: red;
     font-weight: bold;
   }
-  .bz_closed {
+  .bz_closed{
+    color: grey;
+  }
+  .bz_closed a{
     text-decoration: line-through;
+    color: grey;
   }
 </style>
 </head>
@@ -324,6 +328,7 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 Version 0.8.7: <ul>
 <li>Compatible with TB29 nightly</li>
 <li>Added regex search for from/to</li>
+<li>Added option to make the "search results" doesn't looks so big when search is not active</li>
 <li>Changed hotkey from Ctrl+Left to Ctrl+Alt+Left for back to original folder after Ctrl+Enter</li>
 </ul>
 </li><li>
@@ -411,31 +416,31 @@ The "bodyre:" Search for regex in body is experimental and may <span class='noti
 </li><li>
 Shift+RightClick May not work for some versions of Thunderbird.
 </li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=124641'><span class="bz_closed">Bug 124641</span></a> - Thunderbird does not handle multi-line headers correctly when search term spans lines
-</li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=224392'>Bug 224392</a> - Add ability to filter by attachment name (extension)
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=338761'>Bug 338761</a> - searching body of emails for text doesn't match word-wrapped text
 </li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=363238'><span class="bz_closed">Bug 363238</span></a> - saved searches fail for searches on x-headers
-</li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=460737'>Bug 460737</a> -  Quickfilter ignores searches for friendly display names from address book contacts, as displayed on message header and message list by default (no or incomplete results for From, To, CC, BCC)
-</li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=474730'><span class="bz_closed">Bug 474730</span></a> -  should search newest first - searching returns messages in bad order, making searches very time-consuming and irrelevant for large databases
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=522886'>Bug 522886</a> - Implement "Recipients" column that shows all recipients (To, CC, and BCC)
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=546925'>Bug 546925</a> - custom header search is non-functional ('Run search on server' of Edit/Find/Search Messages doesn't work any more)
 </li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=564328'><span class="bz_closed">Bug 564328</span></a> - Keyboard shortcut Ctrl+F conflict and cmd_find ambiguity, used for both Find in This Message and Quick Filter 
-</li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=570815'>Bug 570815</a> - (qfwidget) Make Quickfilter optionally available as simple searchbox widget+stickypin (with filter criteria in persistent popup panel &/or dropdown; toolbar customization)
-</li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=600140'><span class="bz_closed">Bug 600140</span></a> - 'Unread' quick filter hides some unread messages (the beginning of a thread) 
-</li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=607295'><span class="bz_closed">Bug 607295</span></a> - Provide UI for new archive granularity and folder structure options
-</li><li>
-<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=625472'><span class="bz_closed">Bug 625472</span></a> - Quick search processes input after hiding it with escape
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=124641'>Bug 124641</a> - Thunderbird does not handle multi-line headers correctly when search term spans lines
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=363238'>Bug 363238</a> - saved searches fail for searches on x-headers
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=474730'>Bug 474730</a> -  should search newest first - searching returns messages in bad order, making searches very time-consuming and irrelevant for large databases
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=564328'>Bug 564328</a> - Keyboard shortcut Ctrl+F conflict and cmd_find ambiguity, used for both Find in This Message and Quick Filter 
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=600140'>Bug 600140</a> - 'Unread' quick filter hides some unread messages (the beginning of a thread) 
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=607295'>Bug 607295</a> - Provide UI for new archive granularity and folder structure options
+</li><li class="bz_closed">
+<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=625472'>Bug 625472</a> - Quick search processes input after hiding it with escape
 </li></ul>
 <p>Compared with original GMailUI 0.6, these features are still missing:
 <ul>
