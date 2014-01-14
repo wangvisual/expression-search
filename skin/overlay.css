@@ -46,6 +46,7 @@
   -moz-box-flex: 1;
   flex: 1;
   background-color: transparent;
+  border: 0 solid red; /* for TB5, force no border */
 }
 
 /* fix the result label color issue when placed on menubar/toolbar */
