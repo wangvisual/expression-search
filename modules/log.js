@@ -64,29 +64,22 @@ let ExpressionSearchLog = {
     let pfx = "";
     let tee = "";
     try {
-      if (recurse === undefined)
-        recurse = 0;
-      if (level === undefined)
-        level = 0;
-      if (compress === undefined)
-        compress = true;
+      if ( this._checked[o] ) return '';
+      else this._checked[o] = 1;
+      if (recurse === undefined) recurse = 0;
+      if (level === undefined) level = 0;
+      if (compress === undefined) compress = true;
       
       for (let junk = 0; junk < level; junk++)
         pfx += (compress) ? "| " : "|  ";
-      
       tee = (compress) ? "+ " : "+- ";
-      
-      if (typeof(o) != "object") {
-        s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
-      }
+      if (typeof(o) != "object") s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
       else {
-        for (let i in o) {
+        let self = this;
+        Object.getOwnPropertyNames(o).sort().forEach( function(i) {
           let t = "";
-          try {
-            t = typeof(o[i]);
-          } catch (err) {
-            s += pfx + tee + " (exception) " + err + "\n";
-          }
+          try { t = typeof(o[i]); }
+          catch (err) { s += pfx + tee + " (exception) " + err + "\n"; }
           switch (t) {
             case "function":
               let sfunc = String(o[i]).split("\n");
@@ -101,11 +94,10 @@ let ExpressionSearchLog = {
               if (!compress)
                 s += pfx + "|\n";
               if ((i != "parent") && (recurse))
-                s += this.objectTreeAsString(o[i], recurse - 1,
-                                             compress, level + 1);
+                s += self.objectTreeAsString(o[i], recurse - 1, compress, level + 1);
               break;
             case "string":
-              if (o[i].length > 200)
+              if (o[i].length > 8192)
                 s += pfx + tee + i + " (" + t + ") " + o[i].length + " chars\n";
               else
                 s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
@@ -115,9 +107,8 @@ let ExpressionSearchLog = {
             default:
               s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
           }
-          if (!compress)
-            s += pfx + "|\n";
-        }
+          if (!compress)  s += pfx + "|\n";
+        } );
       }
     } catch (ex) {
       s += pfx + tee + " (exception) " + ex + "\n";
@@ -127,7 +118,10 @@ let ExpressionSearchLog = {
   },
   
   logObject: function(obj, name, maxDepth, curDepth) {
+    this._checked = {};
     this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
+    this.info("checked" + ":\n" + this.objectTreeAsString(this._checked,1,true));
+    this._checked = {};
   },
   
   logException: function(e, popup) {
