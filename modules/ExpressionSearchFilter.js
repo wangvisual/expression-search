@@ -16,6 +16,9 @@ Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
+Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
+Cu.import("resource:///modules/mimeParser.jsm");
+
 let Application = null;
 try {
   Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
@@ -318,24 +321,47 @@ function _getRegEx(aSearchValue) {
     return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
   };
   
-  let bodyRegex = new asyncTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
-  bodyRegex.matchFunc = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let self = this;
-    let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
-    let listener = Cc["@mozilla.org/network/sync-stream-listener;1"].createInstance(Ci.nsISyncStreamListener);
+  let emmiter = {
+      //data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
+      //MimeParser.parseSync(data, emmiter, {bodyformat: 'none'});
+    startPart: function(partNum, headers) {
+      //ExpressionSearchLog.info("startPart:" + partNum);
+      ExpressionSearchLog.logObject(headers,'headers',1);
+      // http://en.wikipedia.org/wiki/MIME
+      for ( let type of (headers.get('content-type') || []) ) {
+        // check header type & name
+        let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
+        ExpressionSearchLog.logObject( MimeParser.parseHeaderField(newType, 0x02, ''), 'content-type', 1);
+      }
+      for ( let type of (headers.get('content-disposition') || []) ) {
+        // check header filename
+        let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
+        ExpressionSearchLog.logObject( MimeParser.parseHeaderField(newType, 0x02, ''), 'content-disposition', 1);
+      }
+    },
+  };
+  let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    try {
     let folder = aMsgHdr.folder;
-    let uri = folder.getUriForMsg(aMsgHdr);
-    messenger.messageServiceFromURI(uri).streamMessage(uri, listener, self.topWin.msgWindow, null, false, "");
-    let data = folder.getMsgTextFromStream(listener.inputStream, aMsgHdr.Charset, aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/); // return AUTF8String
-    let searchValue;
-    let searchFlags;
-    [searchValue, searchFlags] = _getRegEx(aSearchValue);
+    let data = '';
+    if ( aMsgHdr.offlineMessageSize > 0 ) {
+      let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
+      try {
+        data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
+      } catch (err) { ExpressionSearchLog.logException(err); }
+      if ( !reusable.value ) stream.close(); // close if not reusable
+    }
+    //ExpressionSearchLog.logObject(data,'data',1);
+    let [searchValue, searchFlags] = _getRegEx(aSearchValue);
     let regexp = new RegExp(searchValue, searchFlags);
     let result = regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
-    
-    if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
-    self.timer = self.topWin.setTimeout(self.tryResume, 20); // 200ms for one timeSlice
+    if ( result ) {
+      ExpressionSearchLog.logObject(data,'data',1);
+      ExpressionSearchLog.info("size:" + aMsgHdr.messageSize + ":"+ data.length +":"+ aMsgHdr.offlineMessageSize+":"+aMsgHdr.mime2DecodedSubject);
+    }
     return result;
+    } catch(err) { ExpressionSearchLog.logException(err); }
   };
 
   let filterService = MailServices.filters;

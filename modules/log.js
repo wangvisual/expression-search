@@ -2,7 +2,8 @@
 // GPL V3 / MPL
 // debug utils
 "use strict";
-Components.utils.import("resource://gre/modules/Services.jsm");
+const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
+Cu.import("resource://gre/modules/Services.jsm");
 const popupImage = "chrome://expressionsearch/skin/statusbar_icon.png";
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
 let ExpressionSearchLog = {
@@ -39,17 +40,17 @@ let ExpressionSearchLog = {
     this.verbose = verbose;
   },
 
-  info: function(msg,popup) {
-    if (!this.verbose) return;
+  info: function(msg,popup,force) {
+    if (!force && !this.verbose) return;
     this.log(this.now() + msg,popup,true);
   },
 
   log: function(msg,popup,info) {
-    if ( ( typeof(info) != 'undefined' && info ) || !Components || !Components.stack || !Components.stack.caller ) {
+    if ( ( typeof(info) != 'undefined' && info ) || !Components || !Cs || !Cs.caller ) {
       Services.console.logStringMessage(msg);
     } else {
-      let scriptError = Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError);
-      scriptError.init(msg, Components.stack.caller.filename, Components.stack.caller.sourceLine, Components.stack.caller.lineNumber, 0, scriptError.warningFlag, "chrome javascript");
+      let scriptError = Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError);
+      scriptError.init(msg, Cs.caller.filename, Cs.caller.sourceLine, Cs.caller.lineNumber, 0, scriptError.warningFlag, "chrome javascript");
       Services.console.logMessage(scriptError);
     }
     if (popup) {
@@ -59,13 +60,45 @@ let ExpressionSearchLog = {
   },
   
   // from errorUtils.js
+  dumpValue: function(value, i, recurse, compress, pfx, tee, level) {
+    let t = "", s= "";
+    try { t = typeof(value); }
+    catch (err) { s += pfx + tee + " (exception) " + err + "\n"; }
+    switch (t) {
+      case "function":
+        let sfunc = String(value).split("\n");
+        if ( typeof(sfunc[2]) != 'undefined' && sfunc[2] == "    [native code]" )
+          sfunc = "[native code]";
+        else
+          sfunc = sfunc.length + " lines";
+        s += pfx + tee + i + " (function) " + sfunc + "\n";
+        break;
+      case "object":
+        s += pfx + tee + i + " (object) " + value + "\n";
+        if (!compress)
+          s += pfx + "|\n";
+        if ((i != "parent") && (recurse) && value != null)
+          s += this.objectTreeAsString(value, recurse - 1, compress, level + 1);
+        break;
+      case "string":
+        if (value.length > 8192)
+          s += pfx + tee + i + " (" + t + ") " + value.length + " chars\n";
+        else
+          s += pfx + tee + i + " (" + t + ") '" + value + "'\n";
+        break;
+      case "":
+        break;
+      default:
+        s += pfx + tee + i + " (" + t + ") " + value + "\n";
+    }
+    if (!compress)  s += pfx + "|\n";
+    return s;
+  },
   objectTreeAsString: function(o, recurse, compress, level) {
     let s = "";
     let pfx = "";
     let tee = "";
     try {
-      if ( this._checked[o] ) return '';
-      else this._checked[o] = 1;
       if (recurse === undefined) recurse = 0;
       if (level === undefined) level = 0;
       if (compress === undefined) compress = true;
@@ -73,55 +106,34 @@ let ExpressionSearchLog = {
       for (let junk = 0; junk < level; junk++)
         pfx += (compress) ? "| " : "|  ";
       tee = (compress) ? "+ " : "+- ";
-      if (typeof(o) != "object") s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
+      if ( typeof(o) != 'undefined' && o != null ) {
+        let index = this._checked.indexOf(o);
+        if ( index >= 0 ) return pfx + tee + '[already shown]\n';
+        else this._checked.push(o);
+      }
+      if (typeof(o) != "object" || o == null ) s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
       else {
-        let self = this;
-        Object.getOwnPropertyNames(o).sort().forEach( function(i) {
-          let t = "";
-          try { t = typeof(o[i]); }
-          catch (err) { s += pfx + tee + " (exception) " + err + "\n"; }
-          switch (t) {
-            case "function":
-              let sfunc = String(o[i]).split("\n");
-              if ( typeof(sfunc[2]) != 'undefined' && sfunc[2] == "    [native code]" )
-                sfunc = "[native code]";
-              else
-                sfunc = sfunc.length + " lines";
-              s += pfx + tee + i + " (function) " + sfunc + "\n";
-              break;
-            case "object":
-              s += pfx + tee + i + " (object) " + o[i] + "\n";
-              if (!compress)
-                s += pfx + "|\n";
-              if ((i != "parent") && (recurse))
-                s += self.objectTreeAsString(o[i], recurse - 1, compress, level + 1);
-              break;
-            case "string":
-              if (o[i].length > 8192)
-                s += pfx + tee + i + " (" + t + ") " + o[i].length + " chars\n";
-              else
-                s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
-              break;
-            case "":
-              break;
-            default:
-              s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
+        for ( let i of Object.getOwnPropertyNames(o) ) {
+          s += this.dumpValue(o[i], i, recurse, compress, pfx, tee, level);
+        }
+        if ( typeof(o.keys) == 'function' &&  typeof(o.get) == 'function' ) {
+          for ( let i of o.keys() ) {
+            s += this.dumpValue(o.get(i), i, recurse, compress, pfx, tee, level);
           }
-          if (!compress)  s += pfx + "|\n";
-        } );
+        }
       }
     } catch (ex) {
       s += pfx + tee + " (exception) " + ex + "\n";
+      //this.logException(ex);
     }
     s += pfx + "*\n";
     return s;
   },
   
   logObject: function(obj, name, maxDepth, curDepth) {
-    this._checked = {};
+    this._checked = [];
     this.info(name + ":\n" + this.objectTreeAsString(obj,maxDepth,true));
-    this.info("checked" + ":\n" + this.objectTreeAsString(this._checked,1,true));
-    this._checked = {};
+    this._checked = [];
   },
   
   logException: function(e, popup) {
@@ -139,10 +151,10 @@ let ExpressionSearchLog = {
       msg += " " + e + "\n";
     }
     msg = 'Caught Exception ' + msg;
-    let fileName= e.fileName || e.filename || Components.stack.caller.filename;
-    let lineNumber= e.lineNumber || Components.stack.caller.lineNumber;
-    let sourceLine= e.sourceLine || Components.stack.caller.sourceLine;
-    let scriptError = Components.classes["@mozilla.org/scripterror;1"].createInstance(Components.interfaces.nsIScriptError);
+    let fileName= e.fileName || e.filename || Cs.caller.filename;
+    let lineNumber= e.lineNumber || Cs.caller.lineNumber;
+    let sourceLine= e.sourceLine || Cs.caller.sourceLine;
+    let scriptError = Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError);
     scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, scriptError.errorFlag, "chrome javascript");
     Services.console.logMessage(scriptError);
     if ( typeof(popup) == 'undefined' || popup ) this.popup("Exception", msg);
