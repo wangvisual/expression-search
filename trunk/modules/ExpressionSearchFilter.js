@@ -345,7 +345,7 @@ function _getRegEx(aSearchValue) {
     try {
     let folder = aMsgHdr.folder;
     let data = '';
-    if ( aMsgHdr.offlineMessageSize > 0 ) {
+    if ( folder.hasMsgOffline(aMsgHdr.messageKey) ) {
       let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
       try {
         data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
@@ -357,8 +357,14 @@ function _getRegEx(aSearchValue) {
     let regexp = new RegExp(searchValue, searchFlags);
     let result = regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
     if ( result ) {
-      ExpressionSearchLog.logObject(data,'data',1);
       ExpressionSearchLog.info("size:" + aMsgHdr.messageSize + ":"+ data.length +":"+ aMsgHdr.offlineMessageSize+":"+aMsgHdr.mime2DecodedSubject);
+      ExpressionSearchLog.logObject(data,'data',1);
+      let offset = {}, size = {};
+      let stream = folder.getOfflineFileStream(aMsgHdr.messageKey, offset, size);
+      data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
+      ExpressionSearchLog.logObject(data,'data2',1);
+      ExpressionSearchLog.logObject(offset,'offset',1);
+      ExpressionSearchLog.logObject(size,'size',1);
     }
     return result;
     } catch(err) { ExpressionSearchLog.logException(err); }
