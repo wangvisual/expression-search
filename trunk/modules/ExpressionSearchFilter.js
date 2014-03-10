@@ -31,6 +31,8 @@ var ExpressionSearchVariable = {
   starting: false,
   resuming: 0,
   stopped: false,
+  haveBody: 0,
+  haveNoBody: 0,
 };
 
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
@@ -341,33 +343,27 @@ function _getRegEx(aSearchValue) {
     },
   };
   let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
+  bodyRegex.needsBody = true;
   bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     try {
-    let folder = aMsgHdr.folder;
-    let data = '';
-    if ( folder.hasMsgOffline(aMsgHdr.messageKey) ) {
-      let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
-      try {
-        data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
-      } catch (err) { ExpressionSearchLog.logException(err); }
-      if ( !reusable.value ) stream.close(); // close if not reusable
-    }
-    //ExpressionSearchLog.logObject(data,'data',1);
-    let [searchValue, searchFlags] = _getRegEx(aSearchValue);
-    let regexp = new RegExp(searchValue, searchFlags);
-    let result = regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
-    if ( result ) {
-      ExpressionSearchLog.info("size:" + aMsgHdr.messageSize + ":"+ data.length +":"+ aMsgHdr.offlineMessageSize+":"+aMsgHdr.mime2DecodedSubject);
-      ExpressionSearchLog.logObject(data,'data',1);
-      let offset = {}, size = {};
-      let stream = folder.getOfflineFileStream(aMsgHdr.messageKey, offset, size);
-      data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
-      ExpressionSearchLog.logObject(data,'data2',1);
-      ExpressionSearchLog.logObject(offset,'offset',1);
-      ExpressionSearchLog.logObject(size,'size',1);
-    }
-    return result;
+      let folder = aMsgHdr.folder;
+      let data = '';
+      if ( !folder.hasMsgOffline(aMsgHdr.messageKey) && (folder.server && folder.server.type != 'none') ) {
+        ExpressionSearchVariable.haveNoBody ++;
+        return false;
+      } else {
+        ExpressionSearchVariable.haveBody ++;
+        let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
+        try {
+          data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
+        } catch (err) {}
+        if ( !reusable.value ) stream.close(); // close if not reusable
+        let [searchValue, searchFlags] = _getRegEx(aSearchValue);
+        let regexp = new RegExp(searchValue, searchFlags);
+        return regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+      }
     } catch(err) { ExpressionSearchLog.logException(err); }
+    return false;
   };
 
   let filterService = MailServices.filters;
@@ -448,6 +444,7 @@ let ExperssionSearchFilter = {
         } else {
           ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
+          ExpressionSearchVariable.haveNoBody = ExpressionSearchVariable.haveBody = 0;
           if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
         return;
@@ -558,6 +555,9 @@ let ExperssionSearchFilter = {
     //  this might be overkill but unless it becomes a performance problem, it
     //  keeps us safe from weird stuff.)
     // ExpressionSearchLog.log( 'aViewWrapper.dbView:'+aViewWrapper.dbView.viewType+":"+aViewWrapper.dbView.numMsgsInView + ":" + aViewWrapper.dbView.rowCount + ":" + aViewWrapper.dbView.viewFlags );
+    if ( ExpressionSearchVariable.haveNoBody || ExpressionSearchVariable.haveBody ) {
+      ExpressionSearchLog.log("test:" + ExpressionSearchVariable.haveBody + ":" + ExpressionSearchVariable.haveNoBody);
+    }
     if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || aViewWrapper.dbView.rowCount /* Bug 574799 */ || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
       
