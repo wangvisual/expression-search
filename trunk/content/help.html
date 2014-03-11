@@ -30,7 +30,7 @@
 
 <body>
 <div id=helpcontent>
-<p>Expression Search / GMailUI is an extension to Thunderbird (versions 5.0+) which add powerful message searching features.
+<p>Expression Search / GMailUI is an extension to Thunderbird (versions 12.0+) which add powerful message searching features.
 Init by Ken Mixter, Maintaining by Opera Wang.</p>
 <p>
 Type "hello world" to search within the current view for this string in subject/from/to/cc.<br/>
@@ -185,11 +185,10 @@ combine this with other search operators like "from:", "subject:" or "to:" this 
 things up considerably. 
 </p></li><li><p>
 
-<b>bodyre:/hello.*world/i</b> or <b>br:tb.*crash</b>
+<b>bodyre:/hello.*world/i</b> or <b>br:test</b>
 </p>
-<p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may <span class='notice'>crash</span> Thunderbird.
-This expression searches the body of all messages in the current folder or view. Case sensitive and should be the last pattern.
-Use 'body:' instead of 'bodyre:' when possible.
+<p>This expression searches the body of all messages in the current folder or view. Case sensitive and should be the last pattern.
+Only search <b>offline</b> messages.
 </p></li><li><p>
 
 <b>label:Important</b> or <b>tag:TODO</b> or <b>l:NA</b>
@@ -325,6 +324,11 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 0.8.8: <ul>
+<li>Compatible with TB30 nightly and drop support for TB 5~11</li>
+<li>regex search in body is fully supported and won't crash TB any more</li>
+</ul>
+</li><li>
 Version 0.8.7: <ul>
 <li>Compatible with TB29 nightly</li>
 <li>Added regex search for from/to</li>
@@ -347,7 +351,7 @@ Version 0.8.5: <ul>
 <li>Added options for load Saved Search folder in a new Tab</li>
 <li>Added hotkey Ctrl+Left for back to original folder after Ctrl+Enter</li>
 <li>Added regex search for headers</li>
-<li>Added regex search for body(experimental, may crash)</li>
+<li>Added regex search for body</li>
 <li>Added newer_than/older_than support</li>
 <li>Added size/larger/smaller support</li>
 <li>Support NA for tag search, Star for status search</li>
@@ -411,8 +415,6 @@ Version 0.1: First version, changed from GMailUI to make it works for Thunderbir
 <h3>Known Issues of this extension or Thunderbird</h3>
 <ul><li>
 The "filename:" Search for filename/type in the attachment is experimental and may <span class='notice'>crash</span> your Thunderbird.
-</li><li>
-The "bodyre:" Search for regex in body is experimental and may <span class='notice'>crash</span> your Thunderbird.
 </li><li>
 Shift+RightClick May not work for some versions of Thunderbird.
 </li><li>
