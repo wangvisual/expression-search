@@ -535,19 +535,16 @@ let ExperssionSearchFilter = {
       ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
     if ( ExpressionSearchChrome ) ExpressionSearchChrome.showHideHelp(false);
     
-    let resultLabel = aDocument.getElementById('qfb-results-label');
-    if ( resultLabel ) {
-      let total = Object.keys(haveBodyMapping).length;
-      if ( total ) {
-        let haveBody = 0, haveNoBody = 0;
-        for ( let key in haveBodyMapping ) {
-          if ( haveBodyMapping[key] ) haveBody ++;
-        }
-        haveNoBody = total - haveBody;
-        resultLabel.setAttribute("tooltiptext", "Searched " + total + " messages, " + haveBody + " have body, " + haveNoBody + " haven't");
-      } else resultLabel.removeAttribute("tooltiptext");
-    }
-    
+    let total = Object.keys(haveBodyMapping).length;
+    if ( total && aNode.value != '' ) {
+      let haveBody = 0, haveNoBody = 0;
+      for ( let key in haveBodyMapping ) {
+        if ( haveBodyMapping[key] ) haveBody ++;
+      }
+      haveNoBody = total - haveBody;
+      aNode.setAttribute("tooltiptext", "Searched " + total + " messages, " + haveBody + " have body, " + haveNoBody + " haven't");
+    } else aNode.removeAttribute("tooltiptext");
+
     let panel = aDocument.getElementById("qfb-text-search-upsell");
     if (aFromPFP == "upsell") {
       let searchString = ExperssionSearchFilter.expression2gloda(aFilterValue.text);
