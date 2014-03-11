@@ -31,11 +31,10 @@ var ExpressionSearchVariable = {
   starting: false,
   resuming: 0,
   stopped: false,
-  haveBody: 0,
-  haveNoBody: 0,
 };
 
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
+let haveBodyMapping = {}; // folderURI+messageKey => true (haveBody)
 
 function _getRegEx(aSearchValue) {
   /*
@@ -346,13 +345,8 @@ function _getRegEx(aSearchValue) {
   bodyRegex.needsBody = true;
   bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     try {
-      let folder = aMsgHdr.folder;
-      let data = '';
-      if ( !folder.hasMsgOffline(aMsgHdr.messageKey) && (folder.server && folder.server.type != 'none') ) {
-        ExpressionSearchVariable.haveNoBody ++;
-        return false;
-      } else {
-        ExpressionSearchVariable.haveBody ++;
+      let folder = aMsgHdr.folder, data;
+      if ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder.server instanceof Ci.nsIMsgLocalMailFolder ) {
         let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
         try {
           data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
@@ -360,9 +354,13 @@ function _getRegEx(aSearchValue) {
         if ( !reusable.value ) stream.close(); // close if not reusable
         let [searchValue, searchFlags] = _getRegEx(aSearchValue);
         let regexp = new RegExp(searchValue, searchFlags);
-        return regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+        if ( typeof(data) != 'undefined' ) {
+          haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
+          return regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+        }
       }
     } catch(err) { ExpressionSearchLog.logException(err); }
+    haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
     return false;
   };
 
@@ -444,7 +442,7 @@ let ExperssionSearchFilter = {
         } else {
           ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
-          ExpressionSearchVariable.haveNoBody = ExpressionSearchVariable.haveBody = 0;
+          haveBodyMapping = {};
           if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
         return;
@@ -530,6 +528,19 @@ let ExperssionSearchFilter = {
       ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
     if ( ExpressionSearchChrome ) ExpressionSearchChrome.showHideHelp(false);
     
+    let resultLabel = aDocument.getElementById('qfb-results-label');
+    if ( resultLabel ) {
+      let total = Object.keys(haveBodyMapping).length;
+      if ( total ) {
+        let haveBody = 0, haveNoBody = 0;
+        for ( let key in haveBodyMapping ) {
+          if ( haveBodyMapping[key] ) haveBody ++;
+        }
+        haveNoBody = total - haveBody;
+        resultLabel.setAttribute("tooltiptext", "Searched " + total + " messages, " + haveBody + " have body, " + haveNoBody + " haven't");
+      } else resultLabel.removeAttribute("tooltiptext");
+    }
+    
     let panel = aDocument.getElementById("qfb-text-search-upsell");
     if (aFromPFP == "upsell") {
       let searchString = ExperssionSearchFilter.expression2gloda(aFilterValue.text);
@@ -555,9 +566,6 @@ let ExperssionSearchFilter = {
     //  this might be overkill but unless it becomes a performance problem, it
     //  keeps us safe from weird stuff.)
     // ExpressionSearchLog.log( 'aViewWrapper.dbView:'+aViewWrapper.dbView.viewType+":"+aViewWrapper.dbView.numMsgsInView + ":" + aViewWrapper.dbView.rowCount + ":" + aViewWrapper.dbView.viewFlags );
-    if ( ExpressionSearchVariable.haveNoBody || ExpressionSearchVariable.haveBody ) {
-      ExpressionSearchLog.log("test:" + ExpressionSearchVariable.haveBody + ":" + ExpressionSearchVariable.haveNoBody);
-    }
     if (!aFiltering || !aState || !aState.text || !aViewWrapper || aViewWrapper.dbView.numMsgsInView || aViewWrapper.dbView.rowCount /* Bug 574799 */ || !GlodaIndexer.enabled)
       return [aState, "nosale", false];
       
