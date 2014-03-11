@@ -344,19 +344,26 @@ function _getRegEx(aSearchValue) {
   let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   bodyRegex.needsBody = true;
   bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    let folder = aMsgHdr.folder;
     try {
-      let folder = aMsgHdr.folder, data;
-      if ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder.server instanceof Ci.nsIMsgLocalMailFolder ) {
-        let reusable = {}, stream = folder.getMsgInputStream(aMsgHdr, reusable);
+      if ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) {
+        let reusable = {}, data, contentType = {}, plainText, found = false, stream = folder.getMsgInputStream(aMsgHdr, reusable);
         try {
-          data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, true/*strip HTML*/, { }/*contentType*/);
+          data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, false/*strip HTML*/, contentType);
         } catch (err) {}
         if ( !reusable.value ) stream.close(); // close if not reusable
         let [searchValue, searchFlags] = _getRegEx(aSearchValue);
         let regexp = new RegExp(searchValue, searchFlags);
         if ( typeof(data) != 'undefined' ) {
           haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
-          return regexp.test(data) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+          if ( contentType.value && contentType.value.toLowerCase() == 'text/html' ) {
+            let parserUtils = Cc["@mozilla.org/parserutils;1"].getService(Ci.nsIParserUtils);
+            plainText = parserUtils.convertToPlainText(data, 
+              Ci.nsIDocumentEncoder.OutputLFLineBreak | Ci.nsIDocumentEncoder.OutputNoScriptContent | Ci.nsIDocumentEncoder.OutputNoFramesContent | Ci.nsIDocumentEncoder.OutputBodyOnly, 0);
+            found = regexp.test(plainText);
+          }
+          if ( !found ) found |= regexp.test(data);
+          return found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
         }
       }
     } catch(err) { ExpressionSearchLog.logException(err); }
