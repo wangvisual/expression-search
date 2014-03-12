@@ -16,8 +16,12 @@ Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
-Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
-Cu.import("resource:///modules/mimeParser.jsm");
+let hasJSMIME = false;
+try {
+  Cu.import("resource:///modules/mimeParser.jsm");
+  Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
+  hasJSMIME = true;
+} catch (err) {}
 
 let Application = null;
 try {
@@ -323,8 +327,8 @@ function _getRegEx(aSearchValue) {
   };
   
   let emmiter = {
-      //data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
-      //MimeParser.parseSync(data, emmiter, {bodyformat: 'none'});
+    //data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
+    //MimeParser.parseSync(data, emmiter, {bodyformat: 'none'});
     startPart: function(partNum, headers) {
       //ExpressionSearchLog.info("startPart:" + partNum);
       ExpressionSearchLog.logObject(headers,'headers',1);
@@ -346,7 +350,7 @@ function _getRegEx(aSearchValue) {
   bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     let folder = aMsgHdr.folder;
     try {
-      if ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) {
+      if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
         let reusable = {}, data, contentType = {}, plainText, found = false, stream = folder.getMsgInputStream(aMsgHdr, reusable);
         try {
           data = folder.getMsgTextFromStream(stream, aMsgHdr.charset || '', aMsgHdr.messageSize /*read*/, aMsgHdr.messageSize /*max output*/, false/*compressQuotes*/, false/*strip HTML*/, contentType);
