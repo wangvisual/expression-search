@@ -55,6 +55,7 @@ let ExpressionSearchChrome = {
     this.Cu.import("resource:///modules/iteratorUtils.jsm");
     this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
     this.Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
+    this.Cu.import("resource://gre/modules/AddonManager.jsm");
     // need to know whehter gloda enabled
     this.Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
@@ -64,9 +65,6 @@ let ExpressionSearchChrome = {
   
   initPerf: function() {
     this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
-    if ( typeof(this.prefs.addObserver) == 'undefined' ) { // < TB13, Bug 718255
-      this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    }
     this.prefs.addObserver("", this, false);
     try {
       ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
@@ -763,9 +761,6 @@ let ExpressionSearchChrome = {
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
     try {
-        // Gecko 2 and later
-        me.Cu.import("resource://gre/modules/AddonManager.jsm");
-        // Async call!
         AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}", function(addon) {
           me.options.current_version = addon.version;
           me.firstRunAction.apply(me);
