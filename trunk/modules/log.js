@@ -138,22 +138,14 @@ let ExpressionSearchLog = {
   
   logException: function(e, popup) {
     let msg = "";
-    if ( typeof(e.name) != 'undefined' && typeof(e.message) != 'undefined' ) {
-      msg += e.name + ": " + e.message + "\n";
-    }
-    if ( e.stack ) {
-      msg += e.stack;
-    }
-    if ( e.location ) {
-      msg += e.location + "\n";
-    }
-    if ( msg == '' ){
-      msg += " " + e + "\n";
-    }
+    if ( name in e && message in e ) msg += e.name + ": " + e.message + "\n";
+    if ( stack in e ) msg += e.stack;
+    if ( location in e ) msg += e.location + "\n";
+    if ( msg == '' ) msg += " " + e + "\n";
     msg = 'Caught Exception ' + msg;
-    let fileName= e.fileName || e.filename || Cs.caller.filename;
-    let lineNumber= e.lineNumber || Cs.caller.lineNumber;
-    let sourceLine= e.sourceLine || Cs.caller.sourceLine;
+    let fileName= e.fileName || e.filename || ( Cs.caller && Cs.caller.filename );
+    let lineNumber= e.lineNumber || ( Cs.caller && Cs.caller.lineNumber );
+    let sourceLine= e.sourceLine || ( Cs.caller && Cs.caller.sourceLine );
     let scriptError = Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError);
     scriptError.init(msg, fileName, sourceLine, lineNumber, e.columnNumber, scriptError.errorFlag, "chrome javascript");
     Services.console.logMessage(scriptError);
