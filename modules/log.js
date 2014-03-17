@@ -113,12 +113,25 @@ let ExpressionSearchLog = {
       }
       if (typeof(o) != "object" || o == null ) s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
       else {
-        for ( let i of Object.getOwnPropertyNames(o) ) {
-          s += this.dumpValue(o[i], i, recurse, compress, pfx, tee, level);
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects
+        let objectToInspect, properties = [], _listed = {};
+        for( objectToInspect = o; objectToInspect !== null; objectToInspect = Object.getPrototypeOf(objectToInspect) )
+          properties = properties.concat(Object.getOwnPropertyNames(objectToInspect));
+        for ( let i of properties ) {
+          try {
+            if ( i in _listed ) continue;
+            _listed[i] = true;
+            s += this.dumpValue(o[i], i, recurse, compress, pfx, tee, level);
+          } catch (ex) { s += pfx + tee + " (exception) " + ex + "\n"; }
         }
-        if ( typeof(o.keys) == 'function' &&  typeof(o.get) == 'function' ) {
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map, Map is not Object        
+        if ( typeof(o.keys) == 'function' && typeof(o.get) == 'function' ) {
           for ( let i of o.keys() ) {
-            s += this.dumpValue(o.get(i), i, recurse, compress, pfx, tee, level);
+            try {
+              if ( i in _listed ) continue;
+              _listed[i] = true;
+              s += this.dumpValue(o.get(i), i, recurse, compress, pfx, tee, level);
+            } catch (ex) { s += pfx + tee + " (exception) " + ex + "\n"; }
           }
         }
       }
@@ -138,9 +151,9 @@ let ExpressionSearchLog = {
   
   logException: function(e, popup) {
     let msg = "";
-    if ( name in e && message in e ) msg += e.name + ": " + e.message + "\n";
-    if ( stack in e ) msg += e.stack;
-    if ( location in e ) msg += e.location + "\n";
+    if ( 'name' in e && 'message' in e ) msg += e.name + ": " + e.message + "\n";
+    if ( 'stack' in e ) msg += e.stack;
+    if ( 'location' in e ) msg += e.location + "\n";
     if ( msg == '' ) msg += " " + e + "\n";
     msg = 'Caught Exception ' + msg;
     let fileName= e.fileName || e.filename || ( Cs.caller && Cs.caller.filename );
