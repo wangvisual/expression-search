@@ -184,7 +184,7 @@ function _getRegEx(aSearchValue) {
     let regexp = new RegExp(searchValue, searchFlags);
     // https://bugzilla.mozilla.org/show_bug.cgi?id=522886
     // parseMailAddresses will do mimeDecode
-    let to = aMsgHdr.mime2DecodedTo ? mime2DecodedRecipients : GlodaUtils.parseMailAddresses([aMsgHdr.recipients, aMsgHdr.ccList, aMsgHdr.bccList].join(', ')).fullAddresses.join(', ');
+    let to = aMsgHdr.mime2DecodedTo ? aMsgHdr.mime2DecodedRecipients : GlodaUtils.parseMailAddresses([aMsgHdr.recipients, aMsgHdr.ccList, aMsgHdr.bccList].join(', ')).fullAddresses.join(', ');
     return regexp.test(to) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
