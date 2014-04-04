@@ -187,7 +187,7 @@ things up considerably.
 
 <b>bodyre:/hello.*world/i</b> or <b>br:test</b>
 </p>
-<p>This expression searches the body of all messages in the current folder or view. Case sensitive and should be the last pattern.
+<p>This expression searches the body of all messages in the current folder or view with <a href='https://developer.mozilla.org/en/JavaScript/Guide/Regular_Expressions'>Regular Expressions</a>. Case sensitive and should be the last pattern.
 Only search <b>offline</b> messages.
 </p></li><li><p>
 
@@ -325,8 +325,8 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <h3>Version history</h3>
 <ul><li>
 Version 0.8.8: <ul>
-<li>Compatible with TB30 nightly and drop support for TB 5~11</li>
-<li>regex search in body is fully supported and won't crash TB any more</li>
+<li>Compatible with TB31 nightly and drop support for TB 5~11</li>
+<li>regex search in body is fully supported and won't crash TB any more, for offline messages only.</li>
 </ul>
 </li><li>
 Version 0.8.7: <ul>
