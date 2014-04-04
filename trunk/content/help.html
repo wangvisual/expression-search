@@ -30,7 +30,7 @@
 
 <body>
 <div id=helpcontent>
-<p>Expression Search / GMailUI is an extension to Thunderbird (versions 12.0+) which add powerful message searching features.
+<p>Expression Search / GMailUI is an extension to Thunderbird (versions 21.0+) which add powerful message searching features.
 Init by Ken Mixter, Maintaining by Opera Wang.</p>
 <p>
 Type "hello world" to search within the current view for this string in subject/from/to/cc.<br/>
@@ -136,9 +136,8 @@ Notice that it does not search for attachments named "yes".  You can also use "y
 
 <b>filename:foo.doc</b> or <b>fi:image</b> or <b>fn:msword</b> or <b>file:html</b>
 </p>
-<p>Experimental Feature, Use it with caution, better <span class='notice'>SAVE ALL DRAFTS</span> before using it, may <span class='notice'>crash</span> Thunderbird.
-This expression searches all messages in the current folder or view for an attachment name or type. Case insensitive.
-If you just want to search messages that have attachement, use attachment:yes instead of using this one.
+<p>This expression searches all messages in the current folder or view for an attachment name or type. Case insensitive.
+If you just want to search messages that have attachment, use attachment:yes instead of using this one.
 </p></li><li><p>
 
 <b>is:replied</b> or <b>i:UnRead</b> or <b>status:Forwarded</b> or <b>status:F</b>
@@ -324,6 +323,11 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 0.9: <ul>
+<li>Drop support for TB version less than 21</li>
+<li>attachment search is fully supported and won't crash TB any more, for offline messages only.</li>
+</ul>
+</li><li>
 Version 0.8.8: <ul>
 <li>Compatible with TB31 nightly and drop support for TB 5~11</li>
 <li>regex search in body is fully supported and won't crash TB any more, for offline messages only.</li>
@@ -414,8 +418,6 @@ Version 0.1: First version, changed from GMailUI to make it works for Thunderbir
 
 <h3>Known Issues of this extension or Thunderbird</h3>
 <ul><li>
-The "filename:" Search for filename/type in the attachment is experimental and may <span class='notice'>crash</span> your Thunderbird.
-</li><li>
 Shift+RightClick May not work for some versions of Thunderbird.
 </li><li>
 <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=224392'>Bug 224392</a> - Add ability to filter by attachment name (extension)
