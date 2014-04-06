@@ -21,7 +21,7 @@ try {
   Cu.import("resource:///modules/mimeParser.jsm");
   Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
   hasJSMIME = true;
-} catch (err) {}
+} catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 21 or later", 1); }
 
 let Application = null;
 try {
@@ -202,149 +202,136 @@ function _getRegEx(aSearchValue) {
     } );
     return ( match ^ (aSearchOp == nsMsgSearchOp.DoesntContain) );
   };
-  
-  function asyncTermBase(nameId, Operators) {
-    let self = this;
-    self.retryStop = function() {
-      if ( ExpressionSearchVariable.resuming || ExpressionSearchVariable.starting || ExpressionSearchVariable.stopreq > ExpressionSearchVariable.startreq ) {
-        self.topWin.setTimeout(self.retryStop,10);
-      } else {
-        ExpressionSearchVariable.stopping = true;
-        self.topWin.onSearchStopSavedByES.apply(self.topWin, arguments);
-        ExpressionSearchVariable.stopped = true;
-        ExpressionSearchVariable.stopping = false;
-        ExpressionSearchVariable.stopreq = Number.MAX_VALUE;
-      }
-    };
-    
-    self.tryResume = function() {
-      if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
-      ExpressionSearchVariable.resuming++;
-      try {
-        if ( typeof(self.searchSession.resumeSearch) == 'function' ) {
-          self.searchSession.resumeSearch();
-        }
-      } catch ( err ) {
-      }
-      ExpressionSearchVariable.resuming--;
-    };
 
-    customerTermBase.call(self, nameId, Operators );
-    self.needsBody = true;
-    self.timer = null;
-    self.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+/* JSMIME 0.1 ( TB21 ), after parseHeaderField
+content-type:
++ 0 (string) 'text/plain'
++ 1 (object) [object Object]
+| + name (string) 'testlist.txt'
+
+content-disposition:
++ 0 (string) 'attachment'
++ 1 (object) [object Object]
+| + filename (string) 'testlist.txt'
+| + size (string) '5246'
+| + creation-date (string) 'Fri, 04 Apr 2014 11:02:12 GMT'
+| + modification-date (string) 'Fri, 04 Apr 2014 11:01:56 GMT'
+
+content-type:
++ 0 (string) 'message/rfc822'
++ 1 (object) [object Object]
+
+content-disposition:
++ 0 (string) 'attachment'
++ 1 (object) [object Object]
+| + creation-date (string) 'Thu, 03 Apr 2014 16:30:48 GMT'
+| + modification-date (string) 'Thu, 03 Apr 2014 16:30:48 GMT'
+
+JSMIME 0.2 (TB31)
+2014-04-06 08:38:03.987 headers.get("content-type"):
++ mediatype (string) 'text'
++ subtype (string) 'plain'
++ type (string) 'text/plain'
++ size (number) 2
++ ... ( Map )
++ charset (string) => 'gb18030'
++ name (string) => 'bug_868233_v2.patch'
+*/
+  let emitter = function(aSearchValue, type) {
+    let newSearchValue = aSearchValue.toLowerCase();
+    let rfc822Parts = {};
+    let me = this;
+    me.found = false;
+    me.haveAttachment = false;
+    me.startPart = function(partNum, headers) {
       try {
-        /* OK, this is tricky and experimental, to get the attachment list, I need to call MsgHdrToMimeMessage, which is async.
-           So, I need to call thread.processNextEvent to wait for it. However, this may lead to reenter issue and crash Thunderbird.
-           Normally crash @ http://mxr.mozilla.org/comm-central/source/mailnews/base/search/src/nsMsgLocalSearch.cpp#752
-           dbErr = m_listContext->GetNext(getter_AddRefs(currentItem)); // @nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
-           I guess reenter will happen after CleanUpScope().
-      
-           Thus before https://bugzilla.mozilla.org/show_bug.cgi?id=224392 is implemented, My solution is:
-           1. find the searchSession, which is tricky
-           2. pauseSearch
-           3. setup a timer to resumeSearch after current timeSlice finished
-           4. hook onSearchStop to prevent interruptSearch when resumeSearch called
-           5. hook associateView & dissociateView also
-        */
-        let topWins = Services.wm.getEnumerator(null);
-        while (topWins.hasMoreElements()) {
-          self.topWin = topWins.getNext();
-          self.topWin.QueryInterface(Ci.nsIDOMWindowInternal); // should use nsIDOMWindow for TB8+
-          if ( self.topWin.gFolderDisplay && self.topWin.gFolderDisplay.view && self.topWin.gFolderDisplay.view.search && self.topWin.gFolderDisplay.view.search.session ) {
-            let curSession = self.topWin.gFolderDisplay.view.search.session;
-            self.searchSession = curSession; // default set to one session
-            for ( let i=0; i<curSession.numSearchTerms; i++ ) {
-              let term = curSession.searchTerms.GetElementAt(i);
-              if ( term && term.customId == self.id ) { // only works for quick filter, not for advanced search
-                self.searchSession = curSession;
-                break;
-              }
+        if ( type != 'attachment' ) return;
+        ExpressionSearchLog.info("startPart:" + partNum);
+        //ExpressionSearchLog.logObject(headers,'headers',1);
+        // http://en.wikipedia.org/wiki/MIME
+        ExpressionSearchLog.logObject(headers.get('content-type'),'headers.get("content-type")',1);
+        for ( let type of (headers.get('content-type') || []) ) {
+        //for ( let type of (headers.contentType || []) ) {
+          if ( me.found && me.haveAttachment ) break;
+          // check header type & name
+          let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
+          let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
+          ExpressionSearchLog.logObject(typeObject, 'content-type', 2);
+          for ( let i of typeObject.keys() ) {
+            ExpressionSearchLog.logObject(typeObject.get(i), 'content-type:' + i, 2);
+          }
+          if ( typeObject[0] && typeObject[0].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+          if ( typeObject[0] && typeObject[0].toLowerCase() == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
+          if ( typeObject[1] && 'name' in typeObject[1] ) {
+            ExpressionSearchLog.info("attach name:" + typeObject[1]['name']);
+            if ( typeObject[1]['name'].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+            me.haveAttachment = true;
+          }
+        }
+        for ( let type of (headers.get('content-disposition') || []) ) {
+          if ( me.found && me.haveAttachment ) break;
+          // check header filename
+          let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
+          let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
+          ExpressionSearchLog.logObject(typeObject, 'content-disposition', 2);
+          for ( let i of typeObject.keys() ) {
+            ExpressionSearchLog.logObject(typeObject.get(i), 'content-disposition:' + i, 2);
+          }
+          if ( typeObject[0] && typeObject[0] == 'attachment' ) me.haveAttachment = true;
+          if ( typeObject[1] && 'filename' in typeObject[1] ) {
+            ExpressionSearchLog.info("attach filename:" + typeObject[1]['filename']);
+            if ( typeObject[1]['filename'].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+            me.haveAttachment = true;
+          }
+        }
+        // mailnews/mime/src/mimemoz2.cpp && mailnews/mime/src/mimemsg.cpp
+        // if not rfc822 default name is 1040 in mime.properties: 1040=Part %s
+        // !external urlString.Append(".eml");
+        // use munged_subject.eml or "ForwardedMessage.eml", I just simulate this rule
+        if ( partNum in rfc822Parts ) {
+          me.haveAttachment = true;
+          if ( headers.has('subject') ) {
+            for ( let subject of (headers.get('subject')) ) {
+              let newSubject = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false).toLowerCase();
+              if ( !newSubject.endsWith('.eml') ) newSubject = newSubject + ".eml";
+              ExpressionSearchLog.info("fake:" + newSubject);
+              if ( newSubject.indexOf(newSearchValue) != -1 ) me.found = true;
             }
+          } else {
+            let fakeName = "ForwardedMessage.eml";
+            ExpressionSearchLog.info("fake:" + fakeName);
+            if ( fakeName.indexOf(newSearchValue) != -1 ) me.found = true;
           }
         }
-        
-        ExpressionSearchVariable.stopped = false;
-        // searchDialog.onSearchStop call interruptsearch directly, need to handle it
-        if ( typeof(self.topWin.onSearchStopSavedByES)=='undefined' && self.topWin.onSearchStop ) {
-          self.topWin.onSearchStopSavedByES = self.topWin.onSearchStop;
-          self.topWin.onSearchStop = function () {
-            ExpressionSearchVariable.stopreq = new Date().getTime();
-            self.retryStop();
-          }
-        }
-      
-        if ( typeof(self.timer) != 'undefined' ) self.topWin.clearTimeout(self.timer);
-        try {
-          self.searchSession.pauseSearch(); // may call many times
-        } catch (err) {}
-        if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
-        return self.matchFunc.call(self, aMsgHdr, aSearchValue, aSearchOp);
-      } catch ( err ) {
-        ExpressionSearchLog.logException(err);
-        return false;
-      }
+      } catch(err) { ExpressionSearchLog.logException(err); }
     };
-  }
+  };
   
   // case insensitive
-  let attachmentNameOrType = new asyncTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
-  attachmentNameOrType.matchFunc = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let self = this;
-    self.timer = self.topWin.setTimeout(self.tryResume, 20); // wait 20ms for messages without attachment
-    // no matter Contains or DoesntContain, return false if no attachement
-    if ( ! ( aMsgHdr.flags & nsMsgMessageFlags.Attachment ) ) return false;
-    self.topWin.clearTimeout(self.timer); // reset timer when need to check attachment
-    let newSearchValue = aSearchValue.toLowerCase();
-    let found = false;
-    let haveAttachment = false;
-    let complete = false;
-    
-    MsgHdrToMimeMessage(aMsgHdr, null, function(aMsgHdr, aMimeMsg) { // async call back function
-      for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
-        if ( attachment.isRealAttachment ) { // .contentType/.size/.isExternal
-          haveAttachment = true;
-          if ( attachment.name.toLowerCase().indexOf(newSearchValue) != -1 || attachment.contentType.toLowerCase().indexOf(newSearchValue) != -1 ) {
-            found = true;
-            break;
-          }
+  let attachmentNameOrType = new customerTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
+  attachmentNameOrType.needsBody = true;
+  attachmentNameOrType.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+    ExpressionSearchLog.info("msg subject:" + aMsgHdr.mime2DecodedSubject);
+    let folder = aMsgHdr.folder;
+    try {
+      if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
+        let reusable = {}, data, contentType = {}, plainText, found = false, stream = folder.getMsgInputStream(aMsgHdr, reusable);
+        try {
+          data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
+        } catch(err) { ExpressionSearchLog.logException(err); }
+        if ( !reusable.value ) stream.close(); // close if not reusable
+        if ( typeof(data) != 'undefined' ) {
+          let emitterInstance = new emitter(aSearchValue, 'attachment');
+          MimeParser.parseSync(data, emitterInstance, {bodyformat: 'none'});
+          haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
+          if ( !emitterInstance.haveAttachment ) return false; // always return false when no attachment
+          return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
         }
       }
-      complete = true;
-    }, false/*allow download*/, {saneBodySize: true});
-    
-    // https://developer.mozilla.org/en/Code_snippets/Threads#Waiting_for_a_background_task_to_complete
-    let thread = Services.tm.currentThread;
-    while (!complete && !ExpressionSearchVariable.stopped && ExpressionSearchVariable.stopreq == Number.MAX_VALUE && !ExpressionSearchVariable.stopping ) {
-        thread.processNextEvent(true); // may wait, and validator will report warnings of dead lock on this line
-    }
-    
-    if ( ExpressionSearchVariable.stopped || ExpressionSearchVariable.stopreq != Number.MAX_VALUE || ExpressionSearchVariable.stopping ) return;
-    self.timer = self.topWin.setTimeout(self.tryResume, 20); // 200ms for one timeSlice
-    
-    if (!haveAttachment) return false;
-    return found ^ (aSearchOp == nsMsgSearchOp.DoesntContain) ;
+    } catch(err) { ExpressionSearchLog.logException(err); }
+    return haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
   };
-  
-  let emmiter = {
-    //data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
-    //MimeParser.parseSync(data, emmiter, {bodyformat: 'none'});
-    startPart: function(partNum, headers) {
-      //ExpressionSearchLog.info("startPart:" + partNum);
-      ExpressionSearchLog.logObject(headers,'headers',1);
-      // http://en.wikipedia.org/wiki/MIME
-      for ( let type of (headers.get('content-type') || []) ) {
-        // check header type & name
-        let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-        ExpressionSearchLog.logObject( MimeParser.parseHeaderField(newType, 0x02, ''), 'content-type', 1);
-      }
-      for ( let type of (headers.get('content-disposition') || []) ) {
-        // check header filename
-        let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-        ExpressionSearchLog.logObject( MimeParser.parseHeaderField(newType, 0x02, ''), 'content-disposition', 1);
-      }
-    },
-  };
+
   let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   bodyRegex.needsBody = true;
   bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
@@ -371,8 +358,7 @@ function _getRegEx(aSearchValue) {
         }
       }
     } catch(err) { ExpressionSearchLog.logException(err); }
-    haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
-    return false;
+    return haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
   };
 
   let filterService = MailServices.filters;
@@ -385,8 +371,10 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(toRegex);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
-  filterService.addCustomTerm(attachmentNameOrType);
-  filterService.addCustomTerm(bodyRegex);
+  if ( hasJSMIME ) {
+    filterService.addCustomTerm(attachmentNameOrType);
+    filterService.addCustomTerm(bodyRegex);
+  }
 })();
 
 let ExperssionSearchFilter = {

@@ -60,36 +60,36 @@ let ExpressionSearchLog = {
   },
   
   // from errorUtils.js
-  dumpValue: function(value, i, recurse, compress, pfx, tee, level) {
+  dumpValue: function(value, i, recurse, compress, pfx, tee, level, map) {
     let t = "", s= "";
     try { t = typeof(value); }
     catch (err) { s += pfx + tee + " (exception) " + err + "\n"; }
     switch (t) {
       case "function":
         let sfunc = String(value).split("\n");
-        if ( typeof(sfunc[2]) != 'undefined' && sfunc[2] == "    [native code]" )
+        if ( String(value).match(/^\s+\[native code\]$/m) )
           sfunc = "[native code]";
         else
           sfunc = sfunc.length + " lines";
-        s += pfx + tee + i + " (function) " + sfunc + "\n";
+        s += pfx + tee + i + " (function) " + map + sfunc + "\n";
         break;
       case "object":
-        s += pfx + tee + i + " (object) " + value + "\n";
+        s += pfx + tee + i + " (object) " + map + value + "\n";
         if (!compress)
           s += pfx + "|\n";
         if ((i != "parent") && (recurse) && value != null)
           s += this.objectTreeAsString(value, recurse - 1, compress, level + 1);
         break;
       case "string":
-        if (value.length > 8192)
-          s += pfx + tee + i + " (" + t + ") " + value.length + " chars\n";
+        if (value.length > 8192 + 5)
+          s += pfx + tee + i + " (" + t + ")" + map + "'" + value.substr(0, 8192) + "' ... (" + value.length + " chars)\n";
         else
-          s += pfx + tee + i + " (" + t + ") '" + value + "'\n";
+          s += pfx + tee + i + " (" + t + ")" + map + "'" + value + "'\n";
         break;
       case "":
         break;
       default:
-        s += pfx + tee + i + " (" + t + ") " + value + "\n";
+        s += pfx + tee + i + " (" + t + ") " + map + value + "\n";
     }
     if (!compress)  s += pfx + "|\n";
     return s;
@@ -121,7 +121,7 @@ let ExpressionSearchLog = {
           try {
             if ( i in _listed ) continue;
             _listed[i] = true;
-            s += this.dumpValue(o[i], i, recurse, compress, pfx, tee, level);
+            s += this.dumpValue(o[i], i, recurse, compress, pfx, tee, level, '');
           } catch (ex) { s += pfx + tee + " (exception) " + ex + "\n"; }
         }
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map, Map is not Object        
@@ -130,7 +130,7 @@ let ExpressionSearchLog = {
             try {
               if ( i in _listed ) continue;
               _listed[i] = true;
-              s += this.dumpValue(o.get(i), i, recurse, compress, pfx, tee, level);
+              s += this.dumpValue(o.get(i), i, recurse, compress, pfx, tee, level, ' => ');
             } catch (ex) { s += pfx + tee + " (exception) " + ex + "\n"; }
           }
         }
