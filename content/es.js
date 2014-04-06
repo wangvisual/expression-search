@@ -174,7 +174,7 @@ let ExpressionSearchChrome = {
       return outTerms;
     })[0] );
     
-    // for results label to show correct color by copy filterActive attribute from quick-filter-bar to qfb-results-label, and set color in overlay.css
+    // for results label to show correct colour by copy filterActive attribute from quick-filter-bar to qfb-results-label, and set colour in overlay.css
     ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.after( {target: QuickFilterBarMuxer, method: 'reflectFiltererResults'}, function(result) {
       let qfb = document.getElementById("quick-filter-bar");
       let resultsLabel = document.getElementById("qfb-results-label");
@@ -183,44 +183,7 @@ let ExpressionSearchChrome = {
       }
       return result;
     })[0] );
-    
-    // hook associateView & dissociateView for search attachment, once I don't need to implement my self, this shit can be dumped.
-    if ( typeof(SearchSpec) == 'undefined' || typeof(SearchSpec.prototype.associateView) == 'undefined' || typeof(SearchSpec.prototype.associateViewSaved) != 'undefined' )
-      return;
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'associateView'}, function(invocation) {
-      let self = this;
-      let args = invocation.arguments;
-      let v = ExpressionSearchVariable;
-      if ( v.startreq == Number.MAX_VALUE )
-        v.startreq = new Date().getTime();
-      if ( v.resuming || v.stopping || v.startreq > v.stopreq ) {
-        window.setTimeout( function(){self.associateView.apply(self,args);}, 10  );
-        return;
-      }
-      v.starting = true;
-      v.stopped = false;
-      invocation.proceed();
-      v.starting = false;
-      v.startreq = Number.MAX_VALUE;
-    })[0] );
-    
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: 'dissociateView'}, function(invocation) {
-      let self = this;
-      let args = invocation.arguments;
-      let v = ExpressionSearchVariable;
-      if ( v.stopreq == Number.MAX_VALUE )
-        v.stopreq = new Date().getTime();
-      if ( v.resuming || v.starting || v.stopreq > v.startreq ) {
-        window.setTimeout( function(){self.dissociateView.apply(self,args);}, 10  );
-        return;
-      }
-      v.stopping = true;
-      invocation.proceed();
-      v.stopped = true;
-      v.stopping = false;
-      v.stopreq = Number.MAX_VALUE;
-    })[0] );
-    
+   
   },
 
   unregister: function() {
