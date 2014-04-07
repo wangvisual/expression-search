@@ -260,7 +260,7 @@ headers.get("content-type"):
     // mailnews/mime/src/mimemoz2.cpp && mailnews/mime/src/mimemsg.cpp
     // if not rfc822 default name is 1040 in mime.properties: 1040=Part %s
     // !external urlString.Append(".eml");
-    // use munged_subject.eml or "ForwardedMessage.eml", I just simulate this rule
+    // use munged_subject.eml when have subject && charset(https://bugzilla.mozilla.org/show_bug.cgi?id=674488), or "ForwardedMessage.eml", I just simulate this rule
     if ( hasJSMIME == 2 ) { // JSMIME 0.2
       me.startPart = function(partNum, headers) {
         try {
@@ -269,35 +269,35 @@ headers.get("content-type"):
           //ExpressionSearchLog.logObject(headers,'headers',1);
           let contentType = headers.get('content-type');
           ExpressionSearchLog.logObject(contentType, 'contentType', 1);
-          if ( !contentType ) return;
-
-          if ( 'type' in contentType ) {
-            let type = contentType.type; // already lower-case
-            if ( type.indexOf(newSearchValue) != -1 ) me.found = true;
-            if ( type == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
+          if ( contentType ) {
+            if ( 'type' in contentType ) {
+              let type = contentType.type; // already lower-case
+              if ( type.indexOf(newSearchValue) != -1 ) me.found = true;
+              if ( type == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
+            }
+            if ( contentType.has('name') ) {
+              let name = contentType.get('name');
+              ExpressionSearchLog.info("attach name:" + name);
+              if ( name.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+              me.haveAttachment = true;
+            }
           }
-          if ( contentType.has('name') ) {
-            let name = contentType.get('name');
-            ExpressionSearchLog.info("attach name:" + name);
-            if ( name.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
-            me.haveAttachment = true;
-          }
 
-          for ( let type of (headers.get('content-disposition') || []) ) {
-            if ( me.found && me.haveAttachment ) break;
+          for ( let disposition of (headers.get('content-disposition') || []) ) {
+            if ( me.found && me.haveAttachment ) return;
             // check header filename
-            let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-            let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
-            ExpressionSearchLog.logObject(typeObject, 'content-disposition', 2);
-            if ( 'preSemi' in typeObject && typeObject.preSemi == 'attachment' ) me.haveAttachment = true;
-            if ( typeObject.has('filename') ) {
-              let filename = typeObject.get('filename');
+            let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
+            let dispositionObject = MimeParser.parseHeaderField(newDisposition, 0x02, '');
+            ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
+            if ( 'preSemi' in dispositionObject && dispositionObject.preSemi == 'attachment' ) me.haveAttachment = true;
+            if ( dispositionObject.has('filename') ) {
+              let filename = dispositionObject.get('filename');
               ExpressionSearchLog.info("attach filename:" + filename);
               if ( filename.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
               me.haveAttachment = true;
             }
           }
-          if ( partNum in rfc822Parts ) {
+          if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
             me.haveAttachment = true;
             if ( headers.has('subject') ) { // subject is Unstructured
               let subject = headers.get('subject');
@@ -317,41 +317,52 @@ headers.get("content-type"):
       me.startPart = function(partNum, headers) {
         try {
           if ( aType != 'attachment' ) return;
+          let charset = null;
           ExpressionSearchLog.info("startPart:" + partNum);
           //ExpressionSearchLog.logObject(headers,'headers',1);
           ExpressionSearchLog.logObject(headers.get('content-type'),'headers.get("content-type")',1);
           for ( let type of (headers.get('content-type') || []) ) {
-            if ( me.found && me.haveAttachment ) break;
+            if ( me.found && me.haveAttachment ) return;
             // check header type & name
             let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
             let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
             ExpressionSearchLog.logObject(typeObject, 'content-type', 2);
-            if ( typeObject[0] && typeObject[0].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
-            if ( typeObject[0] && typeObject[0].toLowerCase() == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
-            if ( typeObject[1] && 'name' in typeObject[1] ) {
-              ExpressionSearchLog.info("attach name:" + typeObject[1]['name']);
-              if ( typeObject[1]['name'].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
-              me.haveAttachment = true;
+            for ( let item of typeObject ) {
+              if ( typeof(item) == 'string' ) {
+                if ( item.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+                if ( item.toLowerCase() == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
+              } else {
+                if ( 'name' in item ) {
+                  ExpressionSearchLog.info("attach name:" + item.name);
+                  if ( item.name.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+                  me.haveAttachment = true;
+                } else if ( 'charset' in item ) charset = item.charset; // for munged_subject
+              }
             }
           }
-          for ( let type of (headers.get('content-disposition') || []) ) {
-            if ( me.found && me.haveAttachment ) break;
+          for ( let disposition of (headers.get('content-disposition') || []) ) {
+            if ( me.found && me.haveAttachment ) return;
             // check header filename
-            let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-            let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
-            ExpressionSearchLog.logObject(typeObject, 'content-disposition', 2);
-            if ( typeObject[0] && typeObject[0] == 'attachment' ) me.haveAttachment = true;
-            if ( typeObject[1] && 'filename' in typeObject[1] ) {
-              ExpressionSearchLog.info("attach filename:" + typeObject[1]['filename']);
-              if ( typeObject[1]['filename'].toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
-              me.haveAttachment = true;
+            let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
+            let dispositionObject = MimeParser.parseHeaderField(newDisposition, 0x02, '');
+            ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
+            for ( let item of dispositionObject ) {
+              if ( typeof(item) == 'string' ) {
+                if ( item == 'attachment' ) me.haveAttachment = true;
+              } else {
+                if ( 'filename' in item ) {
+                  me.haveAttachment = true;
+                  ExpressionSearchLog.info("attach filename:" + item.filename);
+                  if ( item.filename.toLowerCase().indexOf(newSearchValue) != -1 ) me.found = true;
+                }
+              }
             }
           }
-          if ( partNum in rfc822Parts ) {
+          if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
             me.haveAttachment = true;
-            if ( headers.has('subject') ) {
+            if ( headers.has('subject') && charset ) {
               for ( let subject of (headers.get('subject')) ) {
-                let newSubject = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
+                let newSubject = MailServices.mimeConverter.decodeMimeHeader(subject, charset, false, false).toLowerCase();
                 if ( !newSubject.endsWith('.eml') ) newSubject = newSubject + ".eml";
                 ExpressionSearchLog.info("fake:" + newSubject);
                 if ( newSubject.indexOf(newSearchValue) != -1 ) me.found = true;
