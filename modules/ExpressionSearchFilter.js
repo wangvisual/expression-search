@@ -201,9 +201,10 @@ function _getRegEx(aSearchValue) {
 // https://bugzilla.mozilla.org/show_bug.cgi?id=959309 - Finish JSMime 0.2 and land it on comm-central 
 // https://bugzilla.mozilla.org/show_bug.cgi?id=858337 - Implement header parsing in JSMime 
 // https://bugzilla.mozilla.org/show_bug.cgi?id=790855 - Make the new MIME parser charset-aware 
-  let emitter = function(aSearchValue, aType) {
+  let emitter = function(msgData, aSearchValue, nameId) {
     let searchValue, searchFlags, regexp;
-    if ( aType == 'attachment' ) searchValue = aSearchValue.toLowerCase();
+    let attachmentSearch = ( nameId == "attachmentNameOrType" );
+    if ( attachmentSearch ) searchValue = aSearchValue.toLowerCase();
     else {
       [searchValue, searchFlags] = _getRegEx(aSearchValue);
       regexp = new RegExp(searchValue, searchFlags);
@@ -226,7 +227,7 @@ function _getRegEx(aSearchValue) {
           let contentType = headers.get('content-type');
           ExpressionSearchLog.logObject(contentType, 'contentType', 1);
           contentDict[partNum] = contentType; // body need content type
-          if ( aType != 'attachment' ) return;
+          if ( !attachmentSearch ) return;
           if ( contentType ) {
             if ( 'type' in contentType ) {
               let type = contentType.type; // already lower-case
@@ -257,13 +258,14 @@ function _getRegEx(aSearchValue) {
           if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
             me.haveAttachment = true;
             let fakeName;
-            if ( headers.has('subject') ) { // subject is Unstructured
+            if ( headers.has('subject') /* charset? */ ) { // subject is Unstructured
               let subject = headers.get('subject');
-              let fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
-              if ( !fakeName.endsWith('.eml') ) fakeName = fakeName + ".eml";
-            } else fakeName = "ForwardedMessage.eml";
+              fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
+            }
+            if ( typeof(fakeName) == 'undefined' ) fakeName = "ForwardedMessage.eml";
+            if ( !fakeName.endsWith('.eml') ) fakeName += ".eml";
             ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
-            if ( fakeName..toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
+            if ( fakeName.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
           }
         } catch(err) { ExpressionSearchLog.logException(err); }
       }; // startPart
@@ -282,7 +284,7 @@ function _getRegEx(aSearchValue) {
             ExpressionSearchLog.logObject(typeObject, 'content-type', 2);
             for ( let item of typeObject ) {
               if ( typeof(item) == 'string' ) {
-                if ( aType != 'attachment' ) {
+                if ( !attachmentSearch ) {
                   // simulate JSMIME 0.2
                   [[contentDict[partNum].mediatype, contentDict[partNum].subtype], contentDict[partNum].type] = [item.split('/', 2), item];
                 } else {
@@ -290,7 +292,7 @@ function _getRegEx(aSearchValue) {
                   if ( item.toLowerCase() == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
                 }
               } else { // Map
-                if ( aType == 'attachment' && ( 'name' in item ) ) {
+                if ( attachmentSearch && ( 'name' in item ) ) {
                   ExpressionSearchLog.info("attach name:" + item.name);
                   if ( item.name.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
                   me.haveAttachment = true;
@@ -299,7 +301,7 @@ function _getRegEx(aSearchValue) {
               }
             }
           }
-          if ( aType != 'attachment' || ( me.found && me.haveAttachment ) ) return;
+          if ( !attachmentSearch || ( me.found && me.haveAttachment ) ) return;
           for ( let disposition of (headers.get('content-disposition') || []) ) {
             // check header filename
             let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
@@ -319,18 +321,17 @@ function _getRegEx(aSearchValue) {
           }
           if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
             me.haveAttachment = true;
+            let fakeName;
             if ( headers.has('subject') && charset ) {
               for ( let subject of (headers.get('subject')) ) {
-                let newSubject = MailServices.mimeConverter.decodeMimeHeader(subject, charset, false, false).toLowerCase();
-                if ( !newSubject.endsWith('.eml') ) newSubject = newSubject + ".eml";
-                ExpressionSearchLog.info("fake:" + newSubject);
-                if ( newSubject.indexOf(searchValue) != -1 ) me.found = true;
+                fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, charset, false, false).toLowerCase();
+                break;
               }
-            } else {
-              let fakeName = "ForwardedMessage.eml";
-              ExpressionSearchLog.info("fake:" + fakeName);
-              if ( fakeName.indexOf(searchValue) != -1 ) me.found = true;
             }
+            if ( typeof(fakeName) == 'undefined' ) fakeName = "ForwardedMessage.eml";
+            if ( !fakeName.endsWith('.eml') ) fakeName += ".eml";
+            ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
+            if ( fakeName.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
           }
         } catch(err) { ExpressionSearchLog.logException(err); }
       }; // startPart
@@ -349,7 +350,7 @@ function _getRegEx(aSearchValue) {
     me.endPart = function(partNum) {
       try {
         ExpressionSearchLog.info("endPart: " + partNum);
-        if ( me.found || aType == 'attachment' ) return;
+        if ( me.found || attachmentSearch ) return;
         let contentType = contentDict[partNum], body = bodyParts[partNum];
         if ( ( partNum in bodyParts ) && contentType && contentType.mediatype == 'text' ) {
           if ( hasJSMIME == 1 && contentType.charset ) {
@@ -373,55 +374,47 @@ function _getRegEx(aSearchValue) {
         }
       } catch(err) { ExpressionSearchLog.logException(err); }
     }; // endPart
-  };
-  
-  // case insensitive
-  let attachmentNameOrType = new customerTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
-  attachmentNameOrType.needsBody = true;
-  attachmentNameOrType.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    ExpressionSearchLog.info("msg subject:" + aMsgHdr.mime2DecodedSubject);
-    let folder = aMsgHdr.folder;
-    try {
-      if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
-        let reusable = {}, data, stream = folder.getMsgInputStream(aMsgHdr, reusable);
-        try {
-          data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
-        } catch(err) { ExpressionSearchLog.logException(err); }
-        if ( !reusable.value ) stream.close(); // close if not reusable
-        if ( typeof(data) != 'undefined' ) {
-          let emitterInstance = new emitter(aSearchValue, 'attachment');
-          MimeParser.parseSync(data, emitterInstance, {bodyformat: 'none'});
-          haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
-          if ( !emitterInstance.haveAttachment ) return false; // always return false when no attachment
-          return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
-        }
-      }
-    } catch(err) { ExpressionSearchLog.logException(err); }
-    return haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
+
+    let options;
+    if (attachmentSearch) options = {bodyformat: 'none'};
+    else options = {bodyformat: 'decode', strformat: 'unicode'}; // JSMIME 0.1 will ignore strformat
+    MimeParser.parseSync(msgData, me, options);
   };
 
-  let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
-  bodyRegex.needsBody = true;
-  bodyRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    ExpressionSearchLog.info("msg subject:" + aMsgHdr.mime2DecodedSubject);
-    let folder = aMsgHdr.folder;
-    try {
-      if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
-        let reusable = {}, data, stream = folder.getMsgInputStream(aMsgHdr, reusable);
-        try {
-          data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
-        } catch (err) {}
-        if ( !reusable.value ) stream.close(); // close if not reusable
-        if ( typeof(data) != 'undefined' ) {
-          let emitterInstance = new emitter(aSearchValue, 'body');
-          MimeParser.parseSync(data, emitterInstance, {bodyformat: 'decode', strformat: 'unicode'}); // JSMIME 0.1 will ignore strformat
-          haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
-          return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+  function bodyTermBase(nameId, Operators, resultFunc) {
+    let self = this;
+    customerTermBase.call(self, nameId, Operators);
+    self.needsBody = true;
+    self.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
+      ExpressionSearchLog.info("msg subject:" + aMsgHdr.mime2DecodedSubject);
+      let folder = aMsgHdr.folder;
+      try {
+        if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
+          let reusable = {}, data, stream = folder.getMsgInputStream(aMsgHdr, reusable);
+          try {
+            data = NetUtil.readInputStreamToString(stream, aMsgHdr.messageSize);
+          } catch(err) { ExpressionSearchLog.logException(err); }
+          if ( !reusable.value ) stream.close(); // close if not reusable
+          if ( typeof(data) != 'undefined' ) {
+            let emitterInstance = new emitter(data, aSearchValue, nameId);
+            haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = true;
+            return resultFunc.call(null, emitterInstance, aSearchOp);
+          }
         }
-      }
-    } catch(err) { ExpressionSearchLog.logException(err); }
-    return haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
-  };
+      } catch(err) { ExpressionSearchLog.logException(err); }
+      return haveBodyMapping[folder.URI + " | " + aMsgHdr.messageKey] = false;
+    }
+  }
+  
+  // case insensitive
+  let attachmentNameOrType = new bodyTermBase("attachmentNameOrType", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain], function(emitterInstance, aSearchOp) {
+    if ( !emitterInstance.haveAttachment ) return false; // always return false when no attachment
+    return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+  });
+
+  let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch], 'body', function(emitterInstance, aSearchOp) {
+    return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+  });
 
   let filterService = MailServices.filters;
   filterService.addCustomTerm(bccSearch);
