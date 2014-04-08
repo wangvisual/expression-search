@@ -256,17 +256,14 @@ function _getRegEx(aSearchValue) {
           }
           if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
             me.haveAttachment = true;
+            let fakeName;
             if ( headers.has('subject') ) { // subject is Unstructured
               let subject = headers.get('subject');
-              let newSubject = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
-              if ( !newSubject.endsWith('.eml') ) newSubject = newSubject + ".eml";
-              ExpressionSearchLog.info("fake1:" + newSubject);
-              if ( newSubject.indexOf(searchValue) != -1 ) me.found = true;
-            } else {
-              let fakeName = "ForwardedMessage.eml";
-              ExpressionSearchLog.info("fake2:" + fakeName);
-              if ( fakeName.indexOf(searchValue) != -1 ) me.found = true;
-            }
+              let fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
+              if ( !fakeName.endsWith('.eml') ) fakeName = fakeName + ".eml";
+            } else fakeName = "ForwardedMessage.eml";
+            ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
+            if ( fakeName..toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
           }
         } catch(err) { ExpressionSearchLog.logException(err); }
       }; // startPart
