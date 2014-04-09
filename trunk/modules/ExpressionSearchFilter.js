@@ -676,22 +676,27 @@ let ExperssionSearchFilter = {
 
   get_key_from_tag: function(myTag) {
     if ( myTag == 'na' ) return myTag;
-    var tagArray = MailServices.tags.getAllTags({});
+    let tagArray = MailServices.tags.getAllTags({});
     // consider two tags, one is "ABC", the other is "ABCD", when searching for "AB", perfect is return both.
     // however, that need change the token tree.
     // so here I just return the best fit "ABC".
-    let uniqueKey = '';
-    let myTagLen = myTag.length;
-    let lenDiff = 10000000; // big enough?
-    for (var i = 0; i < tagArray.length; ++i) {
-      let tag = tagArray[i].tag.toLowerCase();
-      if (tag.indexOf(myTag) >= 0 && ( tag.length-myTagLen < lenDiff ) ) {
-        uniqueKey = tagArray[i].key;
-        lenDiff = tag.length-myTagLen;
+    let uniqueKey = '', myTagLen = myTag.length, lenDiff = Number.MAX_VALUE;
+    for (let tagObject of tagArray) {
+      let tag = tagObject.tag.toLowerCase();
+      if (tag.indexOf(myTag) >= 0 && ( tag.length - myTagLen < lenDiff ) ) {
+        uniqueKey = tagObject.key;
+        lenDiff = tag.length - myTagLen;
         if ( lenDiff == 0 ) break;
       }
     }
     if (uniqueKey != '') return uniqueKey;
+    // if user provide '#3' or '3', use it, suggested by fluxs
+    let match = myTag.match(/^#*(\d+)$/);
+    if ( match.length == 2 ) {
+      let [, index] = match;
+      index--; // 0 based
+      if ( index >=0 && index < tagArray.length ) return tagArray[index].key;
+    }
     return "..unknown..";
   },
   
