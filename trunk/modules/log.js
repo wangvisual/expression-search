@@ -137,6 +137,14 @@ let ExpressionSearchLog = {
             } catch (ex) { s += pfx + tee + " (exception) " + ex + "\n"; }
           }
         }
+        // nsIMsgDBHdr
+        if ( typeof(o.propertyEnumerator) == 'object' && typeof(o.getStringProperty) == 'function' ) {
+          let e = o.propertyEnumerator;
+          while ( e.hasMore() ) {
+            let i = e.getNext();
+            s += this.dumpValue(o.getStringProperty(i), i, recurse, compress, pfx, tee, level, ' -> ');
+          }
+        }
       }
     } catch (ex) {
       s += pfx + tee + " (exception) " + ex + "\n";
@@ -149,7 +157,7 @@ let ExpressionSearchLog = {
   logObject: function(obj, name, maxDepth, curDepth) {
     if (!this.verbose) return;
     this._checked = [];
-    this.info(name + ": " + ( typeof(obj) == 'object' ? obj : '' ) + "\n" + this.objectTreeAsString(obj,maxDepth,true));
+    this.info(name + ": " + ( typeof(obj) == 'object' ? ( Array.isArray(obj) ? 'Array' : obj ) : '' ) + "\n" + this.objectTreeAsString(obj,maxDepth,true));
     this._checked = [];
   },
   
