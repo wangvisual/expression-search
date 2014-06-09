@@ -34,6 +34,7 @@ try {
 
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
 let haveBodyMapping = {}; // folderURI+messageKey => true (haveBody)
+let badREs = {};
 
 function _getRegEx(aSearchValue) {
   /*
@@ -41,7 +42,7 @@ function _getRegEx(aSearchValue) {
    * / delimiters. If we detect a / though, we will look for flags and
    * add them to the regex search.
    */
-  let searchValue = aSearchValue;
+  let searchValue = aSearchValue, regexp = /^__WONTMATCH__$/;
   let searchFlags = "";
   if (aSearchValue.charAt(0) == "/") {
     let lastSlashIndex = aSearchValue.lastIndexOf("/");
@@ -49,7 +50,15 @@ function _getRegEx(aSearchValue) {
     searchValue = aSearchValue.substring(1, lastSlashIndex);
     searchFlags = aSearchValue.substring(lastSlashIndex + 1);
   }
-  return [searchValue, searchFlags];
+  try { 
+    regexp = new RegExp(searchValue, searchFlags);
+  } catch(err) {
+    if ( !badREs[aSearchValue] ) {
+      badREs[aSearchValue] = true;
+      ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex '" + aSearchValue + "'", 1);
+    }
+  }
+  return regexp;
 }
 
 (function ExperssionSearchCustomerTerms() {
@@ -93,11 +102,7 @@ function _getRegEx(aSearchValue) {
     // Upon putting subject into msg db, all Re:'s are stripped and MSG_FLAG_HAS_RE flag is set. 
     let subject = aMsgHdr.mime2DecodedSubject || '';
     if ( aMsgHdr.flags & Ci.nsMsgMessageFlags.HasRe ) subject = "Re: " + subject; // mailnews.localizedRe ?
-    let searchValue;
-    let searchFlags;
-    [searchValue, searchFlags] = _getRegEx(aSearchValue);
-    let regexp = new RegExp(searchValue, searchFlags);
-    return regexp.test(subject) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
+    return _getRegEx(aSearchValue).test(subject) ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
   };
   
   // workaround for Bug 124641 - Thunderbird does not handle multi-line headers correctly when search term spans lines
@@ -136,12 +141,8 @@ function _getRegEx(aSearchValue) {
     }
     headerName = aSearchValue.slice(0, splitIndex);
     let regex = aSearchValue.slice(splitIndex + 1); 
-    let searchValue;
-    let searchFlags;
-    [searchValue, searchFlags] = _getRegEx(regex);
-    let regexp = new RegExp(searchValue, searchFlags);
     let headerValue = aMsgHdr.getStringProperty(headerName);
-    return regexp.test(headerValue) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+    return _getRegEx(regex).test(headerValue) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
   let dayTime = new customerTermBase("dayTime", [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter]);
@@ -166,21 +167,15 @@ function _getRegEx(aSearchValue) {
   
   let fromRegex = new customerTermBase("fromRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   fromRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let searchValue, searchFlags;
-    [searchValue, searchFlags] = _getRegEx(aSearchValue);
-    let regexp = new RegExp(searchValue, searchFlags);
-    return regexp.test(aMsgHdr.mime2DecodedAuthor) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+    return _getRegEx(aSearchValue).test(aMsgHdr.mime2DecodedAuthor) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
   
   let toRegex = new customerTermBase("toRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
   toRegex.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let searchValue, searchFlags;
-    [searchValue, searchFlags] = _getRegEx(aSearchValue);
-    let regexp = new RegExp(searchValue, searchFlags);
     // https://bugzilla.mozilla.org/show_bug.cgi?id=522886
     // parseMailAddresses will do mimeDecode
     let to = aMsgHdr.mime2DecodedTo ? aMsgHdr.mime2DecodedRecipients : GlodaUtils.parseMailAddresses([aMsgHdr.recipients, aMsgHdr.ccList, aMsgHdr.bccList].join(', ')).fullAddresses.join(', ');
-    return regexp.test(to) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
+    return _getRegEx(aSearchValue).test(to) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
   let toSomebodyOnly = new customerTermBase("toSomebodyOnly", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
@@ -202,13 +197,10 @@ function _getRegEx(aSearchValue) {
 // https://bugzilla.mozilla.org/show_bug.cgi?id=858337 - Implement header parsing in JSMime 
 // https://bugzilla.mozilla.org/show_bug.cgi?id=790855 - Make the new MIME parser charset-aware 
   let emitter = function(msgData, aSearchValue, nameId) {
-    let searchValue, searchFlags, regexp;
+    let searchValue, regexp;
     let attachmentSearch = ( nameId == "attachmentNameOrType" );
     if ( attachmentSearch ) searchValue = aSearchValue.toLowerCase();
-    else {
-      [searchValue, searchFlags] = _getRegEx(aSearchValue);
-      regexp = new RegExp(searchValue, searchFlags);
-    }
+    else regexp = _getRegEx(aSearchValue);
     let rfc822Parts = {}, contentDict = {}, bodyParts = {};
     let me = this;
     me.found = false;
@@ -244,8 +236,10 @@ function _getRegEx(aSearchValue) {
           if ( me.found && me.haveAttachment ) return;
           for ( let disposition of (headers.get('content-disposition') || []) ) {
             // check header filename
+            ExpressionSearchLog.logObject(disposition, 'disposition', 2);
             let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
-            let dispositionObject = MimeParser.parseHeaderField(newDisposition, 0x02, '');
+            ExpressionSearchLog.logObject(newDisposition, 'newDisposition', 2);
+            let dispositionObject = MimeParser.parseHeaderField(disposition, MimeParser.HEADER_PARAMETER|MimeParser.HEADER_OPTION_ALL_I18N, '');
             ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
             if ( 'preSemi' in dispositionObject && dispositionObject.preSemi == 'attachment' ) me.haveAttachment = true;
             if ( dispositionObject.has('filename') ) {
@@ -280,7 +274,7 @@ function _getRegEx(aSearchValue) {
           for ( let type of (headers.get('content-type') || []) ) {
             // check header type & name
             let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-            let typeObject = MimeParser.parseHeaderField(newType, 0x02, '');
+            let typeObject = MimeParser.parseHeaderField(newType, MimeParser.HEADER_PARAMETER, '');
             ExpressionSearchLog.logObject(typeObject, 'content-type', 2);
             for ( let item of typeObject ) {
               if ( typeof(item) == 'string' ) {
@@ -305,7 +299,7 @@ function _getRegEx(aSearchValue) {
           for ( let disposition of (headers.get('content-disposition') || []) ) {
             // check header filename
             let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
-            let dispositionObject = MimeParser.parseHeaderField(newDisposition, 0x02, '');
+            let dispositionObject = MimeParser.parseHeaderField(newDisposition, MimeParser.HEADER_PARAMETER, '');
             ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
             for ( let item of dispositionObject ) {
               if ( typeof(item) == 'string' ) {
@@ -497,6 +491,7 @@ let ExperssionSearchFilter = {
           ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
           haveBodyMapping = {};
+          badREs = {};
           if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
         return;
@@ -904,14 +899,7 @@ let ExperssionSearchFilter = {
       else if ( e.tok == 'regex' || e.tok == 'bodyre' ) {
         op = is_not ? nsMsgSearchOp.DoesntMatch : nsMsgSearchOp.Matches;
         // check regex
-        let searchValue, searchFlags;
-        [searchValue, searchFlags] = _getRegEx(e.left.tok);
-        try {
-          let regexp = new RegExp(searchValue, searchFlags);
-        } catch (err) {
-          ExpressionSearchLog.log("Expression Search Caught Exception " + err.name + ":" + err.message + " with regex '" + e.left.tok + "'", 1);
-          return;
-        }
+        _getRegEx(e.left.tok);
       }
       
       this.addSearchTerm(aTermCreator, searchTerms, e.left.tok, attr, op, was_or);
