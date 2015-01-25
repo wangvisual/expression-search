@@ -1,6 +1,5 @@
 pref("extensions.expressionsearch.installed_version", "0.1");
 pref("extensions.expressionsearch.hide_normal_filer", true);
-pref("extensions.expressionsearch.hide_filter_label", false);
 pref("extensions.expressionsearch.results_label_size", 0); // 0: hide when on filter bar and vertical layout , 1: show 2: hide
 pref("extensions.expressionsearch.act_as_normal_filter", true);
 pref("extensions.expressionsearch.reuse_existing_folder", false);
@@ -20,3 +19,4 @@ pref("extensions.expressionsearch.c2s_enableCtrlReplace", true);
 pref("extensions.expressionsearch.c2s_enableShiftReplace", false);
 pref("extensions.expressionsearch.c2s_regexpMatch", "");
 pref("extensions.expressionsearch.c2s_regexpReplace", "");
+pref("extensions.expressionsearch.c2s_removeDomainName", true);
