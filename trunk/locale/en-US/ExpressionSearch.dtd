@@ -17,10 +17,10 @@
 
 <!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
 <!ENTITY expressionsearch.option.act_as_normal_filter "Act as Normal Filter when no tokens found in search string">
-<!ENTITY expressionsearch.option.hidelabel "Hide string 'Quick Filter' to get more space">
 <!ENTITY expressionsearch.option.showbuttonlabel.auto "Automatically show/hide">
 <!ENTITY expressionsearch.option.showbuttonlabel.show "Always show">
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "Always hide">
+<!ENTITY expressionsearch.option.showbuttonlabel.hideall "Always hide icons &amp; the">
 <!ENTITY expressionsearch.option.showbuttonlabel "text label of 'Quick Filter' buttons">
 <!ENTITY expressionsearch.option.results_label_size.before "">
 <!ENTITY expressionsearch.option.results_label_size.auto "While in vertical layout and expression search in QuickSearchBar, minimum the">
@@ -44,13 +44,15 @@
 <!ENTITY expressionsearch.option.c2s_enableShift "Enable Shift+RightClick for Searching">
 <!ENTITY expressionsearch.option.c2s_enableCtrlReplace "Use subject replace for Ctrl Combo">
 <!ENTITY expressionsearch.option.c2s_enableShiftReplace "Use subject replace for Shift Combo">
+<!ENTITY expressionsearch.option.c2s_removeDomainName "Remove Domain Name for all email addresses">
 
 <!ENTITY expressionsearch.dialog.title "Expression Search Options">
 <!ENTITY expressionsearch.dialog.settings "Settings">
 <!ENTITY expressionsearch.dialog.move2bar "Move Expression Search To">
 <!ENTITY expressionsearch.dialog.move2quicksearchbar "QuickSearchBar">
-<!ENTITY expressionsearch.dialog.move2toolbar "ToolBar">
-<!ENTITY expressionsearch.dialog.move2menubar "Menubar">
+<!ENTITY expressionsearch.dialog.move2toolbar "Mail Toolbar">
+<!ENTITY expressionsearch.dialog.move2menubar "Menu Bar">
+<!ENTITY expressionsearch.dialog.move2tabbar "Tab Bar">
 <!ENTITY expressionsearch.dialog.searchmoreheaders "Search More Headers:">
 <!ENTITY expressionsearch.dialog.searchmoreheaderstooltip "The following headers can be searched for new emails or after repair mail folder:">
 <!ENTITY expressionsearch.dialog.c2s_settings "Click2Search Settings">

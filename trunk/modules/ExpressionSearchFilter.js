@@ -20,12 +20,9 @@ let hasJSMIME = 0;
 try {
   Cu.import("resource:///modules/mimeParser.jsm");
   Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
+  Cu.import("resource:///modules/jsmime.jsm"); // JSMIME 0.2
   hasJSMIME = 1;
-  try {
-    Cu.import("resource:///modules/jsmime.jsm"); // JSMIME 0.2
-    hasJSMIME = 2;
-  } catch (err) {}
-} catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 21 or later", 1); }
+} catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 31 or later", 1); }
 
 let Application = null;
 try {
@@ -211,149 +208,63 @@ function _getRegEx(aSearchValue) {
     // if not rfc822 default name is 1040 in mime.properties: 1040=Part %s
     // !external urlString.Append(".eml");
     // use munged_subject.eml when have subject && charset(https://bugzilla.mozilla.org/show_bug.cgi?id=674488), or "ForwardedMessage.eml", I just simulate this rule
-    if ( hasJSMIME == 2 ) { // JSMIME 0.2
-      me.startPart = function(partNum, headers) {
-        try {
-          ExpressionSearchLog.info("startPart for JSMIME 0.2:" + partNum);
-          //ExpressionSearchLog.logObject(headers,'headers',1);
-          let contentType = headers.get('content-type');
-          ExpressionSearchLog.logObject(contentType, 'contentType', 1);
-          contentDict[partNum] = contentType; // body need content type
-          if ( !attachmentSearch ) return;
-          if ( contentType ) {
-            if ( 'type' in contentType ) {
-              let type = contentType.type; // already lower-case
-              if ( type.indexOf(searchValue) != -1 ) me.found = true;
-              if ( type == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
-            }
-            if ( contentType.has('name') ) {
-              let name = contentType.get('name');
-              ExpressionSearchLog.info("attach name:" + name);
-              if ( name.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
-              me.haveAttachment = true;
-            }
+    me.startPart = function(partNum, headers) {
+      try {
+        let contentType = headers.get('content-type');
+        contentDict[partNum] = contentType; // body need content type
+        if ( !attachmentSearch ) return;
+        if ( contentType ) {
+          if ( 'type' in contentType ) {
+            let type = contentType.type; // already lower-case
+            if ( type.indexOf(searchValue) != -1 ) me.found = true;
+            if ( type == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
           }
-          if ( me.found && me.haveAttachment ) return;
-          for ( let disposition of (headers.get('content-disposition') || []) ) {
-            // check header filename
-            ExpressionSearchLog.logObject(disposition, 'disposition', 2);
-            let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
-            ExpressionSearchLog.logObject(newDisposition, 'newDisposition', 2);
-            let dispositionObject = MimeParser.parseHeaderField(disposition, MimeParser.HEADER_PARAMETER|MimeParser.HEADER_OPTION_ALL_I18N, '');
-            ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
-            if ( 'preSemi' in dispositionObject && dispositionObject.preSemi == 'attachment' ) me.haveAttachment = true;
-            if ( dispositionObject.has('filename') ) {
-              let filename = dispositionObject.get('filename');
-              ExpressionSearchLog.info("attach filename:" + filename);
-              if ( filename.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
-              me.haveAttachment = true;
-            }
-          }
-          if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
+          if ( contentType.has('name') ) {
+            let name = contentType.get('name');
+            ExpressionSearchLog.info("attach name:" + name);
+            if ( name.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
             me.haveAttachment = true;
-            let fakeName;
-            if ( headers.has('subject') /* charset? */ ) { // subject is Unstructured
-              let subject = headers.get('subject');
-              fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
-            }
-            if ( typeof(fakeName) == 'undefined' ) fakeName = "ForwardedMessage.eml";
-            if ( !fakeName.endsWith('.eml') ) fakeName += ".eml";
-            ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
-            if ( fakeName.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
           }
-        } catch(err) { ExpressionSearchLog.logException(err); }
-      }; // startPart
-    } else { // JSMIME 0.1
-      me.startPart = function(partNum, headers) {
-        try {
-          let charset = null;
-          ExpressionSearchLog.info("startPart:" + partNum);
-          //ExpressionSearchLog.logObject(headers,'headers',1);
-          ExpressionSearchLog.logObject(headers.get('content-type'),'headers.get("content-type")',1);
-          contentDict[partNum] = {};
-          for ( let type of (headers.get('content-type') || []) ) {
-            // check header type & name
-            let newType = MailServices.mimeConverter.decodeMimeHeader(type, null, false, false);
-            let typeObject = MimeParser.parseHeaderField(newType, MimeParser.HEADER_PARAMETER, '');
-            ExpressionSearchLog.logObject(typeObject, 'content-type', 2);
-            for ( let item of typeObject ) {
-              if ( typeof(item) == 'string' ) {
-                if ( !attachmentSearch ) {
-                  // simulate JSMIME 0.2
-                  [[contentDict[partNum].mediatype, contentDict[partNum].subtype], contentDict[partNum].type] = [item.split('/', 2), item];
-                } else {
-                  if ( item.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
-                  if ( item.toLowerCase() == 'message/rfc822' ) rfc822Parts[partNum+'$'] = 1;
-                }
-              } else { // Map
-                if ( attachmentSearch && ( 'name' in item ) ) {
-                  ExpressionSearchLog.info("attach name:" + item.name);
-                  if ( item.name.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
-                  me.haveAttachment = true;
-                }
-                if ( 'charset' in item ) contentDict[partNum].charset = charset = item.charset; // for munged_subject & body
-              }
-            }
-          }
-          if ( !attachmentSearch || ( me.found && me.haveAttachment ) ) return;
-          for ( let disposition of (headers.get('content-disposition') || []) ) {
-            // check header filename
-            let newDisposition = MailServices.mimeConverter.decodeMimeHeader(disposition, null, false, false);
-            let dispositionObject = MimeParser.parseHeaderField(newDisposition, MimeParser.HEADER_PARAMETER, '');
-            ExpressionSearchLog.logObject(dispositionObject, 'content-disposition', 2);
-            for ( let item of dispositionObject ) {
-              if ( typeof(item) == 'string' ) {
-                if ( item == 'attachment' ) me.haveAttachment = true;
-              } else {
-                if ( 'filename' in item ) {
-                  me.haveAttachment = true;
-                  ExpressionSearchLog.info("attach filename:" + item.filename);
-                  if ( item.filename.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
-                }
-              }
-            }
-          }
-          if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
+        }
+        if ( me.found && me.haveAttachment ) return;
+        for ( let disposition of (headers.get('content-disposition') || []) ) {
+          // check header filename
+          let dispositionObject = MimeParser.parseHeaderField(disposition, MimeParser.HEADER_PARAMETER|MimeParser.HEADER_OPTION_ALL_I18N, '');
+          if ( 'preSemi' in dispositionObject && dispositionObject.preSemi == 'attachment' ) me.haveAttachment = true;
+          if ( dispositionObject.has('filename') ) {
+            let filename = dispositionObject.get('filename');
+            ExpressionSearchLog.info("attach filename:" + filename);
+            if ( filename.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
             me.haveAttachment = true;
-            let fakeName;
-            if ( headers.has('subject') && charset ) {
-              for ( let subject of (headers.get('subject')) ) {
-                fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, charset, false, false).toLowerCase();
-                break;
-              }
-            }
-            if ( typeof(fakeName) == 'undefined' ) fakeName = "ForwardedMessage.eml";
-            if ( !fakeName.endsWith('.eml') ) fakeName += ".eml";
-            ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
-            if ( fakeName.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
           }
-        } catch(err) { ExpressionSearchLog.logException(err); }
-      }; // startPart
-    };
+        }
+        if ( !( me.found && me.haveAttachment ) && partNum in rfc822Parts ) {
+          me.haveAttachment = true;
+          let fakeName;
+          if ( headers.has('subject') /* charset? */ ) { // subject is Unstructured
+            let subject = headers.get('subject');
+            fakeName = MailServices.mimeConverter.decodeMimeHeader(subject, null, false, false).toLowerCase();
+          }
+          if ( typeof(fakeName) == 'undefined' ) fakeName = "ForwardedMessage.eml";
+          if ( !fakeName.endsWith('.eml') ) fakeName += ".eml";
+          ExpressionSearchLog.info("fake:" + fakeName + " match " + searchValue);
+          if ( fakeName.toLowerCase().indexOf(searchValue) != -1 ) me.found = true;
+        }
+      } catch(err) { ExpressionSearchLog.logException(err); }
+    }; // startPart
     
     me.deliverPartData = function(partNum, data) { // won't get called when bodyformat: 'none'
       try {
-        ExpressionSearchLog.info("deliverPartData: " + partNum);
-        //ExpressionSearchLog.logObject(data,'data',1);
         if ( me.found ) return;
         let contentType = contentDict[partNum];
-        ExpressionSearchLog.logObject(contentType,'contentType',1);
         if ( contentType && contentType.mediatype == 'text' ) bodyParts[partNum] = !( partNum in bodyParts ) ? data : bodyParts[partNum] + data;
       } catch(err) { ExpressionSearchLog.logException(err); }
     }; // deliverPartData
     me.endPart = function(partNum) {
       try {
-        ExpressionSearchLog.info("endPart: " + partNum);
         if ( me.found || attachmentSearch ) return;
         let contentType = contentDict[partNum], body = bodyParts[partNum];
         if ( ( partNum in bodyParts ) && contentType && contentType.mediatype == 'text' ) {
-          if ( hasJSMIME == 1 && contentType.charset ) {
-            let typedarray = new Uint8Array(body.length);
-            for (let i = 0; i < body.length; i++) typedarray[i] = body.charCodeAt(i);
-            let decoder = new TextDecoder(contentType.charset);
-            body = decoder.decode(typedarray);
-          }
-          ExpressionSearchLog.logObject(body,'body',0);
           if ( contentType.subtype != 'plain' ) {
             // test against html && strip && test again
             me.found = regexp.test(body);
@@ -361,7 +272,6 @@ function _getRegEx(aSearchValue) {
               let parserUtils = Cc["@mozilla.org/parserutils;1"].getService(Ci.nsIParserUtils);
               let plainText = parserUtils.convertToPlainText(body, 
                 Ci.nsIDocumentEncoder.OutputLFLineBreak | Ci.nsIDocumentEncoder.OutputNoScriptContent | Ci.nsIDocumentEncoder.OutputNoFramesContent | Ci.nsIDocumentEncoder.OutputBodyOnly, 0);
-              ExpressionSearchLog.logObject(plainText,'plainText',0);
               me.found = regexp.test(plainText);
             }
           } else me.found = regexp.test(body);
@@ -380,7 +290,6 @@ function _getRegEx(aSearchValue) {
     customerTermBase.call(self, nameId, Operators);
     self.needsBody = true;
     self.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-      ExpressionSearchLog.info("msg subject:" + aMsgHdr.mime2DecodedSubject);
       let folder = aMsgHdr.folder;
       try {
         if ( folder.getMsgInputStream && ( ( aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline ) || folder instanceof Ci.nsIMsgLocalMailFolder ) ) {
@@ -406,7 +315,7 @@ function _getRegEx(aSearchValue) {
     return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
   });
 
-  let bodyRegex = new customerTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch], 'body', function(emitterInstance, aSearchOp) {
+  let bodyRegex = new bodyTermBase("bodyRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch], function(emitterInstance, aSearchOp) {
     return emitterInstance.found ^ (aSearchOp == nsMsgSearchOp.DoesntMatch);
   });
 

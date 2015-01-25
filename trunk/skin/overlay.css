@@ -58,13 +58,17 @@
   color: #f66;
 }
 
-/* force show or hide button text */
+/* force show or hide button & it's text */
 #quick-filter-bar-collapsible-buttons.hidelabel toolbarbutton label.toolbarbutton-text {
   display: none;
 }
 
 #quick-filter-bar-collapsible-buttons.showlabel toolbarbutton label.toolbarbutton-text {
   display: inline;
+}
+
+#quick-filter-bar-collapsible-buttons.hideall, #qfb-filter-bar-spacer.hideall {
+  display: none;
 }
 
 /* if the width is not enough, make others more flexiable to make my box shown */

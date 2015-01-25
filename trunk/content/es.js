@@ -67,8 +67,9 @@ let ExpressionSearchChrome = {
     this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
     this.prefs.addObserver("", this, false);
     try {
-      ["hide_normal_filer", "hide_filter_label", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime",
-       "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace", "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
+      ["hide_normal_filer", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar",
+       "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime", "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace",
+       "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "c2s_removeDomainName", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
         ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
       } );
     } catch ( err ) {
@@ -83,7 +84,6 @@ let ExpressionSearchChrome = {
     }
     switch(data) {
       case "hide_normal_filer":
-      case "hide_filter_label":
       case "act_as_normal_filter":
       case "reuse_existing_folder":
       case "load_virtual_folder_in_tab":
@@ -92,12 +92,13 @@ let ExpressionSearchChrome = {
       case "c2s_enableShift":
       case "c2s_enableCtrlReplace":
       case "c2s_enableShiftReplace":
+      case "c2s_removeDomainName":
       case "enable_statusbar_info":
       case "enable_verbose_info":
         this.options[data] = this.prefs.getBoolPref(data);
         break;
-      case "move2bar": // 0:keep, 1:toolbar, 2:menubar
-      case "showbuttonlabel": // 0:auto 1:force show 2:force hide
+      case "move2bar": // 0:keep, 1:toolbar, 2:menubar 3: tabbar
+      case "showbuttonlabel": // 0:auto 1:force show 2:force hide 3:hide label & button
       case "statusbar_info_showtime":
       case "statusbar_info_hidetime":
       case "results_label_size": // 0: hide when on filter bar and vertical layout , 1: show 2: hide
@@ -112,7 +113,7 @@ let ExpressionSearchChrome = {
     }
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
     if ( !this.isInited ) return;
-    if ( ['hide_normal_filer', 'hide_filter_label', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
+    if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
       this.refreshFilterBar();
   },
 
@@ -230,10 +231,6 @@ let ExpressionSearchChrome = {
     }
     if ( filterNode && ExpressionSearchChrome.options.hide_normal_filer ) // hide normal filter, so reset it
       filterNode.value = '';
-    let filterLabel = document.getElementById('qfb-filter-label');
-    if ( filterLabel && filterLabel.style ) {
-      filterLabel.style.display = this.options.hide_filter_label ? 'none' : '';
-    }
 
     // move expression search box along with other buttons to dest position
     if ( this.options.move2bar != this.options.savedPosition ) {
@@ -247,6 +244,10 @@ let ExpressionSearchChrome = {
         reference = document.getElementById('qfb-show-filter-bar');
       } else if ( this.options.move2bar == 2 )
         dest = 'mail-toolbar-menubar2';
+      else if ( this.options.move2bar == 3 ) {
+        dest = 'tabs-toolbar';
+        reference = document.getElementById('tabbar-toolbar');
+      }
       let toolbar = document.getElementById(dest);
       let needMove = document.getElementById(ExpressionSearchChrome.needMoveId);
       toolbar.insertBefore(needMove.parentNode.removeChild(needMove), reference);
@@ -281,10 +282,15 @@ let ExpressionSearchChrome = {
     if ( collapsible && collapsible.classList ) {
       collapsible.classList.remove("hidelabel");
       collapsible.classList.remove("showlabel");
+      collapsible.classList.remove("hideall");
+      if ( spacer ) spacer.classList.remove("hideall");
       if ( this.options.showbuttonlabel == 1 ) {
         collapsible.classList.add("showlabel");
       } else if ( this.options.showbuttonlabel == 2 ) {
         collapsible.classList.add("hidelabel");
+      } else if  ( this.options.showbuttonlabel == 3 ) {
+        collapsible.classList.add("hideall");
+        if ( spacer ) spacer.classList.add("hideall");
       } else if ( this.options.showbuttonlabel == 0 ) {
         // auto show/hide collapsible buttons
         if ( QuickFilterBarMuxer._buttonLabelsCollapsed ) {
@@ -655,25 +661,19 @@ let ExpressionSearchChrome = {
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
            let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
            let treeView = treeBox.view;
-           if (Components.interfacesByID["{C06DC4D3-63A2-4422-A0A3-5F2EDDECA8C1}"]) { // < TB22
-             var property = me.Cc["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-             var atomIn = me.Cc["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService).getAtom('in');
-             treeView.getCellProperties(row.value, col.value, property);
-             token = property.GetIndexOf(atomIn) >= 0 ? "f" : "t";
-           } else {
-             token = treeView.getCellProperties(row.value, col.value).indexOf("in") >= 0 ? "f" : "t";
-           }
+           token = treeView.getCellProperties(row.value, col.value).indexOf("in") >= 0 ? "f" : "t";
          }
          let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
          let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
          sCellText = addressesFromHdr.addresses.map( function(address,index) {
            let ret = address;
-           if ( typeof(addressesFromHdr.fullAddresses[index]) != 'undefined' && typeof(addressesFromCell.addresses[index]) != 'undefined' ) {
-             addressesFromCell.addresses[index] = addressesFromCell.addresses[index].replace(/['"<>]/g,'');
-             if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( addressesFromCell.addresses[index].toLowerCase() ) != -1)
-               ret = addressesFromCell.addresses[index]; // if display name is part of full address, then use display name
+           if ( addressesFromHdr.fullAddresses[index] && addressesFromCell.names[index] ) {
+             addressesFromCell.names[index] = addressesFromCell.names[index].replace(/['"<>]/g,'');
+             if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( addressesFromCell.names[index].toLowerCase() ) != -1)
+               ret = addressesFromCell.names[index]; // if display name is part of full address, then use display name
            }
-           return ret.replace(/(.*)@.*/, '$1'); // use mail ID only if it's an email address.
+           if ( !me.options.c2s_removeDomainName ) return ret;
+           return ret.replace(/(.*)@.*/, '$1'); // use mail ID only if it's an email address and c2s_removeDomainName.
          } ).join(' and ');
          if ( addressesFromHdr.count > 1 ) sCellText = "(" + sCellText + ")";
          break;

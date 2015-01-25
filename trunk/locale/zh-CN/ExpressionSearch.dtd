@@ -17,10 +17,10 @@
 
 <!ENTITY expressionsearch.option.hidenormal "隐藏'过滤这些消息...'输入框">
 <!ENTITY expressionsearch.option.act_as_normal_filter "当被搜索字符串中没有表达式搜索的命令时，弹出选择框">
-<!ENTITY expressionsearch.option.hidelabel "隐藏 '快速过滤' 字符串以得到更多空间">
 <!ENTITY expressionsearch.option.showbuttonlabel.auto "自动显示或隐藏">
 <!ENTITY expressionsearch.option.showbuttonlabel.show "总是显示">
 <!ENTITY expressionsearch.option.showbuttonlabel.hide "总是不显示">
+<!ENTITY expressionsearch.option.showbuttonlabel.hideall "总是不显示图标和">
 <!ENTITY expressionsearch.option.showbuttonlabel " '快速搜索条' 按钮的文字">
 <!ENTITY expressionsearch.option.results_label_size.before "当没有搜索">
 <!ENTITY expressionsearch.option.results_label_size.auto "且雷鸟处于垂直拆分并且表达式搜索框处于快速搜索栏时最小化'搜索结果'的">
@@ -44,6 +44,7 @@
 <!ENTITY expressionsearch.option.c2s_enableShift "邮件列表中按 Shift+鼠标右键 执行搜索">
 <!ENTITY expressionsearch.option.c2s_enableCtrlReplace "Ctrl组合搜索时使用下面的替换">
 <!ENTITY expressionsearch.option.c2s_enableShiftReplace "Shift组合搜索时使用下面的替换">
+<!ENTITY expressionsearch.option.c2s_removeDomainName "删除所有邮件地址里的域名">
 
 <!ENTITY expressionsearch.dialog.title "Expression Search 首选项">
 <!ENTITY expressionsearch.dialog.settings "设置">
@@ -51,6 +52,7 @@
 <!ENTITY expressionsearch.dialog.move2quicksearchbar "快速搜索栏">
 <!ENTITY expressionsearch.dialog.move2toolbar "工具栏">
 <!ENTITY expressionsearch.dialog.move2menubar "菜单栏">
+<!ENTITY expressionsearch.dialog.move2tabbar "标签栏">
 <!ENTITY expressionsearch.dialog.searchmoreheaders "搜索更多的邮件头:">
 <!ENTITY expressionsearch.dialog.searchmoreheaderstooltip "新加的邮件头只能用于搜索新的邮件，或者您可以修复邮件夹:">
 <!ENTITY expressionsearch.dialog.c2s_settings "设置点击搜索">

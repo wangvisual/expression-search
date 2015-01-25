@@ -15,8 +15,7 @@
   <preferences>
     <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool" instantApply="true"/>
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
-    <preference id="pref_nolabel" name="extensions.expressionsearch.hide_filter_label" type="bool" instantApply="true"/>
-    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
+        <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
     <preference id="pref_results_label_size" name="extensions.expressionsearch.results_label_size" type="int" instantApply="true"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="perf_vf_intab" name="extensions.expressionsearch.load_virtual_folder_in_tab" type="bool"/>
@@ -28,6 +27,7 @@
     <preference id="pref_c2s_enableShiftReplace" name="extensions.expressionsearch.c2s_enableShiftReplace" type="bool"/>
     <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
     <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
+    <preference id="pref_c2s_removeDomainName" name="extensions.expressionsearch.c2s_removeDomainName" type="bool"/>
     <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
     <preference id="pref_enable_statusbar_info" name="extensions.expressionsearch.enable_statusbar_info" type="bool"/>
     <preference id="pref_statusbar_info_showtime" name="extensions.expressionsearch.statusbar_info_showtime" type="int"/>
@@ -43,7 +43,6 @@
       <vbox>
         <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
         <checkbox preference="pref_act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
-        <checkbox preference="pref_nolabel" label="&expressionsearch.option.hidelabel;"/>
         <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
         <hbox>
           <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
@@ -73,6 +72,7 @@
               <menuitem label="&expressionsearch.option.showbuttonlabel.auto;" value="0"/>
               <menuitem label="&expressionsearch.option.showbuttonlabel.show;" value="1"/>
               <menuitem label="&expressionsearch.option.showbuttonlabel.hide;" value="2"/>
+              <menuitem label="&expressionsearch.option.showbuttonlabel.hideall;" value="3"/>
             </menupopup>
           </menulist>
           <text value='&expressionsearch.option.showbuttonlabel;' />
@@ -111,6 +111,7 @@
           <radio id="expressionsearch_move2nowhere" label="&expressionsearch.dialog.move2quicksearchbar;" value="0"/>
           <radio id="expressionsearch_move2toolbar" label="&expressionsearch.dialog.move2toolbar;" value="1"/>
           <radio id="expressionsearch_move2menubar" label="&expressionsearch.dialog.move2menubar;" value="2"/>
+          <radio id="expressionsearch_move2menubar" label="&expressionsearch.dialog.move2tabbar;" value="3"/>
         </hbox>
       </radiogroup>
     </groupbox>
@@ -154,6 +155,7 @@
             </row>
           </rows>
         </grid>
+        <checkbox preference="pref_c2s_removeDomainName" label="&expressionsearch.option.c2s_removeDomainName;"/>
     </groupbox>
 
     <groupbox flex="1" id="expressionsearch-pane-help">
