@@ -720,6 +720,12 @@ let ExpressionSearchChrome = {
       // On Mac, contextmenu is fired before onclick, thus even break onclick  still has context menu
       threadPane.addEventListener("contextmenu", me.onContextMenu, true);
     }
+    // Fix tooltip background color issue on Ubuntu
+    let tooltip = document.getElementById("expression-search-tooltip");
+    if ( tooltip && tooltip.classList ) {
+      let color = window.getComputedStyle(tooltip, null).getPropertyValue("background-color"); // string: rgb(255, 255, 225)
+      if ( color == 'rgb(0, 0, 0)' ) tooltip.classList.add("forceInfo");
+    }
       
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded

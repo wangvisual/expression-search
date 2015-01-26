@@ -9,6 +9,12 @@
   font-size: large;
 }
 
+/* InfoBackground, the CSS2 color was deprecated, will cause black ground in Ubuntu */
+#expression-search-tooltip.forceInfo {
+  background-color: #ffffe1 !important;
+  -moz-appearance: none !important;
+}
+
 .tooltip-token {
   font-weight: bold;
   color: green;
