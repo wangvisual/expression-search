@@ -16,8 +16,8 @@ var ExpressionSearchCommon = {
       return url+anchor;
     }
   },
-  loadURL: function(url) { // not support html anchor
-    Services.ww.openWindow(null, ExpressionSearchCommon.translateURL(url), null, "chrome=no,menubar=no,status=no,location=no,resizable,scrollbars,centerscreen", null);
+  loadURL: function(url, name = null, additional = '') { // not support html anchor
+    let win = Services.ww.openWindow(null, ExpressionSearchCommon.translateURL(url), name, "chrome=no,menubar=no,status=no,location=no,resizable,scrollbars,centerscreen" + additional, null);
   },
   loadInTopWindow: function(url,anchor) {
     //openDialog will open another top window

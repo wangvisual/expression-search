@@ -54,7 +54,7 @@ let ExpressionSearchLog = {
       Services.console.logMessage(scriptError);
     }
     if (popup) {
-      if ( typeof(popup) == 'number' ) popup = 'Warning!';
+      if ( typeof(popup) != 'string' ) popup = 'Warning!';
       this.popup(popup,msg);
     }
   },
