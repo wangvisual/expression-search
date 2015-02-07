@@ -19,7 +19,7 @@
   <statusbar id="status-bar">
     <tooltip id="expression-search-tooltip" orient="vertical" style="white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ">
       <description id="expression-search-tooltip-line1" class="tooltip-token">&expressionsearch.tooltip.helpLine1;</description>
-      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info">&expressionsearch.tooltip.helpLine2;</description></hbox>
+      <hbox><label value="    "/><description id="expression-search-tooltip-line2" class="tooltip-info" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help');">&expressionsearch.tooltip.helpLine2;</description></hbox>
       <description id="expression-search-tooltip-line3" class="tooltip-match"> </description>
       <description id="expression-search-tooltip-line4" class="tooltip-term"> </description>
     </tooltip>
@@ -30,7 +30,7 @@
           <menuitem label="about:memory" class="menuitem-iconic" oncommand="ExpressionSearchCommon.loadURL('about:memory?verbose');"/>
           <menuseparator/> <!-- items before seprator and the seprator it self will only shown if verbose -->
           <menuitem label="&expressionsearch.dialog.settings;" class="menuitem-iconic" image="chrome://messenger/skin/accountcentral/account-settings.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul');"/>
-          <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://global/skin/icons/question-64.png" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile');"/>
+          <menuitem label="&expressionsearch.option.help;" class="menuitem-iconic" image="chrome://global/skin/icons/question-64.png" oncommand="ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help');"/>
           <menuitem label="&expressionsearch.menu.donate.label;" class="menuitem-iconic" image="&expressionsearch.menu.donate.image;" oncommand="ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;');"/>
           <menuitem label="&about.about;" class="menuitem-iconic" image="chrome://expressionsearch/skin/statusbar_icon.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul');"/>
        </menupopup>
