@@ -167,7 +167,12 @@
           <image style="cursor:pointer;" src="donate-with-alipay.png" onclick="ExpressionSearchCommon.loadDonate('alipay');" />
         </hbox>
         <label/>
-        <hbox><label class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help');"/><label/> <label class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/><label/><label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/></hbox>
+        <hbox>
+          <label class='textlink' value="&expressionsearch.option.help;" onclick="ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help');"/><label/>
+          <label class='textlink' value="&expressionsearch.option.issues;" onclick="ExpressionSearchCommon.loadUseProtocol('https://github.com/wangvisual/expression-search/issues');"/><label/>
+          <label class='textlink' value="&expressionsearch.option.email;" onclick="ExpressionSearchCommon.sendEmailWithTB('mailto:opera.wang+es@gmail.com?subject=About%20Expression%20Search');"/><label/>
+          <label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/>
+        </hbox>
       </vbox>
     </groupbox>
   </vbox>

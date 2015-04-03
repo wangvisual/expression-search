@@ -38,6 +38,7 @@
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "当按下Ctrl+Enter键时，在下面目录里创建或更新ExpressionSearch虚拟目录:">
 <!ENTITY expressionsearch.option.use_root_folder "当前目录的根目录">
 <!ENTITY expressionsearch.option.help "帮助">
+<!ENTITY expressionsearch.option.issues "报告软件错误或者问题">
 <!ENTITY expressionsearch.option.email "给作者发邮件">
 <!ENTITY expressionsearch.option.crash "查看雷鸟崩溃报告">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "邮件列表中按 Ctrl+鼠标右键 执行搜索">

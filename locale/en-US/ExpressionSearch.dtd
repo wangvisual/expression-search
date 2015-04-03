@@ -38,6 +38,7 @@
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
 <!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
 <!ENTITY expressionsearch.option.help "Help">
+<!ENTITY expressionsearch.option.issues "File a bug report">
 <!ENTITY expressionsearch.option.email "Send Email to author">
 <!ENTITY expressionsearch.option.crash "Crash Reports">
 <!ENTITY expressionsearch.option.c2s_enableCtrl "Enable Ctrl+RightClick for Searching">
