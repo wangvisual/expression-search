@@ -236,6 +236,8 @@ let ExpressionSearchChrome = {
     if ( this.options.move2bar != this.options.savedPosition ) {
       this.options.savedPosition = this.options.move2bar;
       let dest = 'quick-filter-bar';
+      let qfb = document.getElementById(dest);
+      qfb.style.display = this.options.move2bar ? 'none' : ''; // hide the qfb bar when move the elements to other places
       let reference = null;
       if ( this.options.move2bar == 0 )
         reference = document.getElementById("quick-filter-bar-expando");
