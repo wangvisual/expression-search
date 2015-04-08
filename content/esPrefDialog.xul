@@ -164,7 +164,7 @@
         <hbox>
           <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('mozilla');" />
           <label value="               " flex="100"/>
-          <image style="cursor:pointer;" src="donate-with-alipay.png" onclick="ExpressionSearchCommon.loadDonate('alipay');" />
+          <image style="cursor:pointer;" src="donate-with-alipay.png" tooltip='expressionsearch-perfDialogAlipayDonate' onclick="ExpressionSearchCommon.loadDonate('alipay');" />
         </hbox>
         <label/>
         <hbox>
@@ -176,6 +176,12 @@
       </vbox>
     </groupbox>
   </vbox>
+  
+  <popupset>
+    <tooltip id="expressionsearch-perfDialogAlipayDonate">
+      <image src="qr-alipay.png"/>
+    </tooltip>
+  </popupset>
 </prefpane>
 <!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>

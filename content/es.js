@@ -658,10 +658,12 @@ let ExpressionSearchChrome = {
          if ( token == "" ) token = "t";
          //break;
        case "sio_inoutaddressCol": //showInOut support
+       case "correspondentCol": // https://bugzilla.mozilla.org/show_bug.cgi?id=36489
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
            let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
            let treeView = treeBox.view;
-           token = treeView.getCellProperties(row.value, col.value).indexOf("in") >= 0 ? "f" : "t";
+           let properties = treeView.getCellProperties(row.value, col.value).split(/ +/); // ['incoming', 'imap', 'read', 'replied', 'offline']
+           token = ( properties.indexOf("in") >= 0 || properties.indexOf("incoming") >= 0 ) ? "f" : "t";
          }
          let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
          let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
