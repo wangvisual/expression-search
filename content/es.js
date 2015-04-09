@@ -237,7 +237,8 @@ let ExpressionSearchChrome = {
       this.options.savedPosition = this.options.move2bar;
       let dest = 'quick-filter-bar';
       let qfb = document.getElementById(dest);
-      qfb.style.display = this.options.move2bar ? 'none' : ''; // hide the qfb bar when move the elements to other places
+      if ( this.options.move2bar ) qfb.classList.add('resetHeight'); // hide the qfb bar when move the elements to other places
+      else qfb.classList.remove('resetHeight');
       let reference = null;
       if ( this.options.move2bar == 0 )
         reference = document.getElementById("quick-filter-bar-expando");
@@ -728,9 +729,9 @@ let ExpressionSearchChrome = {
     let tooltip = document.getElementById("expression-search-tooltip");
     if ( tooltip && tooltip.classList ) {
       let color = window.getComputedStyle(tooltip, null).getPropertyValue("background-color"); // string: rgb(255, 255, 225)
-      if ( color == 'rgb(0, 0, 0)' ) tooltip.classList.add("forceInfo");
+      if ( color == 'transparent' ) tooltip.classList.add("forceInfo");
     }
-      
+
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
     try {
