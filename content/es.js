@@ -704,12 +704,12 @@ let ExpressionSearchChrome = {
   },
   
   firstRunAction: function() {
-    let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
-    str.data = this.options.current_version; 
-    this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str); // must before loadTab
     let anchor = '';
     if ( this.options.installed_version != "0.1" ) anchor = '#version_history'; // this is an update
     let firstRun = Services.vc.compare( this.options.current_version, this.options.installed_version );
+    let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
+    str.data = this.options.current_version;
+    this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str); // must before loadTab
     if ( firstRun > 0 ) { // first for this version
       ExpressionSearchCommon.loadTab('expressionsearch.helpfile', anchor);
     }
