@@ -524,7 +524,7 @@ let ExpressionSearchChrome = {
   // select first message, expand first container if closed
   selectFirstMessage: function(needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
     if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
-      let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
+      let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBox_Object <= addon validator warning with comments
       let treeView = treeBox.view; //nsITreeView
       let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
       if ( ExpressionSearchChrome.textBoxNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
@@ -663,7 +663,7 @@ let ExpressionSearchChrome = {
        case "sio_inoutaddressCol": //showInOut support
        case "correspondentCol": // https://bugzilla.mozilla.org/show_bug.cgi?id=36489
          if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
-           let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBoxObject
+           let treeBox = gFolderDisplay.tree.treeBoxObject;
            let treeView = treeBox.view;
            let properties = treeView.getCellProperties(row.value, col.value).split(/ +/); // ['incoming', 'imap', 'read', 'replied', 'offline']
            token = ( properties.indexOf("in") >= 0 || properties.indexOf("incoming") >= 0 ) ? "f" : "t";
