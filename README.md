@@ -7,10 +7,10 @@ Powerful message searching through expressions. Type "from:fred to:tom" to see a
 The Addon can be installed from AMO:
 https://addons.mozilla.org/en-US/thunderbird/addon/gmailui/
 
-The document for latest version can be found at:
+Documentation for the latest version can be found at:
 https://cdn.rawgit.com/wangvisual/expression-search/master/content/help.html
 
-The document for original version (0.1~0.6) can be found at:
+Documentation for the original version (0.1~0.6) can be found at:
 http://sites.google.com/site/kmixter/gmailui
 
 
