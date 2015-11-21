@@ -3,11 +3,7 @@
 // GPL V3 / MPL
 "use strict";
 
-if ( typeof(ExpressionSearchChrome) != 'undefined' ) {
-  throw "Expression Search already defined";
-}
-
-let ExpressionSearchChrome = {
+var ExpressionSearchChrome = {
   // inited, also used as ID for the instance
   isInited:0,
 

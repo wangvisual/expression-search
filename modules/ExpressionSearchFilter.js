@@ -108,7 +108,6 @@ function _getRegEx(aSearchValue) {
   let subjectSimple = new customerTermBase("subjectSimple", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   subjectSimple.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     return (aMsgHdr.mime2DecodedSubject.indexOf(aSearchValue) != -1) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
-    return !res;
   };
   
   let headerRegex = new customerTermBase("headerRegex", [nsMsgSearchOp.Matches, nsMsgSearchOp.DoesntMatch]);
@@ -484,7 +483,7 @@ let ExperssionSearchFilter = {
     let ExpressionSearchChrome = {};
     if ( aDocument && aDocument.defaultView && aDocument.defaultView.window && aDocument.defaultView.window.ExpressionSearchChrome )
       ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
-    if ( ExpressionSearchChrome ) ExpressionSearchChrome.showHideHelp(false);
+    if ( ExpressionSearchChrome.showHideHelp ) ExpressionSearchChrome.showHideHelp(false);
     
     let total = Object.keys(haveBodyMapping).length;
     if ( total && aNode.value != '' ) {
@@ -511,7 +510,7 @@ let ExperssionSearchFilter = {
     if (panel.state != "closed")
       panel.hidePopup();
 
-    ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
+    if ( ExpressionSearchChrome.selectFirstMessage ) ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
   },
 
   postFilterProcess: function(aState, aViewWrapper, aFiltering) {
@@ -798,7 +797,7 @@ let ExperssionSearchFilter = {
           e.left.tok = size * scale;
         }
       }
-      else if (e.tok == 'size' || e.tok == 'smaller') ;
+      // else if (e.tok == 'size' || e.tok == 'smaller') ;
       if (e.tok == 'attachment' || e.tok == 'status')
         op = is_not ? nsMsgSearchOp.Isnt : nsMsgSearchOp.Is;
       else if ( e.tok == 'date' || e.tok == 'headerre' )
