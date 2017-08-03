@@ -52,7 +52,7 @@ var ExpressionSearchChrome = {
     this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
     this.Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
     this.Cu.import("resource://gre/modules/AddonManager.jsm");
-    // need to know whehter gloda enabled
+    // need to know whether gloda enabled
     this.Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
     //Cu.import("resource:///modules/gloda/msg_search.js");
@@ -186,6 +186,7 @@ var ExpressionSearchChrome = {
   unregister: function() {
     ExpressionSearchLog.info("Expression Search: unload...");
     let me = ExpressionSearchChrome;
+    if ( !me.isInited ) return;
     me.prefs.removeObserver("", me);
     let aNode = me.textBoxNode;
     if ( aNode && aNode.removeEventListener ) {
@@ -714,6 +715,7 @@ var ExpressionSearchChrome = {
   initAfterLoad: function() {
     let me = ExpressionSearchChrome;
     window.removeEventListener("load", me.initAfterLoad, false);
+    if ( !me.isInited ) return;
     me.initSearchInput.apply(me);
     me.refreshFilterBar();
     let threadPane = document.getElementById("threadTree");

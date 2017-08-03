@@ -9,7 +9,7 @@ var EXPORTED_SYMBOLS = ["ExperssionSearchFilter"];
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
 Cu.import("resource://expressionsearch/log.js");
-Cu.import("resource://gre/modules/quickFilterManager.js");
+Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("resource://expressionsearch/gmailuiParse.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");

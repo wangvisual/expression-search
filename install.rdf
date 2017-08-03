@@ -5,7 +5,7 @@
     <em:type>2</em:type>
     <em:name>Expression Search / Google Mail UI</em:name>
     <em:homepageURL>https://github.com/wangvisual/expression-search</em:homepageURL>
-    <em:version>1.0</em:version>
+    <em:version>1.1beta</em:version>
     <em:creator>Opera Wang</em:creator>
     <em:contributor>Ken Mixter</em:contributor>
     <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view.</em:description>
@@ -15,7 +15,7 @@
       <Description>
         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id> <!-- Thunderbird -->
         <em:minVersion>31.0</em:minVersion>
-        <em:maxVersion>49.0</em:maxVersion>
+        <em:maxVersion>56.0</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>

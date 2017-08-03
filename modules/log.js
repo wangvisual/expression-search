@@ -4,13 +4,112 @@
 "use strict";
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/iteratorUtils.jsm"); // import toXPCOMArray
+
+// Console.jsm in Gecko < 23 calls dump(), not to Error Console
+const {console} = Cu.import("resource://gre/modules/Console.jsm", {});
+
 const popupImage = "chrome://expressionsearch/skin/statusbar_icon.png";
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
 let ExpressionSearchLog = {
+  oldAPI_22: Services.vc.compare(Services.appinfo.platformVersion, '22') < 0,
+  oldAPI_23: Services.vc.compare(Services.appinfo.platformVersion, '23') < 0,
+  oldAPI_52: Services.vc.compare(Services.appinfo.platformVersion, '52') < 0,
+  popupDelay: Services.prefs.getIntPref("alerts.totalOpenTime") / 1000,
+  setPopupDelay: function(delay) {
+    this.popupDelay = delay;
+  },
+  popupListener: {
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports, Ci.nsIObserver]), // not needed, just be safe
+    observe: function(subject, topic, cookie) {
+      if ( topic == 'alertclickcallback' ) { // or alertfinished / alertshow(Gecko22)
+        let type = 'global:console';
+        let logWindow = Services.wm.getMostRecentWindow(type);
+        if ( logWindow ) return logWindow.focus();
+        Services.ww.openWindow(null, 'chrome://global/content/console.xul', type, 'chrome,titlebar,toolbar,centerscreen,resizable,dialog=yes', null);
+      } else if ( topic == 'alertfinished' ) {
+        delete popupWins[cookie];
+      }
+    }
+  },
   popup: function(title, msg) {
-    // alert-service won't work with bb4win, use xul instead
-    let win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', '_blank', 'chrome,titlebar=no,popup=yes', null);
-    win.arguments = [popupImage, title, msg, false, ''];
+    let delay = this.popupDelay;
+    if ( delay <= 0 ) return;
+    /*
+    http://mdn.beonex.com/en/Working_with_windows_in_chrome_code.html 
+    https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIAlertsService
+    https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications
+    Before Gecko 22, alert-service won't work with bb4win, use xul instead
+    https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    From Gecko 22, nsIAlertsService also use XUL on all platforms and easy to pass args, but difficult to get windows, so hard to change display time
+    let alertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
+    alertsService.showAlertNotification(popupImage, title, msg, true, cookie, this.popupListener, name);
+    */
+    let cookie = Date.now();
+    // arguments[0] --> the image src url
+    // arguments[1] --> the alert title
+    // arguments[2] --> the alert text
+    // arguments[3] --> is the text clickable?
+    // arguments[4] --> the alert cookie to be passed back to the listener
+    // arguments[5] --> the alert origin reported by the look and feel
+    // arguments[6] --> bidi
+    // arguments[7] --> lang
+    // arguments[8] --> requires interaction
+    // arguments[9] --> replaced alert window (nsIDOMWindow)
+    // arguments[10] --> an optional callback listener (nsIObserver)
+    // arguments[11] -> the nsIURI.hostPort of the origin, optional
+    // arguments[12] -> the alert icon URL, optional
+    let args = [popupImage, title, msg, true, cookie, 0, '', '', null, false, this.popupListener];
+    if ( this.oldAPI_52 ) args.splice(9,1); // remove alert window (false)
+    if ( this.oldAPI_22 ) args.splice(6,3); // remove '', '', null
+    // win is nsIDOMJSWindow, nsIDOMWindow
+    let win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', "_blank", 'chrome,titlebar=no,popup=yes',
+      // https://alexvincent.us/blog/?p=451
+      // https://groups.google.com/forum/#!topic/mozilla.dev.tech.js-engine/NLDZFQJV1dU
+      toXPCOMArray(args.map( function(arg) {
+        let variant = Cc["@mozilla.org/variant;1"].createInstance(Ci.nsIWritableVariant);
+        if ( arg && typeof(arg) == 'object' ) variant.setAsInterface(Ci.nsIObserver, arg); // to pass the listener interface
+        else variant.setFromVariant(arg);
+        return variant;
+      } ), Ci.nsIMutableArray));
+    popupWins[cookie] = Cu.getWeakReference(win);
+    // sometimes it's too late to set win.arguments here when the xul window is reused.
+    // win.arguments = args;
+    let popupLoad = function() {
+      win.removeEventListener('load', popupLoad, false);
+      if ( win.document ) {
+        let alertBox = win.document.getElementById('alertBox');
+        if ( alertBox ) alertBox.style.animationDuration = delay + "s";
+        let text = win.document.getElementById('alertTextLabel');
+        if ( text && win.arguments[3] ) text.classList.add('awsome_auto_archive-popup-clickable');
+      }
+      win.moveWindowToEnd = function() { // work around https://bugzilla.mozilla.org/show_bug.cgi?id=324570,  Make simultaneous notifications from alerts service work
+        let x = win.screen.availLeft + win.screen.availWidth - win.outerWidth;
+        let y = win.screen.availTop + win.screen.availHeight - win.outerHeight;
+        let windows = Services.wm.getEnumerator('alert:alert');
+        while (windows.hasMoreElements()) {
+          let alertWindow = windows.getNext();
+          if (alertWindow != win && alertWindow.screenY > win.outerHeight) y = Math.min(y, alertWindow.screenY - win.outerHeight);
+        }
+        let WINDOW_MARGIN = 10; y += -WINDOW_MARGIN; x += -WINDOW_MARGIN;
+        win.moveTo(x, y);
+      }
+    };
+    if ( win.document.readyState == "complete" ) popupLoad();
+    else win.addEventListener('load', popupLoad, false);
+  },
+  cleanup: function() {
+    try {
+      this.info("Log cleanup");
+      for ( let cookie in popupWins ) {
+        let newwin = popupWins[cookie].get();
+        this.info("close alert window:" + cookie);
+        if ( newwin && newwin.document && !newwin.closed ) newwin.close();
+      };
+      popupWins = {};
+      this.info("Log cleanup done");
+    } catch(err){}
   },
   
   now: function() { //author: meizz
@@ -40,12 +139,13 @@ let ExpressionSearchLog = {
     this.verbose = verbose;
   },
 
-  info: function(msg,popup,force) {
+  info: function(msg, popup, force) {
     if (!force && !this.verbose) return;
-    this.log(this.now() + msg,popup,true);
+    this.log(this.now() + msg, popup, true);
   },
 
-  log: function(msg,popup,info) {
+  log: function(msg, popup, info) {
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console/Custom_output
     if ( ( typeof(info) != 'undefined' && info ) || !Components || !Cs || !Cs.caller ) {
       Services.console.logStringMessage(msg);
     } else {
@@ -156,6 +256,7 @@ let ExpressionSearchLog = {
   
   logObject: function(obj, name, maxDepth, curDepth) {
     if (!this.verbose) return;
+    console.dir(obj);
     this._checked = [];
     this.info(name + ": " + ( typeof(obj) == 'object' ? ( Array.isArray(obj) ? 'Array' : obj ) : '' ) + "\n" + this.objectTreeAsString(obj,maxDepth,true));
     this._checked = [];
@@ -163,9 +264,11 @@ let ExpressionSearchLog = {
   
   logException: function(e, popup) {
     let msg = "";
-    if ( 'name' in e && 'message' in e ) msg += e.name + ": " + e.message + "\n";
-    if ( 'stack' in e ) msg += e.stack;
-    if ( 'location' in e ) msg += e.location + "\n";
+    if ( typeof(e) != 'string' ) {
+      if ( 'name' in e && 'message' in e ) msg += e.name + ": " + e.message + "\n";
+      if ( 'stack' in e ) msg += e.stack;
+      if ( 'location' in e ) msg += e.location + "\n";
+    }
     if ( msg == '' ) msg += " " + e + "\n";
     msg = 'Caught Exception ' + msg;
     let fileName= e.fileName || e.filename || ( Cs.caller && Cs.caller.filename );
@@ -178,3 +281,4 @@ let ExpressionSearchLog = {
   },
   
 };
+let popupWins = {};
