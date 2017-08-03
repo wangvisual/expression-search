@@ -38,6 +38,18 @@ var ExpressionSearchChrome = {
     this.Ci = Components.interfaces;
     this.Cc = Components.classes;
     //this.Cr = Components.results;
+    
+    /* https://bugzilla.mozilla.org/show_bug.cgi?id=1383215#c24
+    There are two ways that we currently support packaging omnijar:
+    1) Separate JAR files for toolkit (GRE) content and app-specific content.
+    2) One JAR file containing both app-specific and toolkit content.
+    
+    Firefox uses the former (but used to use the latter), and Thunderbird uses the latter.
+    In case 2, resource:/// and resource://gre/ point to the same place, so it's technically possible to refer to app or toolkit content by two separate URLs,
+    and it's easy to carelessly use the wrong one. We had a bunch of these issues (especially with add-ons) when we switched layouts.
+    
+    But the code that's using resource://gre/ URLs for app content, or vice versa, is still technically wrong. */
+    
     this.Cu.import("resource://expressionsearch/log.js");
     this.Cu.import("resource://expressionsearch/gmailuiParse.js");
     this.Cu.import("resource://expressionsearch/aop.js");
