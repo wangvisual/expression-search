@@ -24,10 +24,18 @@ try {
   hasJSMIME = 1;
 } catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 31 or later", 1); }
 
-let Application = null;
+let platformIsMac = false;
 try {
-  Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
-} catch (e) {}
+    // AppConstants.jsm is added around TB36
+    // steelIApplication is deprecated
+    Cu.import("resource://gre/modules/XAppConstants.jsm");
+    platformIsMac = ( AppConstants.platform == "macosx" ? true : false );
+} catch (e) {
+    try {
+      let Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
+      platformIsMac = Application.platformIsMac;
+    } catch (e) {}
+}
 
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
 let haveBodyMapping = {}; // folderURI+messageKey => true (haveBody)
@@ -416,8 +424,8 @@ let ExperssionSearchFilter = {
     let filterNode = aDocument.getElementById('qfb-qs-textbox');
     let quickKey = '';
     let attributeName = "placeholder";
-    if ( filterNode && typeof(Application)!='undefined' ) {
-      quickKey = filterNode.getAttribute(Application.platformIsMac ? "keyLabelMac" : "keyLabelNonMac");
+    if ( filterNode ) {
+      quickKey = filterNode.getAttribute(platformIsMac ? "keyLabelMac" : "keyLabelNonMac");
       // now Ctrl+F will focus to our input, so remove the message in builtin one
       filterNode.setAttribute( attributeName, filterNode.getAttribute("emptytextbase").replace("#1", '') );
       // force to update the message
