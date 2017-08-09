@@ -645,6 +645,7 @@ let ExperssionSearchFilter = {
       let attr;
       let op = is_not ? nsMsgSearchOp.DoesntContain:nsMsgSearchOp.Contains;
       if (e.tok == 'from') attr = nsMsgSearchAttrib.Sender;
+      else if (e.tok == 'fromto') attr = nsMsgSearchAttrib.AllAddresses;
       else if (e.tok == 'to') attr = nsMsgSearchAttrib.ToOrCC;
       else if (e.tok == 'tonocc') attr = nsMsgSearchAttrib.To;
       else if (e.tok == 'cc') attr = nsMsgSearchAttrib.CC;

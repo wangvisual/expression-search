@@ -24,7 +24,7 @@ var ExpressionSearchTokens = {
   tokenDict: { from: ['f'], fromre: ['fr'], to: ['t', 'toorcc'], tore: ['tr'], tonocc: ['tn'], cc: ['c'], bcc: ['bc'], only: ['o'], subject: ['s'], size: ['si', 'larger'], smaller: ['sm'],
                   body:['b'], attachment:['a'], tag: ['l', 'label'], before:['be'], after: ['af'], date: ['d'], bodyre: ['br'],
                   days: ['da', 'age', 'ag', 'ot', 'older_than'], newer_than: ['n', 'nt'], gloda: ['g'], headerre:['h', 'hr'],
-                  status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'] },
+                  status: ['u','is','i'], regex:['re','r','subre'], filename:['fi','fn', 'file'], all:['al'], simple:['si'],  fromto: ['ft', 'ftc', 'fromtocc', 'alladdresses']},
   tokenMap: {}, //{ f: 'from', t: 'to', toorcc: 'to' };
   allTokenArray: [], // ['from', 'f', 'to', 't', 'toorcc']
   allTokens: '', // 'simple|regex|re|r|date|d|filename|fi|fn...i|before|be|after|af'
@@ -34,7 +34,6 @@ var ExpressionSearchTokens = {
   mostFit: function(input) {
     let ret = { first: " ", match: {}, matchString: ' ', info: ' ', alias: ' ' };
     let distance = 100;
-    //for ( let name of ExpressionSearchTokens.allTokenArray ) { // > TB13
     ExpressionSearchTokens.allTokenArray.forEach( function(name) {
       if ( input.length == 0 || name.indexOf(input) == 0 ) {
         let fullName = name;
@@ -46,7 +45,6 @@ var ExpressionSearchTokens = {
           ret.first = fullName;
         }
       }
-    //}
     } );
     if ( typeof(ExpressionSearchTokens.tokenInfo[ret.first]) != 'undefined' ) ret.info = ExpressionSearchTokens.tokenInfo[ret.first];
     if ( typeof(ExpressionSearchTokens.tokenDict[ret.first]) != 'undefined' ) ret.alias = ret.first + " ( " + ExpressionSearchTokens.tokenDict[ret.first].sort().join(', ') + " )";
