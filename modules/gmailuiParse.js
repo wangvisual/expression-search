@@ -608,12 +608,10 @@ function expr_sort(e) {
 
   //alert('expr_sort-'+e.tok);
 
-  if (e.kind == 'spec') {
+  if (e.kind == 'spec')
     // body search etc are slow....
-    if ( ExpressionSearchTokens.slowTokens.indexOf(e.tok) >= 0 )
-      return 10;
-    return 1;
-  }
+    return ExpressionSearchTokens.slowTokens.indexOf(e.tok) + 1;
+
   if (e.kind == 'not')
     // not will be directly above a specifier; the two
     // merge to be a specifier when we convert to an
