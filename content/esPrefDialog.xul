@@ -93,7 +93,7 @@
           </tooltip>
         </hbox>
         <hbox>
-          <button id="customHeadersButton" tooltip="esCustomDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="window.showModalDialog('chrome://messenger/content/CustomHeaders.xul');"/> 
+          <button id="customHeadersButton" tooltip="esCustomDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="ExpressionSearchCommon.showModalDialog(window, 'chrome://messenger/content/CustomHeaders.xul');"/> 
           <textbox preference="pref_customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
           <tooltip id="esCustomDBHeadersTooltip">
             <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>

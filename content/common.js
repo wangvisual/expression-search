@@ -19,6 +19,10 @@ var ExpressionSearchCommon = {
   loadURL: function(url, name = null, additional = '') { // not support html anchor
     let win = Services.ww.openWindow(null, ExpressionSearchCommon.translateURL(url), name, "chrome=no,menubar=no,status=no,location=no,resizable,scrollbars,centerscreen" + additional, null);
   },
+  showModalDialog: function(win, url) {
+      // open is more standard compare with openDialog
+      win.open(url, "_blank", "chrome,dialog,modal");
+  },
   loadInTopWindow: function(url,anchor) {
     //openDialog will open another top window
     window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null,
