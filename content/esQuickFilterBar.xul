@@ -11,7 +11,7 @@
              type="search"
              emptytextbase="&expressionsearch.textbox.emptyText.base;"
              timeout="1000"
-             maxlength="192"
+             maxlength="2048"
              width="320"
              maxwidth="500"
              minwidth="280"
