@@ -75,7 +75,7 @@ var ExpressionSearchChrome = {
     this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
     this.prefs.addObserver("", this, false);
     try {
-      ["hide_normal_filer", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar",
+      ["hide_normal_filer", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "search_timeout",
        "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime", "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace",
        "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "c2s_removeDomainName", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
         ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
@@ -110,6 +110,7 @@ var ExpressionSearchChrome = {
       case "statusbar_info_showtime":
       case "statusbar_info_hidetime":
       case "results_label_size": // 0: hide when on filter bar and vertical layout , 1: show 2: hide
+      case "search_timeout":
         this.options[data] = this.prefs.getIntPref(data);
         break;
       case "c2s_regexpMatch":
@@ -123,6 +124,7 @@ var ExpressionSearchChrome = {
     if ( !this.isInited ) return;
     if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
       this.refreshFilterBar();
+    if ( data == 'search_timeout' ) this.setSearchTimeout();
   },
 
   hookedFunctions: [],
@@ -443,9 +445,15 @@ var ExpressionSearchChrome = {
       aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
       aNode.addEventListener("blur", this.onSearchBarBlur, true);
       aNode.addEventListener("focus", this.onSearchBarFocus, true);
+      this.setSearchTimeout();
     } else {
       ExpressionSearchLog.log("Expression Search: Can't find my textbox", "Error");
     }
+  },
+  
+  setSearchTimeout: function() {
+    if (!this.textBoxNode) return;
+    this.textBoxNode.timeout = this.options.search_timeout || 1000000000;
   },
   
   back2OriginalFolder: function() {
@@ -598,9 +606,8 @@ var ExpressionSearchChrome = {
     // print the expression,
     var lhs = ExpressionSearchExprToStringInfix(e);
     var rhs = '' + ((r.kind == 'num') ? r.tok : "<<ERROR: "+r.tok+">>");
-    var x = document.getElementById('expression-search-textbox');
-    x.value = lhs + " = " + rhs;
-    x.setSelectionRange(lhs.length, lhs.length + rhs.length + 3);
+    this.textBoxNode.value = lhs + " = " + rhs;
+    this.textBoxNode.setSelectionRange(lhs.length, lhs.length + rhs.length + 3);
   },
   
   //Check conditions for search: corresponding modifier is hold on or middle button is pressed

@@ -35,6 +35,11 @@
 <!ENTITY expressionsearch.option.enable_statusbar_info1 "输入时显示">
 <!ENTITY expressionsearch.option.enable_statusbar_info2 "秒的帮助信息，在搜索完成或者失去焦点后">
 <!ENTITY expressionsearch.option.enable_statusbar_info3 "秒自动隐藏">
+<!ENTITY expressionsearch.option.search_timeout "设置表达式搜索框超时时间为">
+<!ENTITY expressionsearch.option.ms "毫秒">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_1 "停止输入这么长时间后开始搜索">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_2 "但当按下回车键时立即搜索">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_3 "设置为0的话你将得到一个非常长长长长长长长的时间">
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "当按下Ctrl+Enter键时，在下面目录里创建或更新ExpressionSearch虚拟目录:">
 <!ENTITY expressionsearch.option.use_root_folder "当前目录的根目录">
 <!ENTITY expressionsearch.option.help "帮助">

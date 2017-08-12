@@ -15,10 +15,11 @@
   <preferences>
     <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool" instantApply="true"/>
     <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
-        <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
+    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
     <preference id="pref_results_label_size" name="extensions.expressionsearch.results_label_size" type="int" instantApply="true"/>
     <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
     <preference id="perf_vf_intab" name="extensions.expressionsearch.load_virtual_folder_in_tab" type="bool"/>
+    <preference id="perf_search_timeout" name="extensions.expressionsearch.search_timeout" type="int"/>
     <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
     <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int" instantApply="true"/>
     <preference id="pref_c2s_enableCtrl" name="extensions.expressionsearch.c2s_enableCtrl" type="bool"/>
@@ -57,6 +58,16 @@
           <label value="&expressionsearch.option.enable_statusbar_info3;"/>
         </hbox>
         <checkbox preference="perf_vf_intab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
+        <hbox align='center' tooltip="esSearchTimeout">
+          <label value='&expressionsearch.option.search_timeout;' />
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="perf_search_timeout" hidespinbuttons="true" size='4'/>
+          <label value='&expressionsearch.option.ms;' />
+          <tooltip id="esSearchTimeout">
+            <description value="&expressionsearch.option.search_timeout.tooltip_1;"/>
+            <description value="&expressionsearch.option.search_timeout.tooltip_2;"/>
+            <description value="&expressionsearch.option.search_timeout.tooltip_3;"/>
+          </tooltip>
+        </hbox>
         <hbox align='center'>
           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
           <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">

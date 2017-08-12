@@ -35,6 +35,11 @@
 <!ENTITY expressionsearch.option.enable_statusbar_info1 "Show search tooltips for">
 <!ENTITY expressionsearch.option.enable_statusbar_info2 "s when type, hide it">
 <!ENTITY expressionsearch.option.enable_statusbar_info3 "s later after search was done or lost focus">
+<!ENTITY expressionsearch.option.search_timeout "Set expression search input timeout to">
+<!ENTITY expressionsearch.option.ms "ms">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_1 "Start to search after you stop typing in the search inputbox for this time">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_2 "Hit Enter will start the search immediately">
+<!ENTITY expressionsearch.option.search_timeout.tooltip_3 "Set to 0 will make the timeout really loooong">
 <!ENTITY expressionsearch.option.when_press_ctrl_plus_enter "When press Ctrl+Enter, create/update virtual folder in:">
 <!ENTITY expressionsearch.option.use_root_folder "Root folder of current folder">
 <!ENTITY expressionsearch.option.help "Help">

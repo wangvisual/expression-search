@@ -9,6 +9,7 @@ pref("extensions.expressionsearch.enable_verbose_info", false);
 pref("extensions.expressionsearch.enable_statusbar_info", true);
 pref("extensions.expressionsearch.statusbar_info_showtime", 10);
 pref("extensions.expressionsearch.statusbar_info_hidetime", 2);
+pref("extensions.expressionsearch.search_timeout", 1000);
 pref("extensions.expressionsearch.virtual_folder_path", "");
 pref("extensions.expressionsearch.move2bar", 0);
 pref("extensions.expressionsearch.showbuttonlabel", 0);
