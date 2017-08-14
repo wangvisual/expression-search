@@ -28,7 +28,7 @@ let platformIsMac = false;
 try {
     // AppConstants.jsm is added around TB36
     // steelIApplication is deprecated
-    Cu.import("resource://gre/modules/XAppConstants.jsm");
+    Cu.import("resource://gre/modules/AppConstants.jsm");
     platformIsMac = ( AppConstants.platform == "macosx" ? true : false );
 } catch (e) {
     try {

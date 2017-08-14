@@ -16,9 +16,9 @@ let ExpressionSearchLog = {
   oldAPI_22: Services.vc.compare(Services.appinfo.platformVersion, '22') < 0,
   oldAPI_23: Services.vc.compare(Services.appinfo.platformVersion, '23') < 0,
   oldAPI_52: Services.vc.compare(Services.appinfo.platformVersion, '52') < 0,
-  popupDelay: Services.prefs.getIntPref("alerts.totalOpenTime") / 1000,
+  popupDelay: null,
   setPopupDelay: function(delay) {
-    this.popupDelay = delay;
+    this.popupDelay = delay * 1000; // input unit is seconds, internal using ms
   },
   popupListener: {
     QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports, Ci.nsIObserver]), // not needed, just be safe
@@ -34,7 +34,16 @@ let ExpressionSearchLog = {
     }
   },
   popup: function(title, msg) {
-    let delay = this.popupDelay;
+    if ( this.popupDelay == null ) {
+      try {
+        // alerts.totalOpenTime was removed on OS X @ TB 52: https://bugzilla.mozilla.org/show_bug.cgi?id=1290324
+        // default value for getIntPerf was added @ TB54
+        this.popupDelay = Services.prefs.getIntPref("alerts.totalOpenTime", 4000); // TB default is 10s, our default is 4s
+      } catch (e) {
+        this.popupDelay = 4000;
+      }
+    }
+    let delay = this.popupDelay / 1000; // chaning ms to seconds
     if ( delay <= 0 ) return;
     /*
     http://mdn.beonex.com/en/Working_with_windows_in_chrome_code.html 
