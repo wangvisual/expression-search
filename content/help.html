@@ -84,6 +84,11 @@ field.
 Note: 'only:(tom or jerry)' will get message that <i>to</i> filed is 'tom' or 'jerry' only, while 'only:(tom and jerry)' will get nothing, please use 'only:(tom,jerry)' instead if you want to search emails that recipients contain and only contain both 'tom' and 'jerry'.
 </p></li><li><p>
 
+<b>fromto:tom</b> or <b>ft:tom</b>
+</p>
+<p>Search for 'tom', and 'tom' can be in either <i>from</i>, <i>to</i>, <i>cc</i>, or <i>bcc</i>. Case insensitive.
+</p></li><li><p>
+
 <b>subject:electric bill</b> or <b>s:electric bill</b>
 </p>
 <p>This expression searches all messages in the current folder or view for 'electric bill' 
@@ -324,6 +329,13 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 1.2: <ul>
+<li>Add 'fromto' token</li>
+<li>Add option for search input box timeout</li>
+<li>Fixed issue with OSX</li>
+<li>Fixed issue with TB 55</li>
+</ul>
+</li><li>
 Version 1.1: <ul>
 <li>Works with TB 56 nightly</li>
 </ul>
