@@ -70,19 +70,51 @@ var ExpressionSearchChrome = {
     //Cu.import("resource:///modules/gloda/msg_search.js");
     this.Cu.import("resource://expressionsearch/ExpressionSearchFilter.js");
   },
+    
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1415567 Remove {get,set}ComplexValue use of nsISupportsString in Thunderbird
+  oldAPI_58: Services.vc.compare(Services.appinfo.platformVersion, '58') < 0,
+  complexPrefs: ["c2s_regexpMatch", "c2s_regexpReplace", "installed_version"],
+  mozIJSSubScriptLoader: Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader),
   
-  initPerf: function() {
-    this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
-    this.prefs.addObserver("", this, false);
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1413413 Remove support for extensions having their own prefs file
+  setDefaultPrefs: function () {
+    let branch = Services.prefs.getDefaultBranch("");
+    let prefLoaderScope = {
+      pref: function(key, val) {
+        switch (typeof val) {
+          case "boolean":
+            branch.setBoolPref(key, val);
+            break;
+          case "number":
+            branch.setIntPref(key, val);
+            break;
+          case "string": // default don't have complex values, only empty or simple strings
+            branch.setCharPref(key, val);
+            break;
+        }
+      }
+    };
+    let uri = Services.io.newURI("chrome://expressionsearch/content/defaults.js");
     try {
-      ["hide_normal_filer", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "search_timeout",
-       "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime", "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace",
-       "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "c2s_removeDomainName", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
-        ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
-      } );
-    } catch ( err ) {
+      this.mozIJSSubScriptLoader.loadSubScript(uri.spec, prefLoaderScope);
+    } catch (err) {
       ExpressionSearchLog.logException(err);
     }
+  },
+  
+  initPerf: function() {
+    this.setDefaultPrefs();
+    this.prefs = Services.prefs.getBranch("extensions.expressionsearch.");
+    this.prefs.addObserver("", this, false);
+    ["hide_normal_filer", "act_as_normal_filter", "reuse_existing_folder", "load_virtual_folder_in_tab", "select_msg_on_enter", "move2bar", "search_timeout",
+     "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime", "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace",
+     "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "c2s_removeDomainName", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
+      try {
+        ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
+      } catch ( err ) {
+        ExpressionSearchLog.logException(err);
+      }
+    });
   },
   
   // get called when event occurs with our perf branch
@@ -113,11 +145,12 @@ var ExpressionSearchChrome = {
       case "search_timeout":
         this.options[data] = this.prefs.getIntPref(data);
         break;
-      case "c2s_regexpMatch":
-      case "c2s_regexpReplace":
-      case "installed_version":
-        this.options[data] = this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data;
       default:
+        if ( this.complexPrefs.indexOf(data) >= 0 ) {
+          this.options[data] = this.oldAPI_58 ? this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data : this.prefs.getStringPref(data);
+        } else {
+          ExpressionSearchLog.log("Unknown perf key:" + data, "Error", 1);
+        }
         break;
     }
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
@@ -723,9 +756,14 @@ var ExpressionSearchChrome = {
     let anchor = '';
     if ( this.options.installed_version != "0.1" ) anchor = '#version_history'; // this is an update
     let firstRun = Services.vc.compare( this.options.current_version, this.options.installed_version );
-    let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
-    str.data = this.options.current_version;
-    this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str); // must before loadTab
+    // must before loadTab
+    if ( this.oldAPI_58 ) {
+      let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
+      str.data = this.options.current_version;
+      this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str);
+    } else {
+      this.prefs.setStringPref('installed_version', this.options.current_version);
+    }
     if ( firstRun > 0 ) { // first for this version
       ExpressionSearchCommon.loadTab('expressionsearch.helpfile', anchor);
     }
