@@ -35,13 +35,13 @@
           <menuitem label="&about.about;" class="menuitem-iconic" image="chrome://expressionsearch/skin/statusbar_icon.png" oncommand="ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul');"/>
        </menupopup>
     </popupset>
-    <statusbarpanel id="expression-search-status-bar"
-      class="statusbarpanel-iconic"
-      label="Expression Search"
-      src="chrome://expressionsearch/skin/statusbar_icon.png"
-      tooltip="expression-search-tooltip"
-      popup="expression-search-context-menu"
-      context="expression-search-context-menu"
-    />
+    <statusbarpanel>
+      <image id="expression-search-status-bar"
+        src="chrome://expressionsearch/skin/statusbar_icon.png"
+        tooltip="expression-search-tooltip"
+        popup="expression-search-context-menu"
+        context="expression-search-context-menu"
+      />
+    </statusbarpanel>
   </statusbar>
 </overlay>
