@@ -149,18 +149,24 @@ function _getRegEx(aSearchValue) {
     return _getRegEx(regex).test(headerValue) ^ ( aSearchOp == nsMsgSearchOp.DoesntMatch );
   };
 
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=818634 Remove support for Date.prototype.toLocaleFormat
+  // toLocaleTimeString depend on user settings
+  function msgToLocaleFormat(aMsgHdr, format) {
+    // dateInSeconds*1M
+    return (new Date(aMsgHdr.date/1000))
+      .toLocaleString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}) // "12/30/2012, 11:00:00"
+      .replace(/(\d+)\/(\d+)\/(\d+),\s(.*)/, format);
+  }
+  
   let dayTime = new customerTermBase("dayTime", [nsMsgSearchOp.IsBefore, nsMsgSearchOp.IsAfter]);
   dayTime.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let msgDate = new Date(aMsgHdr.date/1000); // = dateInSeconds*1M
-    let msgTime = msgDate.toLocaleFormat("%H:%M:%S"); // toLocaleTimeString depend on user settings
-    return (msgTime > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
+    return (msgToLocaleFormat(aMsgHdr, '$4') > aSearchValue) ^ (aSearchOp == nsMsgSearchOp.IsBefore);
   };
 
   let dateMatch = new customerTermBase("dateMatch", [nsMsgSearchOp.Contains, nsMsgSearchOp.DoesntContain]);
   dateMatch.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
-    let msgDate = new Date(aMsgHdr.date/1000);
-    let msgTimeUser = msgDate.toLocaleString();
-    let msgTimeStandard = msgDate.toLocaleFormat("%Y/%m/%d %H:%M:%S");
+    let msgTimeUser = (new Date(aMsgHdr.date/1000)).toLocaleString();
+    let msgTimeStandard = msgToLocaleFormat(aMsgHdr, '$3/$1/$2 $4');
     return ( msgTimeUser.indexOf(aSearchValue) != -1 || msgTimeStandard.indexOf(aSearchValue) != -1 ) ^ (aSearchOp == nsMsgSearchOp.DoesntContain);
   };
 
