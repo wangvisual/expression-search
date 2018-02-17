@@ -4,6 +4,7 @@
 <!-- for folder selector -->
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
 <prefwindow id="expressionsearch-prefs"
