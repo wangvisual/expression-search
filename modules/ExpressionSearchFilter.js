@@ -192,9 +192,11 @@ function _getRegEx(aSearchValue) {
   toSomebodyOnly.match = function _match(aMsgHdr, aSearchValue, aSearchOp) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=522886 / https://bugzilla.mozilla.org/show_bug.cgi?id=699588
     let mailRecipients = GlodaUtils.parseMailAddresses( ( aMsgHdr.mime2DecodedTo || aMsgHdr.mime2DecodedRecipients ).toLowerCase() );
-    let searchRecipients = GlodaUtils.parseMailAddresses(aSearchValue.toLowerCase()); 
+    let searchRecipients = GlodaUtils.parseMailAddresses(aSearchValue.toLowerCase());
     let match = ( mailRecipients.count == searchRecipients.count );
     match = match && searchRecipients.addresses.every( function(searchOne, index, array) {
+      // if only:weiw then searchOne will be '', searching using name instead
+      if ( !searchOne.length ) searchOne = searchRecipients.names[index];
       // can't use aMsgHdr.mime2DecodedRecipients.toLowerCase().indexOf() because the recipient may in our addressbook and TB show it's Name instead of address
       return mailRecipients.fullAddresses.some( function(recipientOne, index, array) {
         if ( recipientOne.indexOf(searchOne) != -1 ) return true; // found one in mailRecipients
