@@ -3,12 +3,16 @@
 // debug utils
 "use strict";
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
+const { loader, require } = Cu.import("resource://devtools/shared/Loader.jsm", {});
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/iteratorUtils.jsm"); // import toXPCOMArray
 
 // Console.jsm in Gecko < 23 calls dump(), not to Error Console
 const {console} = Cu.import("resource://gre/modules/Console.jsm", {});
+
+// for Error Console in Gecko > 44
+let {HUDService} = require("devtools/client/webconsole/hudservice");
 
 const popupImage = "chrome://expressionsearch/skin/statusbar_icon.png";
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
@@ -24,10 +28,7 @@ let ExpressionSearchLog = {
     QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports, Ci.nsIObserver]), // not needed, just be safe
     observe: function(subject, topic, cookie) {
       if ( topic == 'alertclickcallback' ) { // or alertfinished / alertshow(Gecko22)
-        let type = 'global:console';
-        let logWindow = Services.wm.getMostRecentWindow(type);
-        if ( logWindow ) return logWindow.focus();
-        Services.ww.openWindow(null, 'chrome://global/content/console.xul', type, 'chrome,titlebar,toolbar,centerscreen,resizable,dialog=yes', null);
+        HUDService.openBrowserConsoleOrFocus();
       } else if ( topic == 'alertfinished' ) {
         delete popupWins[cookie];
       }

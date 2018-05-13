@@ -17,7 +17,7 @@
 var EXPORTED_SYMBOLS = ["ExpressionSearchComputeExpression", "ExpressionSearchExprToStringInfix", "ExpressionSearchTokens"];
 
 let Cu = Components.utils;
-Cu.import("resource://expressionsearch/log.js");
+Cu.import("chrome://expressionsearch/content/log.js");
 Cu.import("resource://gre/modules/Services.jsm");
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
 var ExpressionSearchTokens = {

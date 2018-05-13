@@ -13,8 +13,6 @@
 <!ENTITY about.homepage "主页:">
 <!ENTITY about.contributors.label "参与作者:">
 
-<!ENTITY expressionsearch.textbox.emptyText.base "表达式搜索... #1">
-
 <!ENTITY expressionsearch.option.hidenormal "隐藏'过滤这些消息...'输入框">
 <!ENTITY expressionsearch.option.act_as_normal_filter "当被搜索字符串中没有表达式搜索的命令时，弹出选择框">
 <!ENTITY expressionsearch.option.showbuttonlabel.auto "自动显示或隐藏">
@@ -66,9 +64,6 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  搜索前使用正则表达式替换标题  ">
 <!ENTITY expressionsearch.dialog.c2s_match "匹配">
 <!ENTITY expressionsearch.dialog.c2s_replace "替换">
-
-<!ENTITY expressionsearch.tooltip.helpLine1 "您可以在选项里面关闭此提示">
-<!ENTITY expressionsearch.tooltip.helpLine2 "请输入表达式进行搜索">
 
 <!ENTITY expressionsearch.menu.donate.label "资助">
 <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/alipay.ico">

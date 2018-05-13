@@ -4,6 +4,7 @@
 "use strict";
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
+var EXPORTED_SYMBOLS = ["ExpressionSearchCommon"];
 var ExpressionSearchCommon = {
   strings: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
   translateURL: function(url,anchor) {

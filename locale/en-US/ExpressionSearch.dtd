@@ -13,8 +13,6 @@
 <!ENTITY about.homepage "Home Page:">
 <!ENTITY about.contributors.label "Contributors:">
 
-<!ENTITY expressionsearch.textbox.emptyText.base "Expression Search... #1">
-
 <!ENTITY expressionsearch.option.hidenormal "Hide Normal Filter">
 <!ENTITY expressionsearch.option.act_as_normal_filter "Act as Normal Filter when no tokens found in search string">
 <!ENTITY expressionsearch.option.showbuttonlabel.auto "Automatically show/hide">
@@ -66,9 +64,6 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
-
-<!ENTITY expressionsearch.tooltip.helpLine1 "You can disable this tooltip in option dialog">
-<!ENTITY expressionsearch.tooltip.helpLine2 "Please type keyword to search">
 
 <!ENTITY expressionsearch.menu.donate.label "Donate">
 <!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">

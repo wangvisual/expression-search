@@ -3,15 +3,26 @@
 // GPL V3 / MPL
 "use strict";
 
-var ExpressionSearchChrome = {
-  // inited, also used as ID for the instance
-  isInited:0,
+const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
+Cu.import("resource://gre/modules/Services.jsm");
 
+const XULNS = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+const statusbarIconID = "expression-search-status-bar";
+const statusbarIconSrc = 'chrome://expressionsearch/skin/statusbar_icon.png';
+const popupsetID = "expressionSearch-statusbar-popup";
+const contextMenuID = "expression-search-context-menu";
+const tooltipId = "expression-search-tooltip";
+
+var EXPORTED_SYMBOLS = ["ExpressionSearchChrome"];
+var ExpressionSearchChrome = {
   // if last key is Enter
   isEnter: 0,
+  hookedSearchSpec: 0,
   
   needMoveId: "quick-filter-bar-main-bar",
+  originalFilterId: "qfb-qs-textbox",
   textBoxDomId: "expression-search-textbox",
+  strBundle: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
   
   prefs: null, // preference object
   options: {   // preference strings
@@ -19,26 +30,17 @@ var ExpressionSearchChrome = {
   },
 
   init: function() {
-    this.Cu = Components.utils;
-    this.Cu.import("resource://expressionsearch/log.js"); // load log first
+    Cu.import("chrome://expressionsearch/content/log.js"); // load log first
     try {
-      if ( this.isInited == 0 ) {
-        ExpressionSearchLog.log("Expression Search: init...", false, true);
-        this.importModules();
-        this.initPerf();
-        this.initFunctionHook();
-        this.isInited = new Date().getTime();
-      } else ExpressionSearchLog.log("Expression Search:Warning, init again",1);
+      ExpressionSearchLog.log("Expression Search: init...", false, true);
+      this.importModules();
+      this.initPerf();
     } catch (err) {
       ExpressionSearchLog.logException(err);
     }
   },
   
   importModules: function() {
-    this.Ci = Components.interfaces;
-    this.Cc = Components.classes;
-    //this.Cr = Components.results;
-    
     /* https://bugzilla.mozilla.org/show_bug.cgi?id=1383215#c24
     There are two ways that we currently support packaging omnijar:
     1) Separate JAR files for toolkit (GRE) content and app-specific content.
@@ -50,25 +52,25 @@ var ExpressionSearchChrome = {
     
     But the code that's using resource://gre/ URLs for app content, or vice versa, is still technically wrong. */
     
-    this.Cu.import("resource://expressionsearch/log.js");
-    this.Cu.import("resource://expressionsearch/gmailuiParse.js");
-    this.Cu.import("resource://expressionsearch/aop.js");
+    Cu.import("chrome://expressionsearch/content/gmailuiParse.js");
+    Cu.import("chrome://expressionsearch/content/aop.js");
+    Cu.import("chrome://expressionsearch/content/common.js");
     // for hook functions for attachment search
-    this.Cu.import("resource:///modules/searchSpec.js");
+    Cu.import("resource:///modules/searchSpec.js");
     // general services
-    this.Cu.import("resource://gre/modules/Services.jsm");
-    this.Cu.import("resource:///modules/mailServices.js");
+    Cu.import("resource://gre/modules/Services.jsm");
+    Cu.import("resource:///modules/mailServices.js");
     // for create quick search folder
-    this.Cu.import("resource:///modules/virtualFolderWrapper.js");
-    this.Cu.import("resource:///modules/iteratorUtils.jsm");
-    this.Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
-    this.Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
-    this.Cu.import("resource://gre/modules/AddonManager.jsm");
+    Cu.import("resource:///modules/virtualFolderWrapper.js");
+    Cu.import("resource:///modules/iteratorUtils.jsm");
+    Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
+    Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
+    Cu.import("resource://gre/modules/AddonManager.jsm");
     // need to know whether gloda enabled
-    this.Cu.import("resource:///modules/gloda/indexer.js");
+    Cu.import("resource:///modules/gloda/indexer.js");
     // to call gloda search, actually no need
     //Cu.import("resource:///modules/gloda/msg_search.js");
-    this.Cu.import("resource://expressionsearch/ExpressionSearchFilter.js");
+    Cu.import("chrome://expressionsearch/content/ExpressionSearchFilter.js");
   },
     
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1415567 Remove {get,set}ComplexValue use of nsISupportsString in Thunderbird
@@ -147,24 +149,24 @@ var ExpressionSearchChrome = {
         break;
       default:
         if ( this.complexPrefs.indexOf(data) >= 0 ) {
-          this.options[data] = this.oldAPI_58 ? this.prefs.getComplexValue(data,this.Ci.nsISupportsString).data : this.prefs.getStringPref(data);
+          this.options[data] = this.oldAPI_58 ? this.prefs.getComplexValue(data,Ci.nsISupportsString).data : this.prefs.getStringPref(data);
         } else {
           ExpressionSearchLog.log("Unknown perf key:" + data, "Error", 1);
         }
         break;
     }
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
-    if ( !this.isInited ) return;
-    if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
-      this.refreshFilterBar();
+    //if ( !this.isInited ) return;
+    // use call back
+    //if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
+    //  this.refreshFilterBar();
     if ( data == 'search_timeout' ) this.setSearchTimeout();
   },
 
-  hookedFunctions: [],
-  initFunctionHook: function() {
-    if ( typeof(QuickFilterBarMuxer) == 'undefined' || typeof(QuickFilterBarMuxer.reflectFiltererState) == 'undefined' ) return;
+  initFunctionHook: function(win) {
+    if ( typeof(win.QuickFilterBarMuxer) == 'undefined' || typeof(win.QuickFilterBarMuxer.reflectFiltererState) == 'undefined' ) return;
 
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
+    win._expression_search.hookedFunctions.push( ExpressionSearchaop.around( {target: win.QuickFilterBarMuxer, method: 'reflectFiltererState'}, function(invocation) {
         let show = ( ExpressionSearchChrome.options.move2bar==0 || !ExpressionSearchChrome.options.hide_normal_filer );
         let hasFilter = typeof(this.maybeActiveFilterer)=='object';
         let aFilterer = invocation.arguments[0];
@@ -174,54 +176,57 @@ var ExpressionSearchChrome = {
     })[0] );
     
     // onMakeActive && onTabSwitched: show or hide the buttons & search box
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: QuickFilterBarMuxer, method: 'onMakeActive'}, function(invocation) {
+    win._expression_search.hookedFunctions.push( ExpressionSearchaop.around( {target: win.QuickFilterBarMuxer, method: 'onMakeActive'}, function(invocation) {
       let aFolderDisplay = invocation.arguments[0];
       let tab = aFolderDisplay._tabInfo;
       let appropriate = ("quickFilter" in tab._ext) && aFolderDisplay.displayedFolder && !aFolderDisplay.displayedFolder.isServer;
-      document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = appropriate ? 'visible': 'hidden';
-      document.getElementById("qfb-results-label").style.visibility = appropriate ? 'visible': 'hidden';
+      win.document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = appropriate ? 'visible': 'hidden';
+      win.document.getElementById("qfb-results-label").style.visibility = appropriate ? 'visible': 'hidden';
       return invocation.proceed();
     })[0] );
     
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.before( {target: QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
+    win._expression_search.hookedFunctions.push( ExpressionSearchaop.before( {target: win.QuickFilterBarMuxer, method: 'onTabSwitched'}, function() {
       let filterer = this.maybeActiveFilterer;
       // filterer means if the tab can use quick filter
       // filterer.visible means if the quick search bar is visible
-      document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
-      document.getElementById("qfb-results-label").style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
+      win.document.getElementById(ExpressionSearchChrome.needMoveId).style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
+      win.document.getElementById("qfb-results-label").style.visibility = filterer /*&& filterer.visible*/ ? 'visible': 'hidden';
     })[0] );
     
     // hook _flattenGroupifyTerms to avoid being flatten
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
-      let aTerms = invocation.arguments[0];
-      let aCloneTerms = invocation.arguments[1];
-      if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
-      let outTerms = aCloneTerms ? [] : aTerms;
-      let term;
-      if ( aCloneTerms ) {
-        for (term in fixIterator(aTerms, Components.interfaces.nsIMsgSearchTerm)) {
-          let cloneTerm = this.session.createTerm();
-          cloneTerm.attrib = term.attrib;
-          cloneTerm.value = term.value;
-          cloneTerm.arbitraryHeader = term.arbitraryHeader;
-          cloneTerm.hdrProperty = term.hdrProperty;
-          cloneTerm.customId = term.customId;
-          cloneTerm.op = term.op;
-          cloneTerm.booleanAnd = term.booleanAnd;
-          cloneTerm.matchAll = term.matchAll;
-          cloneTerm.beginsGrouping = term.beginsGrouping;
-          cloneTerm.endsGrouping = term.endsGrouping;
-          term = cloneTerm;
-          outTerms.push(term);
+    if ( !ExpressionSearchChrome.hookedSearchSpec ) {
+      ExpressionSearchChrome.hookedSearchSpec = 1;
+      win._expression_search.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
+        let aTerms = invocation.arguments[0];
+        let aCloneTerms = invocation.arguments[1];
+        if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
+        let outTerms = aCloneTerms ? [] : aTerms;
+        let term;
+        if ( aCloneTerms ) {
+          for (term in fixIterator(aTerms, Components.interfaces.nsIMsgSearchTerm)) {
+            let cloneTerm = this.session.createTerm();
+            cloneTerm.attrib = term.attrib;
+            cloneTerm.value = term.value;
+            cloneTerm.arbitraryHeader = term.arbitraryHeader;
+            cloneTerm.hdrProperty = term.hdrProperty;
+            cloneTerm.customId = term.customId;
+            cloneTerm.op = term.op;
+            cloneTerm.booleanAnd = term.booleanAnd;
+            cloneTerm.matchAll = term.matchAll;
+            cloneTerm.beginsGrouping = term.beginsGrouping;
+            cloneTerm.endsGrouping = term.endsGrouping;
+            term = cloneTerm;
+            outTerms.push(term);
+          }
         }
-      }
-      return outTerms;
-    })[0] );
+        return outTerms;
+      })[0] );
+    }
     
     // for results label to show correct colour by copy filterActive attribute from quick-filter-bar to qfb-results-label, and set colour in overlay.css
-    ExpressionSearchChrome.hookedFunctions.push( ExpressionSearchaop.after( {target: QuickFilterBarMuxer, method: 'reflectFiltererResults'}, function(result) {
-      let qfb = document.getElementById("quick-filter-bar");
-      let resultsLabel = document.getElementById("qfb-results-label");
+    win._expression_search.hookedFunctions.push( ExpressionSearchaop.after( {target: win.QuickFilterBarMuxer, method: 'reflectFiltererResults'}, function(result) {
+      let qfb = win.document.getElementById("quick-filter-bar");
+      let resultsLabel = win.document.getElementById("qfb-results-label");
       if ( qfb && resultsLabel ) {
         resultsLabel.setAttribute( "filterActive", qfb.getAttribute("filterActive") || '' );
       }
@@ -230,29 +235,33 @@ var ExpressionSearchChrome = {
    
   },
 
-  unregister: function() {
+  unregister: function(win) {
+    if ( typeof(win._expression_search) == 'undefined' ) return;
     ExpressionSearchLog.info("Expression Search: unload...");
     let me = ExpressionSearchChrome;
-    if ( !me.isInited ) return;
     me.prefs.removeObserver("", me);
-    let aNode = me.textBoxNode;
-    if ( aNode && aNode.removeEventListener ) {
-        aNode.removeEventListener("keypress", me.onSearchKeyPress, true);
-        //aNode.removeEventListener("input", me.onTokenChange, true);
-        aNode.removeEventListener("click", me.onTokenChange, true);
-        aNode.removeEventListener("blur", me.onSearchBarBlur, true);
-        aNode.removeEventListener("focus", me.onSearchBarFocus, true);
-    }
-    let threadPane = document.getElementById("threadTree");
+    let threadPane = win.document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("contextmenu", me.onContextMenu, true);
-    me.hookedFunctions.forEach( function(hooked, index, array) {
+    win._expression_search.hookedFunctions.forEach( function(hooked, index, array) {
       hooked.unweave();
     } );
-    window.removeEventListener("unload", me.unregister, false);
+    //if ( win._expression_search.contextMenuItem ) win._expression_search.contextMenuItem.parentNode.removeEventListener('popupshowing', this.beforePopupShow, true);
+    let doc = win.document;
+    for ( let node of win._expression_search.createdElements ) {
+      if ( typeof(node) == 'string' ) node = doc.getElementById(node);
+      if ( node && node.parentNode ) {
+        ExpressionSearchLog.info("removed node " + (node.id ? node.id : node));
+        node.parentNode.removeChild(node);
+      }
+    }
+    delete win._expression_search;
+    //window.removeEventListener("unload", me.unregister, false);
   },
   
-  refreshFilterBar: function() {
+  refreshFilterBar: function(win) {
+    let document = win.document;
+    let QuickFilterBarMuxer = win.QuickFilterBarMuxer;
     //thunderbird-private-tabmail-buttons
     //  qfb-show-filter-bar  : document.getElementById("qfb-show-filter-bar").checked = aFilterer.visible;
   
@@ -267,7 +276,7 @@ var ExpressionSearchChrome = {
     //QuickFilterBarMuxer
     //  onMakeActive for qfb-show-filter-bar visiable
     //  reflectFiltererState for qfb-show-filter-bar checked
-    let filterNode = document.getElementById('qfb-qs-textbox');
+    let filterNode = document.getElementById(this.originalFilterId);
     if ( filterNode && filterNode.style ) {
       filterNode.style.display = this.options.hide_normal_filer ? 'none' : '';
       filterNode.setAttribute('width', this.options.move2bar == 0 ? 100 : 320);
@@ -352,7 +361,7 @@ var ExpressionSearchChrome = {
       }
     }
     
-    let menu = document.getElementById('expression-search-context-menu');
+    let menu = document.getElementById(contextMenuID);
     if ( menu ) {
       for (let i = 0; i < menu.childNodes.length; i++ ) {
         let menuitem = menu.childNodes[i];
@@ -372,12 +381,12 @@ var ExpressionSearchChrome = {
 
   showHideHelp: function(show, line1, line2, line3, line4) {
     if ( typeof(document) == 'undefined' || typeof(document.defaultView) == 'undefined' ) return;
-    let tooltip = document.getElementById("expression-search-tooltip");
+    let tooltip = document.getElementById(tooltipId);
     let tooltip1 = document.getElementById("expression-search-tooltip-line1");
     let tooltip2 = document.getElementById("expression-search-tooltip-line2");
     let tooltip3 = document.getElementById("expression-search-tooltip-line3");
     let tooltip4 = document.getElementById("expression-search-tooltip-line4");
-    let statusbaricon = document.getElementById("expression-search-status-bar");
+    let statusbaricon = document.getElementById(statusbarIconID);
     if ( tooltip && tooltip1 && tooltip2 && tooltip3 && tooltip4 && statusbaricon ) {
       if ( typeof(line1) != 'undefined' ) tooltip1.textContent = line1;
       if ( typeof(line2) != 'undefined' ) tooltip2.textContent = line2;
@@ -464,24 +473,41 @@ var ExpressionSearchChrome = {
   onSearchBarFocus: function(event) {
     let aNode = ExpressionSearchChrome.textBoxNode;
     if ( aNode ) {
-      if ( aNode.value == '' ) QuickFilterBarMuxer._showFilterBar(true);
+      ExpressionSearchLog.log("type:" + aNode.view);
+      ExpressionSearchLog.logObject(aNode, 'node', 0);
+      if ( aNode.value == '' && aNode.view.QuickFilterBarMuxer ) aNode.view.QuickFilterBarMuxer._showFilterBar(true);
       ExpressionSearchChrome.isFocus = true;
       ExpressionSearchChrome.onTokenChange.apply(aNode);
     }
   },
 
-  initSearchInput: function() {
-    let aNode = this.textBoxNode = document.getElementById(this.textBoxDomId);
-    if ( aNode ) {
-      aNode.addEventListener("keypress", this.onSearchKeyPress, true); // false will be after onComand, too late
-      //aNode.addEventListener("input", this.onTokenChange, true); // input can't get arrow key change but can get update when click2search
-      aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
-      aNode.addEventListener("blur", this.onSearchBarBlur, true);
-      aNode.addEventListener("focus", this.onSearchBarFocus, true);
-      this.setSearchTimeout();
-    } else {
-      ExpressionSearchLog.log("Expression Search: Can't find my textbox", "Error");
+  initSearchInput: function(win) {
+    let doc = win.document;
+    let mainBar = doc.getElementById(this.needMoveId);
+    let oldTextbox = doc.getElementById(this.originalFilterId);
+    if ( !mainBar || !oldTextbox ) {
+      ExpressionSearchLog.log("Expression Search: Can't find quick filter main bar", "Error");
+      return;
     }
+
+    let aNode = this.textBoxNode = doc.createElementNS(XULNS, "textbox");
+    aNode.id = this.textBoxDomId;
+    aNode.setAttribute("type", "search");
+    aNode.setAttribute("emptytextbase", this.strBundle.GetStringFromName("textbox.emptyText.base"));
+    aNode.setAttribute("timeout", 1000);
+    aNode.setAttribute("maxlength", 2048);
+    aNode.setAttribute("width", 320);
+    aNode.setAttribute("maxwidth", 500);
+    aNode.setAttribute("minwidth", 280);
+    oldTextbox.parentNode.insertBefore(aNode, oldTextbox.nextSibling);
+    win._expression_search.createdElements.push(aNode);
+  
+    aNode.addEventListener("keypress", this.onSearchKeyPress, true); // false will be after onComand, too late
+    //aNode.addEventListener("input", this.onTokenChange, true); // input can't get arrow key change but can get update when click2search
+    aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
+    aNode.addEventListener("blur", this.onSearchBarBlur, true);
+    aNode.addEventListener("focus", this.onSearchBarFocus, true);
+    this.setSearchTimeout();
   },
   
   setSearchTimeout: function() {
@@ -502,7 +528,7 @@ var ExpressionSearchChrome = {
   
   // not works well for complex searchTerms. But it's for all folders.
   createQuickFolder: function(searchTerms) {
-    const nsMsgFolderFlags = this.Ci.nsMsgFolderFlags;
+    const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
     var currFolder = gFolderDisplay.displayedFolder;
     this.originalURI = currFolder.URI;
     var rootFolder = currFolder.rootFolder; // nsIMsgFolder
@@ -522,10 +548,10 @@ var ExpressionSearchChrome = {
       if ( typeof(rootFolder.descendants) != 'undefined' ) { // bug 436089
         allDescendants = rootFolder.descendants;
       } else { // < TB 21
-        allDescendants = this.Cc["@mozilla.org/supports-array;1"].createInstance(this.Ci.nsISupportsArray);
+        allDescendants = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
         rootFolder.ListDescendents(allDescendants);
       }
-      for (let folder in fixIterator(allDescendants, this.Ci.nsIMsgFolder)) {
+      for (let folder in fixIterator(allDescendants, Ci.nsIMsgFolder)) {
         // only add non-virtual non-news folders
         if ( !folder.isSpecialFolder(nsMsgFolderFlags.Newsgroup,false) && !folder.isSpecialFolder(nsMsgFolderFlags.Virtual,false) ) {
           if (uriSearchString != "") {
@@ -758,9 +784,9 @@ var ExpressionSearchChrome = {
     let firstRun = Services.vc.compare( this.options.current_version, this.options.installed_version );
     // must before loadTab
     if ( this.oldAPI_58 ) {
-      let str = this.Cc["@mozilla.org/supports-string;1"].createInstance(this.Ci.nsISupportsString);
+      let str = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
       str.data = this.options.current_version;
-      this.prefs.setComplexValue('installed_version', this.Ci.nsISupportsString, str);
+      this.prefs.setComplexValue('installed_version', Ci.nsISupportsString, str);
     } else {
       this.prefs.setStringPref('installed_version', this.options.current_version);
     }
@@ -768,23 +794,82 @@ var ExpressionSearchChrome = {
       ExpressionSearchCommon.loadTab('expressionsearch.helpfile', anchor);
     }
   },
-  
-  initAfterLoad: function() {
-    let me = ExpressionSearchChrome;
-    window.removeEventListener("load", me.initAfterLoad, false);
-    if ( !me.isInited ) return;
-    me.initSearchInput.apply(me);
-    me.refreshFilterBar();
-    let threadPane = document.getElementById("threadTree");
-    if ( threadPane ) {
-      // On Mac, contextmenu is fired before onclick, thus even break onclick  still has context menu
-      threadPane.addEventListener("contextmenu", me.onContextMenu, true);
+      
+  createTooltip: function(win, status_bar) {
+    let doc = win.document;
+    let tooltip = doc.createElementNS(XULNS, "tooltip");
+    tooltip.id = tooltipId;
+    tooltip.setAttribute('orient', 'vertical');
+    tooltip.setAttribute('style', "white-space: pre-wrap; word-wrap:break-word; max-width: none; overflow: auto; ");
+    let classes = ['token', 'info', 'match', 'term'];
+    for (let i = 1; i <= 4; i++ ) {
+      let description = doc.createElementNS(XULNS, "description");
+      description.id = tooltipId + "-line" + i;
+      description.setAttribute('class', 'tooltip-' + classes[i]);
+      if ( i == 1 || i == 2) {
+        description.textContent = this.strBundle.GetStringFromName("info.helpLine"+i);
+      } else {
+        description.textContent = ' ';
+      }
+      if ( i == 2 ) {
+        let hbox = doc.createElementNS(XULNS, "hbox");
+        let label = doc.createElementNS(XULNS, "label");
+        label.value = "    ";
+        description.setAttribute('onclick', "ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help');");
+        hbox.insertBefore(label, null);
+        hbox.insertBefore(description, null);
+        tooltip.insertBefore(hbox, null);
+      } else {
+        tooltip.insertBefore(description, null);
+      }
     }
+    status_bar.insertBefore(tooltip, null);
+    win._expression_search.createdElements.push(tooltip);
+
     // Fix tooltip background color issue on Ubuntu
-    let tooltip = document.getElementById("expression-search-tooltip");
     if ( tooltip && tooltip.classList ) {
-      let color = window.getComputedStyle(tooltip, null).getPropertyValue("background-color"); // string: rgb(255, 255, 225)
+      let color = win.getComputedStyle(tooltip, null).getPropertyValue("background-color"); // string: rgb(255, 255, 225)
       if ( color == 'transparent' ) tooltip.classList.add("forceInfo");
+    }
+  },
+
+  initStatusBar: function(win) {
+    let doc = win.document;
+    let status_bar = doc.getElementById('status-bar');
+    if ( status_bar ) { // add status bar icon
+      this.createTooltip(win, status_bar);
+      this.createPopup(win); // simple menu popup may can be in statusbarpanel by set that to 'statusbarpanel-menu-iconic', but better not
+      let statusbarPanel = doc.createElementNS(XULNS, "statusbarpanel");
+      let statusbarIcon = doc.createElementNS(XULNS, "image");
+      statusbarIcon.id = statusbarIconID;
+      statusbarIcon.setAttribute('src', statusbarIconSrc);
+      statusbarIcon.setAttribute('tooltip', tooltipId);
+      statusbarIcon.setAttribute('popup', contextMenuID);
+      statusbarIcon.setAttribute('context', contextMenuID);
+      statusbarPanel.insertBefore(statusbarIcon, null);
+      status_bar.insertBefore(statusbarPanel, null);
+      win._expression_search.createdElements.push(statusbarPanel);
+    }
+  },
+  
+  initAfterLoad: function(win) {
+    let me = ExpressionSearchChrome;
+    //window.removeEventListener("load", me.initAfterLoad, false);
+    if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
+    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
+    
+    try {
+      me.initFunctionHook(win);
+      me.initStatusBar.apply(me, [win]);
+      me.initSearchInput.apply(me, [win]);
+      me.refreshFilterBar(win);
+      let threadPane = win.document.getElementById("threadTree");
+      if ( threadPane ) {
+        // On Mac, contextmenu is fired before onclick, thus even break onclick  still has context menu
+        threadPane.addEventListener("contextmenu", me.onContextMenu, true);
+      }
+    } catch (ex) {
+      ExpressionSearchLog.logException(ex);
     }
 
     // first get my own version
@@ -804,11 +889,58 @@ var ExpressionSearchChrome = {
     ExpressionSearchChrome.textBoxNode.focus();
   },
 
+  addMenuItem: function(menu, doc, parent) {
+    let isSubMenu = typeof(menu[2]) == 'object' && menu[2] instanceof Array;
+    let item = doc.createElementNS(XULNS, menu[0] == '' ? "menuseparator" : isSubMenu ? 'menu' : "menuitem");
+    if ( menu[0] != '' ) {
+      item.setAttribute('label', menu[0]);
+      if (menu[1]) item.setAttribute('image', menu[1]);
+      if ( isSubMenu ) {
+        let menupopup = doc.createElementNS(XULNS, "menupopup");
+        menu[2].forEach( function(submenu) {
+          autoArchive.addMenuItem(submenu, doc, menupopup);
+        } );
+        item.insertBefore(menupopup, null);
+      } else if ( typeof(menu[2]) == 'function' ) item.addEventListener('command', menu[2], false);
+      if ( menu[3] ) {
+        for ( let attr in menu[3] ) {
+          item.setAttribute(attr, menu[3][attr]);
+        }
+      }
+      item.setAttribute('class', isSubMenu ? "menu-iconic" : "menuitem-iconic");
+    }
+    parent.insertBefore(item, null);
+  },
+
+  createPopup: function(aWindow) {
+    let doc = aWindow.document;
+    let popupset = doc.createElementNS(XULNS, "popupset");
+    popupset.id = popupsetID;
+    let menupopup = doc.createElementNS(XULNS, "menupopup");
+    let menuGroupName = 'expression_search-status_menu';
+    menupopup.id = contextMenuID;
+    [ 
+      ["about:config", "", function(){ ExpressionSearchCommon.loadURL('about:config'); }],
+      ["about:crashes", "", function(){ ExpressionSearchCommon.loadTab('about:crashes'); }],
+      ["about:memory", "", function(){ ExpressionSearchCommon.loadURL('about:memory?verbose'); }],
+      [''], // items before seprator and the seprator it self will only shown if verbose
+      ["&expressionsearch.dialog.settings;", "chrome://messenger/skin/accountcentral/account-settings.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul'); }],
+      ["&expressionsearch.option.help;", "chrome://global/skin/icons/question-64.png", function(){ ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help'); }],
+      ["&expressionsearch.menu.donate.label;", "&expressionsearch.menu.donate.image;", function(){ ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;'); }],
+      ["&about.about;", "chrome://expressionsearch/skin/statusbar_icon.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul'); }],
+      ["Addon @ Mozilla", "chrome://mozapps/skin/extensions/extensionGeneric.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://addons.mozilla.org/en-US/thunderbird/addon/gmailui"); }],
+      ["Addon @ GitHub", "chrome://awsomeAutoArchive/content/github.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search"); }],
+      ["Report Bug", "chrome://global/skin/icons/information-32.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search/issues"); }],
+    ].forEach( function(menu) {
+      ExpressionSearchChrome.addMenuItem(menu, doc, menupopup);
+    } );
+    popupset.insertBefore(menupopup, null);
+    doc.documentElement.insertBefore(popupset, null);
+    aWindow._expression_search.createdElements.push(popupsetID);
+  },
+
 };
 
-//onload is too late for me to init
-// this is much complex and both works ;-)
-//(function() { this.init(); }).apply(ExpressionSearchChrome);
-ExpressionSearchChrome.init();
-window.addEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
-window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
+//ExpressionSearchChrome.init();
+//window.addEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
+//window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
