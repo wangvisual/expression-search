@@ -5,6 +5,7 @@
 
 const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/Timer.jsm");
 
 const XULNS = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
 const statusbarIconID = "expression-search-status-bar";
@@ -371,8 +372,8 @@ var ExpressionSearchChrome = {
     }
   },
   
-  hideUpsellPanel: function() {
-    let panel = document.getElementById("qfb-text-search-upsell");
+  hideUpsellPanel: function(win) {
+    let panel = win.document.getElementById("qfb-text-search-upsell");
     if ( panel.state == "open")
       panel.hidePopup();
   },
@@ -380,6 +381,7 @@ var ExpressionSearchChrome = {
   helpTimer: 0,
 
   showHideHelp: function(show, line1, line2, line3, line4) {
+    return; // TODO remvoe
     if ( typeof(document) == 'undefined' || typeof(document.defaultView) == 'undefined' ) return;
     let tooltip = document.getElementById(tooltipId);
     let tooltip1 = document.getElementById("expression-search-tooltip-line1");
@@ -394,7 +396,7 @@ var ExpressionSearchChrome = {
       if ( typeof(line4) != 'undefined' ) tooltip4.textContent = line4;
       if ( !this.options.enable_statusbar_info ) return;
       if ( this.helpTimer > 0 ) {
-        window.clearTimeout( this.helpTimer );
+        clearTimeout( this.helpTimer );
         this.helpTimer = 0;
       }
       let time2hide = this.options['statusbar_info_hidetime'] * 1000;
@@ -403,11 +405,11 @@ var ExpressionSearchChrome = {
         time2hide = this.options['statusbar_info_showtime'] * 1000;
         //if ( this.isFocus ) time2hide *= 2;
       }
-      this.helpTimer = window.setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
+      this.helpTimer = setTimeout( function(){ tooltip.hidePopup(); }, time2hide );
     }
   },
   
-  onTokenChange: function() {
+  onTokenChange: function(event) {
     let searchValue = this.value;
     let start = searchValue.lastIndexOf(' ', this.selectionEnd > 0 ? this.selectionEnd - 1 : 0); // selectionEnd is index of the character after the selection
     //let currentString = searchValue.substring(start+1, this.selectionEnd).replace(/:.*/,'');
@@ -415,16 +417,18 @@ var ExpressionSearchChrome = {
     let help = ExpressionSearchTokens.mostFit(currentString);
     let term = undefined;
     if ( searchValue == '' ) term = ' ';
+    let win = ExpressionSearchChrome.getWinFromEvent(event);
     ExpressionSearchChrome.showHideHelp(1, help.alias, help.info, help.matchString, term);
   },
   
   delayedOnSearchKeyPress: function(event) {
     let me = ExpressionSearchChrome;
+    let win = ExpressionSearchChrome.getWinFromEvent(event);
     me.isEnter = 0;
     let searchValue = this.value; // this is aNode/my search text box, updated with event.char
     if ( event && ( ( event.DOM_VK_RETURN && event.keyCode==event.DOM_VK_RETURN ) || ( event.DOM_VK_ENTER && event.keyCode==event.DOM_VK_ENTER ) ) ) {
       me.isEnter = 1;
-      let panel = document.getElementById("qfb-text-search-upsell");
+      let panel = win.document.getElementById("qfb-text-search-upsell");
       if ( typeof(searchValue) != 'undefined' && searchValue != '' ) {
         if ( event.ctrlKey || event.metaKey ) { // create quick search folder
           ExperssionSearchFilter.latchQSFolderReq = me;
@@ -433,7 +437,7 @@ var ExpressionSearchChrome = {
           searchValue = ExperssionSearchFilter.expression2gloda(searchValue);
           if ( searchValue != '' ) {
             //this._fireCommand(this); // just for selection, but no use as TB will unselect it
-            let tabmail = document.getElementById("tabmail");
+            let tabmail = win.document.getElementById("tabmail");
             tabmail.openTab("glodaFacet", {
               searcher: new GlodaMsgSearcher(null, searchValue)
             });
@@ -447,38 +451,45 @@ var ExpressionSearchChrome = {
         }
       }
     } // end of IsEnter
-    me.hideUpsellPanel(); // hide the panel when key press
+    me.hideUpsellPanel(win); // hide the panel when key press
     // -- Keypresses for focus transferral
     if ( event && event.DOM_VK_DOWN && ( event.keyCode == event.DOM_VK_DOWN ) && !event.altKey )
-      me.selectFirstMessage(true);
+      me.selectFirstMessage(win, true);
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
-      me.selectFirstMessage(); // no select message, but select pane
+      me.selectFirstMessage(win); // no select message, but select pane
     //else if (  event.altKey && ( event.ctrlKey || event.metaKey ) && event.keyCode == event.DOM_VK_LEFT ) // Ctrl + <-- not works when focus in textbox
     //  me.back2OriginalFolder();
-    else me.onTokenChange.apply(this);
+    else me.onTokenChange.apply(this, [event]);
   },
   
   onSearchKeyPress: function(event){
     let self = this;
     // defer the call or this.value is still the old value, not updated with event.char yet
-    window.setTimeout( function(){ ExpressionSearchChrome.delayedOnSearchKeyPress.call(self,event); }, 0);
+    setTimeout( function(){ ExpressionSearchChrome.delayedOnSearchKeyPress.call(self,event); }, 0);
   },
   
   onSearchBarBlur: function(event) {
-    ExpressionSearchChrome.hideUpsellPanel();
+    let win = ExpressionSearchChrome.getWinFromEvent(event);
+    ExpressionSearchChrome.hideUpsellPanel(win);
     ExpressionSearchChrome.isFocus = false;
     ExpressionSearchChrome.showHideHelp(false);
   },
   
-  onSearchBarFocus: function(event) {
-    let aNode = ExpressionSearchChrome.textBoxNode;
-    if ( aNode ) {
-      ExpressionSearchLog.log("type:" + aNode.view);
-      ExpressionSearchLog.logObject(aNode, 'node', 0);
-      if ( aNode.value == '' && aNode.view.QuickFilterBarMuxer ) aNode.view.QuickFilterBarMuxer._showFilterBar(true);
-      ExpressionSearchChrome.isFocus = true;
-      ExpressionSearchChrome.onTokenChange.apply(aNode);
+  getWinFromEvent: function(event) {
+    try {
+      return event.view || event.target.ownerDocument.ownerDocument;
+    } catch (err) {
+      ExpressionSearchLog.logException(err);
     }
+  },
+  
+  onSearchBarFocus: function(event) {
+    let win = ExpressionSearchChrome.getWinFromEvent(event);
+    let aNode = win.document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    if ( !aNode ) return;
+    if ( aNode.value == '' && win.QuickFilterBarMuxer ) win.QuickFilterBarMuxer._showFilterBar(true);
+    ExpressionSearchChrome.isFocus = true;
+    ExpressionSearchChrome.onTokenChange.apply(aNode, [event]);
   },
 
   initSearchInput: function(win) {
@@ -598,7 +609,7 @@ var ExpressionSearchChrome = {
   },
 
   // select first message, expand first container if closed
-  selectFirstMessage: function(needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
+  selectFirstMessage: function(win, needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
     if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
       let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBox_Object <= addon validator warning with comments
       let treeView = treeBox.view; //nsITreeView
@@ -769,7 +780,7 @@ var ExpressionSearchChrome = {
     QuickFilterBarMuxer._showFilterBar(true);
     aNode.value = token + ":" + sCellText;
     aNode.selectionEnd = aNode.selectionStart = 1;
-    me.onTokenChange.apply(aNode);
+    me.onTokenChange.apply(aNode, [event]);
     me.isEnter = true; // So the email can be selected
     // Stop event bubbling
     event.preventDefault();
@@ -805,7 +816,7 @@ var ExpressionSearchChrome = {
     for (let i = 1; i <= 4; i++ ) {
       let description = doc.createElementNS(XULNS, "description");
       description.id = tooltipId + "-line" + i;
-      description.setAttribute('class', 'tooltip-' + classes[i]);
+      description.setAttribute('class', 'tooltip-' + classes[i-1]);
       if ( i == 1 || i == 2) {
         description.textContent = this.strBundle.GetStringFromName("info.helpLine"+i);
       } else {

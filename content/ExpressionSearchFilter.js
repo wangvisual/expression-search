@@ -8,6 +8,7 @@ var EXPORTED_SYMBOLS = ["ExperssionSearchFilter"];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
+Cu.import("chrome://expressionsearch/content/es.js");
 Cu.import("chrome://expressionsearch/content/log.js");
 Cu.import("resource:///modules/quickFilterManager.js");
 Cu.import("chrome://expressionsearch/content/gmailuiParse.js");
@@ -372,7 +373,7 @@ let ExperssionSearchFilter = {
         }
       
         // check if in normal filter mode
-        if ( topWin.ExpressionSearchChrome.options.act_as_normal_filter ) {
+        if ( ExpressionSearchChrome.options.act_as_normal_filter ) {
           let checkColon = new RegExp('(?:^|\\b)(?:' + ExpressionSearchTokens.allTokens + '):', 'g');
           if ( !checkColon.test(aFilterValue.text) ) { // can't find any my token
             let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
@@ -382,7 +383,7 @@ let ExperssionSearchFilter = {
             normalFilterState.text = aFilterValue.text;
             let normalFilter = QuickFilterManager.filterDefsByName['text'];
             normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
-            topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
+            ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
             normalFilterState.text = originalText;
             topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
             return;
@@ -416,7 +417,7 @@ let ExperssionSearchFilter = {
           ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
           haveBodyMapping = {};
           badREs = {};
-          if ( topWin.ExpressionSearchChrome ) topWin.ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
+          ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
         }
         return;
       } else {
