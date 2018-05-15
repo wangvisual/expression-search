@@ -1,11 +1,5 @@
-<!ENTITY expressionsearch.focusSearch.key        "b">
-<!ENTITY expressionsearch.focusSearch.mod        "accel">
-
 <!ENTITY expressionsearch.focusPeopleSearch.key  "f">
 <!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
-
-<!ENTITY expressionsearch.back2folder.keycode        "VK_LEFT">
-<!ENTITY expressionsearch.back2folder.mod        "accel alt">
 
 <!ENTITY about.about "关于">
 <!ENTITY about.author "作者:">
@@ -64,10 +58,6 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  搜索前使用正则表达式替换标题  ">
 <!ENTITY expressionsearch.dialog.c2s_match "匹配">
 <!ENTITY expressionsearch.dialog.c2s_replace "替换">
-
-<!ENTITY expressionsearch.menu.donate.label "资助">
-<!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/alipay.ico">
-<!ENTITY expressionsearch.menu.donate.pay "alipay">
 
 <!ENTITY expressionsearch.virtualfolder.selectall "选择所有">
 <!ENTITY expressionsearch.virtualfolder.clearall "清空选择">

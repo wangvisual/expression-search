@@ -257,6 +257,7 @@ var ExpressionSearchChrome = {
       }
     }
     delete win._expression_search;
+    delete win.ExpressionSearchChrome;
     //window.removeEventListener("unload", me.unregister, false);
   },
   
@@ -477,7 +478,7 @@ var ExpressionSearchChrome = {
   
   getWinFromEvent: function(event) {
     try {
-      return event.view || event.target.ownerDocument.ownerDocument;
+      return event.view || event.currentTarget.ownerDocument.defaultView;
     } catch (err) {
       ExpressionSearchLog.logException(err);
     }
@@ -713,16 +714,18 @@ var ExpressionSearchChrome = {
   onContextMenu: function(event) {
     let me = ExpressionSearchChrome;
     if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
-    let aNode = ExpressionSearchChrome.textBoxNode;
-    if ( !aNode ) return;
+    let win = ExpressionSearchChrome.getWinFromEvent(event);
+    let aNode = win.document.getElementById(ExpressionSearchChrome.textBoxDomId);
+    if ( !aNode || !win.gDBView || !win.gFolderDisplay ) return;
     if ( ! me.CheckClickSearchEvent(event) ) return;
+    let gFolderDisplay = win.gFolderDisplay;
     var row = {}; var col = {}; var childElt = {};
     event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
     if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' || row.value < 0 || col.value == null ) return;
     // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
     let token = "";
     let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
-    let msgHdr = gDBView.getMsgHdrAt(row.value);
+    let msgHdr = win.gDBView.getMsgHdrAt(row.value);
     switch(col.value.id) {
        case "subjectCol":
          if ( ( me.options.c2s_enableCtrlReplace && event.ctrlKey ) || ( me.options.c2s_enableShiftReplace && event.shiftKey ) ) {
@@ -777,7 +780,7 @@ var ExpressionSearchChrome = {
          return;
     }
     if ( sCellText == "" ) return;
-    QuickFilterBarMuxer._showFilterBar(true);
+    win.QuickFilterBarMuxer._showFilterBar(true);
     aNode.value = token + ":" + sCellText;
     aNode.selectionEnd = aNode.selectionStart = 1;
     me.onTokenChange.apply(aNode, [event]);
@@ -805,7 +808,27 @@ var ExpressionSearchChrome = {
       ExpressionSearchCommon.loadTab('expressionsearch.helpfile', anchor);
     }
   },
-      
+
+  createKeyset: function(win) {
+    let doc = win.document;
+    let mailKeys = doc.getElementById('mailKeys');
+    if ( !mailKeys ) return;
+    let keyset = doc.createElementNS(XULNS, "keyset");
+    keyset.id = 'expression-search-keyset';
+    let key1 = doc.createElementNS(XULNS, "key");
+    key1.setAttribute("key", this.strBundle.GetStringFromName("focusSearch.key"));
+    key1.setAttribute("modifiers", this.strBundle.GetStringFromName("focusSearch.mod"));
+    key1.setAttribute('oncommand', "ExpressionSearchChrome.setFocus()");
+    let key2 = doc.createElementNS(XULNS, "key");
+    key2.setAttribute("keycode", this.strBundle.GetStringFromName("back2folder.keycode"));
+    key2.setAttribute("modifiers", this.strBundle.GetStringFromName("back2folder.mod"));
+    key2.setAttribute('oncommand', "ExpressionSearchChrome.back2OriginalFolder()");
+    keyset.insertBefore(key1, null);
+    keyset.insertBefore(key2, null);
+    mailKeys.insertBefore(keyset, null);
+    win._expression_search.createdElements.push(keyset);
+  },
+
   createTooltip: function(win, status_bar) {
     let doc = win.document;
     let tooltip = doc.createElementNS(XULNS, "tooltip");
@@ -849,6 +872,7 @@ var ExpressionSearchChrome = {
     let status_bar = doc.getElementById('status-bar');
     if ( status_bar ) { // add status bar icon
       this.createTooltip(win, status_bar);
+      this.createKeyset(win);
       this.createPopup(win); // simple menu popup may can be in statusbarpanel by set that to 'statusbarpanel-menu-iconic', but better not
       let statusbarPanel = doc.createElementNS(XULNS, "statusbarpanel");
       let statusbarIcon = doc.createElementNS(XULNS, "image");
@@ -868,6 +892,7 @@ var ExpressionSearchChrome = {
     //window.removeEventListener("load", me.initAfterLoad, false);
     if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
     win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
+    win.ExpressionSearchChrome = ExpressionSearchChrome; // export ExpressionSearchChrome to windows name space
     
     try {
       me.initFunctionHook(win);
@@ -935,13 +960,13 @@ var ExpressionSearchChrome = {
       ["about:crashes", "", function(){ ExpressionSearchCommon.loadTab('about:crashes'); }],
       ["about:memory", "", function(){ ExpressionSearchCommon.loadURL('about:memory?verbose'); }],
       [''], // items before seprator and the seprator it self will only shown if verbose
-      ["&expressionsearch.dialog.settings;", "chrome://messenger/skin/accountcentral/account-settings.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul'); }],
-      ["&expressionsearch.option.help;", "chrome://global/skin/icons/question-64.png", function(){ ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help'); }],
-      ["&expressionsearch.menu.donate.label;", "&expressionsearch.menu.donate.image;", function(){ ExpressionSearchCommon.loadDonate('&expressionsearch.menu.donate.pay;'); }],
-      ["&about.about;", "chrome://expressionsearch/skin/statusbar_icon.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul'); }],
+      [this.strBundle.GetStringFromName("dialog.settings"), "chrome://messenger/skin/accountcentral/account-settings.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul'); }],
+      [this.strBundle.GetStringFromName("option.help"), "chrome://global/skin/icons/question-64.png", function(){ ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help'); }],
+      [this.strBundle.GetStringFromName("donate.label"), this.strBundle.GetStringFromName("donate.image"), function(){ ExpressionSearchCommon.loadDonate(this.strBundle.GetStringFromName("donate.pay")); }],
       ["Addon @ Mozilla", "chrome://mozapps/skin/extensions/extensionGeneric.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://addons.mozilla.org/en-US/thunderbird/addon/gmailui"); }],
       ["Addon @ GitHub", "chrome://awsomeAutoArchive/content/github.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search"); }],
       ["Report Bug", "chrome://global/skin/icons/information-32.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search/issues"); }],
+      [this.strBundle.GetStringFromName("about.about"), "chrome://expressionsearch/skin/statusbar_icon.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul'); }],
     ].forEach( function(menu) {
       ExpressionSearchChrome.addMenuItem(menu, doc, menupopup);
     } );

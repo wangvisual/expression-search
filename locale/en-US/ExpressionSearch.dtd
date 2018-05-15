@@ -1,11 +1,5 @@
-<!ENTITY expressionsearch.focusSearch.key        "b">
-<!ENTITY expressionsearch.focusSearch.mod        "accel">
-
 <!ENTITY expressionsearch.focusPeopleSearch.key  "f">
 <!ENTITY expressionsearch.focusPeopleSearch.mod  "accel">
-
-<!ENTITY expressionsearch.back2folder.keycode        "VK_LEFT">
-<!ENTITY expressionsearch.back2folder.mod        "accel alt">
 
 <!ENTITY about.about "About">
 <!ENTITY about.author "Author:">
@@ -64,10 +58,6 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  Replace subject with regular expression before search  ">
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
-
-<!ENTITY expressionsearch.menu.donate.label "Donate">
-<!ENTITY expressionsearch.menu.donate.image "chrome://expressionsearch/content/paypal.ico">
-<!ENTITY expressionsearch.menu.donate.pay "mozilla">
 
 <!ENTITY expressionsearch.virtualfolder.selectall "Select All">
 <!ENTITY expressionsearch.virtualfolder.clearall "Clear All">
