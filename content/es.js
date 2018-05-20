@@ -236,11 +236,11 @@ var ExpressionSearchChrome = {
    
   },
 
-  unregister: function(win) {
+  unLoad: function(win) {
     if ( typeof(win._expression_search) == 'undefined' ) return;
     ExpressionSearchLog.info("Expression Search: unload...");
     let me = ExpressionSearchChrome;
-    me.prefs.removeObserver("", me);
+    me.prefs.removeObserver("", me); // TODO
     let threadPane = win.document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("contextmenu", me.onContextMenu, true);
@@ -258,7 +258,6 @@ var ExpressionSearchChrome = {
     }
     delete win._expression_search;
     delete win.ExpressionSearchChrome;
-    //window.removeEventListener("unload", me.unregister, false);
   },
   
   refreshFilterBar: function(win) {
@@ -887,13 +886,8 @@ var ExpressionSearchChrome = {
     }
   },
   
-  initAfterLoad: function(win) {
+  loadInto3pane: function(win) {
     let me = ExpressionSearchChrome;
-    //window.removeEventListener("load", me.initAfterLoad, false);
-    if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
-    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
-    win.ExpressionSearchChrome = ExpressionSearchChrome; // export ExpressionSearchChrome to windows name space
-    
     try {
       me.initFunctionHook(win);
       me.initStatusBar.apply(me, [win]);
@@ -907,6 +901,31 @@ var ExpressionSearchChrome = {
     } catch (ex) {
       ExpressionSearchLog.logException(ex);
     }
+  },
+
+  loadIntoVirtualFolderList(win) {
+    let me = ExpressionSearchChrome;
+    try {
+      me.initFolderSelect(win);
+      me.initFunctionHook4VirtualFolder(win);
+    } catch (ex) {
+      ExpressionSearchLog.logException(ex);
+    }
+  },
+
+  Load: function(win) {
+    let me = ExpressionSearchChrome;
+    //window.removeEventListener("load", me.Load, false);
+    if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
+    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
+    win.ExpressionSearchChrome = ExpressionSearchChrome; // export ExpressionSearchChrome to windows name space
+
+    let type = win.document.documentElement.getAttribute('windowtype');
+    if ( type == 'mail:3pane' ) {
+      me.loadInto3pane(win);
+    } else if ( type == 'mailnews:virtualFolderList' ) {
+      me.loadIntoVirtualFolderList(win);
+    }
 
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
@@ -917,8 +936,18 @@ var ExpressionSearchChrome = {
       });
     } catch (ex) {
     }
+    
+    win.addEventListener("unload", me.onUnLoad, false);
   },
 
+  onUnLoad: function(event) {
+    ExpressionSearchLog.info('onUnLoad');
+    let aWindow = event.currentTarget;
+    if ( !aWindow ) return;
+    aWindow.removeEventListener("unload", ExpressionSearchChrome.onUnLoad, false);
+    ExpressionSearchChrome.unLoad(aWindow);
+  },
+  
   setFocus: function() {
     if ( ExpressionSearchChrome.options.move2bar==0 && !QuickFilterBarMuxer.activeFilterer.visible )
       QuickFilterBarMuxer._showFilterBar(true);
@@ -975,8 +1004,111 @@ var ExpressionSearchChrome = {
     aWindow._expression_search.createdElements.push(popupsetID);
   },
 
-};
+  // for VirtualFolder select dialog
+  initFolderSelect: function(win) {
+    let doc = win.document;
+    let folderPickerTree = doc.getElementById('folderPickerTree');
+    if ( !folderPickerTree ) {
+      ExpressionSearchLog.log("Expression Search: Can't find folderPickerTree", "Error");
+      return;
+    }
 
-//ExpressionSearchChrome.init();
-//window.addEventListener("load", ExpressionSearchChrome.initAfterLoad, false);
-//window.addEventListener("unload", ExpressionSearchChrome.unregister, false);
+    let hbox = doc.createElementNS(XULNS, "hbox");
+    hbox.setAttribute("align", "center");
+    let selectall = doc.createElementNS(XULNS, "button");
+    selectall.setAttribute("label", "&expressionsearch.virtualfolder.selectall;");
+    selectall.setAttribute('oncommand', "ExpressionSearchChrome.changeAllFolder(window, true);");
+    let clearall = doc.createElementNS(XULNS, "button");
+    clearall.setAttribute("label", "&expressionsearch.virtualfolder.clearall;");
+    clearall.setAttribute('oncommand', "ExpressionSearchChrome.changeAllFolder(window, false);");
+    let mode = doc.createElementNS(XULNS, "label");
+    mode.value = '&expressionsearch.virtualfolder.modelabel';
+    let menulist = doc.createElementNS(XULNS, "menulist");
+    menulist.id = 'esFolderType';
+    let menupopup = doc.createElementNS(XULNS, "menupopup");
+    let modesingle = doc.createElementNS(XULNS, "menuitem");
+    modesingle.setAttribute("label", "&expressionsearch.virtualfolder.modesingle;");
+    modesingle.setAttribute("value", 0);
+    let modechild = doc.createElementNS(XULNS, "menuitem");
+    modechild.setAttribute("label", "&expressionsearch.virtualfolder.modechild;");
+    modechild.setAttribute("value", 1);
+    let modedescendants = doc.createElementNS(XULNS, "menuitem");
+    modedescendants.setAttribute("label", "&expressionsearch.virtualfolder.modedescendants;");
+    modedescendants.setAttribute("value", 2);
+    menupopup.insertBefore(modesingle, null);
+    menupopup.insertBefore(modechild, null);
+    menupopup.insertBefore(modedescendants, null);
+    menulist.insertBefore(menupopup, null);
+    hbox.insertBefore(selectall, null);
+    hbox.insertBefore(clearall, null);
+    hbox.insertBefore(mode, null);
+    hbox.insertBefore(menulist, null);
+
+    folderPickerTree.parentNode.insertBefore(hbox, folderPickerTree);
+    win._expression_search.createdElements.push(hbox);
+  },
+
+  initFunctionHook4VirtualFolder: function(win) {
+    if ( typeof(win.gSelectVirtual) == 'undefined' || typeof(win.gFolderTreeView) == 'undefined' ) return;
+    try {
+      // How to deal with multi select and reverse?
+      win._expression_search.hookedFunctions.push( ExpressionSearchaop.around( {target: win.gSelectVirtual, method: '_toggle'}, function(invocation) {
+        let result = invocation.proceed(); // change folder's state first
+        let typeSel = win.document.getElementById('esFolderType');
+        let aRow = invocation.arguments[0];
+        let folder = win.gFolderTreeView._rowMap[aRow]._folder;
+        if ( !typeSel || typeSel.value == 0 || !folder ) return result;
+        ExpressionSearchChrome.changeSubFolder(win, typeSel.value, folder);
+        win.gFolderTreeView._tree.invalidate();
+        return result;
+      })[0] );
+    } catch (err) {
+      ExpressionSearchLog.logException(err);
+    }
+  },
+
+  changeSubFolder: function(win, type, folder) {
+    try {
+      for (let child of fixIterator(folder.subFolders, Ci.nsIMsgFolder)) {
+        ExpressionSearchChrome.setFolderSelected(win, child, folder);
+        if ( type == 2 && child.hasSubFolders && child.numSubFolders > 0 ) {
+          ExpressionSearchChrome.changeSubFolder(win, type, child);
+        }
+      }
+    } catch (err) {
+      ExpressionSearchLog.logException(err);
+    }
+  },
+
+  changeAllFolder: function(win, state) {
+    try {
+      let accounts = MailServices.accounts.accounts;
+      for ( let account of fixIterator(accounts, Ci.nsIMsgAccount) ) {
+        ExpressionSearchChrome.setFolderSelected(win, account.incomingServer.rootFolder, 0, state);
+        ExpressionSearchChrome.changeSubFolder(win, 2, account.incomingServer.rootFolder);
+        win.gFolderTreeView._tree.invalidate();
+      }
+    } catch (err) {
+      ExpressionSearchLog.logException(err);
+    }
+  },
+
+  setFolderSelected: function(win, folder, refFolder, state) {
+    if ( typeof(state) == 'undefined' ) {
+      state = refFolder.inVFEditSearchScope || win.gSelectVirtual._selectedList.has(refFolder);
+    }
+    if ( folder.setInVFEditSearchScope ) { // < TB59
+      folder.setInVFEditSearchScope(state, false /* subscope, not implemented */);
+    } else {
+      let selectedList = win.gSelectVirtual._selectedList;
+      let selected = selectedList.has(folder);
+      if ( selected != state ) {
+        if (selectedList.has(folder))
+          selectedList.delete(folder);
+        else
+          selectedList.add(folder);
+      }
+    }
+  },
+
+};

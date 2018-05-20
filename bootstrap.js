@@ -8,14 +8,14 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
 const userCSS = Services.io.newURI("chrome://expressionsearch/skin/overlay.css", null, null);
-const targetWindows = [ "mail:3pane", "mail:addressbook", "mail:messageWindow" ];
+const targetWindows = [ "mail:3pane", "mail:addressbook", "mail:messageWindow", "mailnews:virtualFolderList" ];
 
 function loadIntoWindow(window) {
   if ( !window ) return; // windows is the global host context
   let document = window.document; // XULDocument
   let type = document.documentElement.getAttribute('windowtype'); // documentElement maybe 'messengerWindow' / 'addressbookWindow'
   if ( targetWindows.indexOf(type) < 0 ) return;
-  ExpressionSearchChrome.initAfterLoad(window);
+  ExpressionSearchChrome.Load(window);
 }
  
 var windowListener = {
@@ -75,7 +75,7 @@ function shutdown(aData, aReason) {
     let windows = Services.wm.getEnumerator(null);
     while (windows.hasMoreElements()) {
       let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
-      ExpressionSearchChrome.unregister(domWindow); // won't check windowtype as unload will check
+      ExpressionSearchChrome.unLoad(domWindow); // won't check windowtype as unload will check
       // Do CC & GC, comment out allTraces when release
       domWindow.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).garbageCollect(
         // Cc["@mozilla.org/cycle-collector-logger;1"].createInstance(Ci.nsICycleCollectorListener).allTraces()

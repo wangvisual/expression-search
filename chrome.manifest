@@ -2,13 +2,8 @@ content   expressionsearch                 content/
 skin      expressionsearch   classic/1.0   skin/
 locale    expressionsearch   en-US         locale/en-US/
 locale    expressionsearch   zh-CN         locale/zh-CN/
-##resource  expressionsearch                 modules/
 
-#overlay	chrome://messenger/content/quickFilterBar.xul	chrome://expressionsearch/content/esQuickFilterBar.xul
-#overlay	chrome://messenger/content/mailWindowOverlay.xul	chrome://expressionsearch/content/esMailWindowOverlay.xul
 #overlay	chrome://messenger/content/addressbook/addressbook.xul	chrome://expressionsearch/content/esAddressbook.xul
-#overlay	chrome://messenger/content/virtualFolderListDialog.xul	chrome://expressionsearch/content/esVirtualFolderListDialog.xul
-##overlay chrome://messenger/content/messenger.xul chrome://expressionsearch/content/esMessenger.xul
 
 # for customer search terms
 #overlay  chrome://messenger/content/FilterEditor.xul chrome://expressionsearch/content/customerTerms.xul
