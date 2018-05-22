@@ -59,9 +59,3 @@
 <!ENTITY expressionsearch.dialog.c2s_match "Match">
 <!ENTITY expressionsearch.dialog.c2s_replace "Replace">
 
-<!ENTITY expressionsearch.virtualfolder.selectall "Select All">
-<!ENTITY expressionsearch.virtualfolder.clearall "Clear All">
-<!ENTITY expressionsearch.virtualfolder.modelabel "When click change:">
-<!ENTITY expressionsearch.virtualfolder.modesingle "Current Only">
-<!ENTITY expressionsearch.virtualfolder.modechild "Current &amp; Children">
-<!ENTITY expressionsearch.virtualfolder.modedescendants "Current &amp; Descendants">

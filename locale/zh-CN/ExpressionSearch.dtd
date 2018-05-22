@@ -58,10 +58,3 @@
 <!ENTITY expressionsearch.dialog.c2s_replace_title "  搜索前使用正则表达式替换标题  ">
 <!ENTITY expressionsearch.dialog.c2s_match "匹配">
 <!ENTITY expressionsearch.dialog.c2s_replace "替换">
-
-<!ENTITY expressionsearch.virtualfolder.selectall "选择所有">
-<!ENTITY expressionsearch.virtualfolder.clearall "清空选择">
-<!ENTITY expressionsearch.virtualfolder.modelabel "鼠标单击时改变">
-<!ENTITY expressionsearch.virtualfolder.modesingle "仅当前项">
-<!ENTITY expressionsearch.virtualfolder.modechild "当前项以及子节点">
-<!ENTITY expressionsearch.virtualfolder.modedescendants "当前项以及以下所有子节点">

@@ -7,7 +7,7 @@
     <em:unpack>false</em:unpack>
     <em:name>Expression Search / Google Mail UI</em:name>
     <em:homepageURL>https://github.com/wangvisual/expression-search</em:homepageURL>
-    <em:version>1.3</em:version>
+    <em:version>1.4beta</em:version>
     <em:creator>Opera Wang</em:creator>
     <em:contributor>Ken Mixter</em:contributor>
     <em:description>Type "from:fred to:tom" to see all messages from Fred to Tom in the current view.</em:description>
