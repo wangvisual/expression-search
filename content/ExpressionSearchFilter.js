@@ -17,6 +17,7 @@ Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and parseMailAddresses
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
+Cu.import("resource://gre/modules/AppConstants.jsm");
 let hasJSMIME = 0;
 try {
   Cu.import("resource:///modules/mimeParser.jsm");
@@ -25,19 +26,7 @@ try {
   hasJSMIME = 1;
 } catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 31 or later", 1); }
 
-let platformIsMac = false;
-try {
-    // AppConstants.jsm is added around TB36
-    // steelIApplication is deprecated
-    Cu.import("resource://gre/modules/AppConstants.jsm");
-    platformIsMac = ( AppConstants.platform == "macosx" ? true : false );
-} catch (e) {
-    try {
-      let Application = Cc["@mozilla.org/steel/application;1"].getService(Ci.steelIApplication); // Thunderbird
-      platformIsMac = Application.platformIsMac;
-    } catch (e) {}
-}
-
+let platformIsMac = ( AppConstants.platform == "macosx" ? true : false );
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
 let haveBodyMapping = {}; // folderURI+messageKey => true (haveBody)
 let badREs = {};
@@ -367,61 +356,51 @@ let ExperssionSearchFilter = {
       else
         topWin = Services.wm.getMostRecentWindow("mail:3pane");
 
-      if (aFilterValue.text) {
-        if ( aFilterValue.text.toLowerCase().indexOf('g:') == 0 ) { // may get called when init with saved values in searchInput.
+      if (!aFilterValue.text || aFilterValue.text.toLowerCase().indexOf('g:') == 0) return;
+      // check if in normal filter mode
+      if ( ExpressionSearchChrome.options.act_as_normal_filter ) {
+        let checkColon = new RegExp('(?:^|\\b)(?:' + ExpressionSearchTokens.allTokens + '):', 'g');
+        if ( !checkColon.test(aFilterValue.text) ) { // can't find any my token
+          let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
+          // Use normalFilter's appendTerms to create search term
+          let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
+          let originalText = normalFilterState.text;
+          normalFilterState.text = aFilterValue.text;
+          let normalFilter = QuickFilterManager.filterDefsByName['text'];
+          normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
+          ExpressionSearchChrome.showHideHelp(topWin, true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
+          normalFilterState.text = originalText;
+          topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
           return;
-        }
-      
-        // check if in normal filter mode
-        if ( ExpressionSearchChrome.options.act_as_normal_filter ) {
-          let checkColon = new RegExp('(?:^|\\b)(?:' + ExpressionSearchTokens.allTokens + '):', 'g');
-          if ( !checkColon.test(aFilterValue.text) ) { // can't find any my token
-            let QuickFilterBarMuxer = topWin.QuickFilterBarMuxer;
-            // Use normalFilter's appendTerms to create search term
-            let normalFilterState = QuickFilterBarMuxer.activeFilterer.filterValues['text'];
-            let originalText = normalFilterState.text;
-            normalFilterState.text = aFilterValue.text;
-            let normalFilter = QuickFilterManager.filterDefsByName['text'];
-            normalFilter.appendTerms.apply(normalFilter, [aTermCreator, aTerms, normalFilterState]);
-            ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
-            normalFilterState.text = originalText;
-            topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = false;
-            return;
-          } else {
-            let normalFilterBox = topWin.document.getElementById("qfb-qs-textbox");
-            if ( normalFilterBox && normalFilterBox.value == "" )
-              topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = true;
-          }
-        }
-        
-        // first remove trailing specifications if it's empty
-        // then remove trailing ' and' but no remove of "f: and"
-        let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExpressionSearchTokens.allTokens + '):(?:\\(|)\\s*$', "i");
-        let regExpSearch = new RegExp( '\\b(?:' + ExpressionSearchTokens.allTokens + '):\\s+and\\s*$', "i");
-        var aSearchString = aFilterValue.text.replace(regExpReplace,'');
-        if ( !regExpSearch.test(aSearchString) ) {
-          aSearchString = aSearchString.replace(/\s+\and\s*$/i,'');
-        }
-        aSearchString.replace(/\s+$/,'');
-        if ( aSearchString == '' ) {
-          return;
-        }
-        var e = ExpressionSearchComputeExpression(aSearchString);
-        if ( ExperssionSearchFilter.latchQSFolderReq ) {
-          let terms = aTerms.slice();
-          ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,terms);
-          ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [terms]);
-          ExperssionSearchFilter.latchQSFolderReq = 0;
         } else {
-          ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
-          ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
-          haveBodyMapping = {};
-          badREs = {};
-          ExpressionSearchChrome.showHideHelp(true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
+          let normalFilterBox = topWin.document.getElementById("qfb-qs-textbox");
+          if ( normalFilterBox && normalFilterBox.value == "" )
+            topWin.document.getElementById("quick-filter-bar-filter-text-bar").collapsed = true;
         }
-        return;
+      }
+      
+      // first remove trailing specifications if it's empty
+      // then remove trailing ' and' but no remove of "f: and"
+      let regExpReplace = new RegExp( '(?:^|\\s+)(?:' + ExpressionSearchTokens.allTokens + '):(?:\\(|)\\s*$', "i");
+      let regExpSearch = new RegExp( '\\b(?:' + ExpressionSearchTokens.allTokens + '):\\s+and\\s*$', "i");
+      var aSearchString = aFilterValue.text.replace(regExpReplace,'');
+      if ( !regExpSearch.test(aSearchString) ) {
+        aSearchString = aSearchString.replace(/\s+\and\s*$/i,'');
+      }
+      aSearchString.replace(/\s+$/,'');
+      if ( aSearchString == '' ) return;
+      var e = ExpressionSearchComputeExpression(aSearchString);
+      if ( ExperssionSearchFilter.latchQSFolderReq ) {
+        let terms = aTerms.slice();
+        ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,terms);
+        ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [terms]);
+        ExperssionSearchFilter.latchQSFolderReq = 0;
       } else {
-        //showHideHelp(topWin.document, false, '');
+        ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
+        ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,aTerms);
+        haveBodyMapping = {};
+        badREs = {};
+        ExpressionSearchChrome.showHideHelp(topWin, true, undefined, undefined, undefined, this.getSearchTermString(aTerms));
       }
     } catch (err) {
         ExpressionSearchLog.logException(err);
@@ -460,10 +439,6 @@ let ExperssionSearchFilter = {
   },
 
   onCommand: function(aState, aNode, aEvent, aDocument) { // may get skipped when init, but appendTerms get called
-    let ExpressionSearchChrome = {};
-    if ( aDocument && aDocument.defaultView && aDocument.defaultView.window && aDocument.defaultView.window.ExpressionSearchChrome )
-      ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
-    
     let text = aNode.value.length ? aNode.value : null;
     aState = aState || {}; // or will be no search.
     let needSearch = false;
@@ -479,7 +454,7 @@ let ExperssionSearchFilter = {
       aState.text = text;
       needSearch = true;
     }
-    if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options && ExpressionSearchChrome.options.select_msg_on_enter ) // else the first message will be selected in reflectInDom
+    if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter ) // else the first message will be selected in reflectInDom
         ExpressionSearchChrome.selectFirstMessage(true);
     return [aState, needSearch];
   },
@@ -497,10 +472,7 @@ let ExperssionSearchFilter = {
     if ( aNode.value != desiredValue && !aFromPFP )
       aNode.value = desiredValue;
 
-    let ExpressionSearchChrome = {};
-    if ( aDocument && aDocument.defaultView && aDocument.defaultView.window && aDocument.defaultView.window.ExpressionSearchChrome )
-      ExpressionSearchChrome = aDocument.defaultView.window.ExpressionSearchChrome;
-    if ( ExpressionSearchChrome.showHideHelp ) ExpressionSearchChrome.showHideHelp(false);
+    ExpressionSearchChrome.showHideHelp(aDocument.defaultView, false);
     
     let total = Object.keys(haveBodyMapping).length;
     if ( total && aNode.value != '' ) {
@@ -527,7 +499,7 @@ let ExperssionSearchFilter = {
     if (panel.state != "closed")
       panel.hidePopup();
 
-    if ( ExpressionSearchChrome.selectFirstMessage ) ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
+    ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
   },
 
   postFilterProcess: function(aState, aViewWrapper, aFiltering) {

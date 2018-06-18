@@ -18,7 +18,8 @@ var EXPORTED_SYMBOLS = ["ExpressionSearchChrome"];
 var ExpressionSearchChrome = {
   // if last key is Enter
   isEnter: 0,
-  hookedSearchSpec: 0,
+  hookedGlobalFunctions: [],
+  three_panes: [], // 3pane windows
   
   needMoveId: "quick-filter-bar-main-bar",
   originalFilterId: "qfb-qs-textbox",
@@ -26,9 +27,7 @@ var ExpressionSearchChrome = {
   strBundle: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
   
   prefs: null, // preference object
-  options: {   // preference strings
-    savedPosition: 0,
-  },
+  options: {}, // preference strings
 
   init: function() {
     Cu.import("chrome://expressionsearch/content/log.js"); // load log first
@@ -157,10 +156,8 @@ var ExpressionSearchChrome = {
         break;
     }
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
-    //if ( !this.isInited ) return;
-    // use call back
-    //if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
-    //  this.refreshFilterBar();
+    if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
+      this.three_panes.forEach( win => this.refreshFilterBar(win) );
     if ( data == 'search_timeout' ) this.setSearchTimeout();
   },
 
@@ -195,9 +192,8 @@ var ExpressionSearchChrome = {
     })[0] );
     
     // hook _flattenGroupifyTerms to avoid being flatten
-    if ( !ExpressionSearchChrome.hookedSearchSpec ) {
-      ExpressionSearchChrome.hookedSearchSpec = 1;
-      win._expression_search.hookedFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
+    if ( !ExpressionSearchChrome.hookedGlobalFunctions.length ) {
+      ExpressionSearchChrome.hookedGlobalFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
         let aTerms = invocation.arguments[0];
         let aCloneTerms = invocation.arguments[1];
         if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
@@ -235,18 +231,21 @@ var ExpressionSearchChrome = {
     })[0] );
    
   },
+  
+  registerCallback(win) {
+    this.three_panes.push(win);
+  },
 
   unLoad: function(win) {
     if ( typeof(win._expression_search) == 'undefined' ) return;
     ExpressionSearchLog.info("Expression Search: unload...");
     let me = ExpressionSearchChrome;
-    me.prefs.removeObserver("", me); // TODO
+    let index = me.three_panes.indexOf(win); // using ===
+    if ( index >= 0 ) me.three_panes.splice(index, 1);
     let threadPane = win.document.getElementById("threadTree");
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("contextmenu", me.onContextMenu, true);
-    win._expression_search.hookedFunctions.forEach( function(hooked, index, array) {
-      hooked.unweave();
-    } );
+    win._expression_search.hookedFunctions.forEach( hooked => hooked.unweave() );
     //if ( win._expression_search.contextMenuItem ) win._expression_search.contextMenuItem.parentNode.removeEventListener('popupshowing', this.beforePopupShow, true);
     let doc = win.document;
     for ( let node of win._expression_search.createdElements ) {
@@ -258,6 +257,13 @@ var ExpressionSearchChrome = {
     }
     delete win._expression_search;
     delete win.ExpressionSearchChrome;
+  },
+  
+  cleanup: function() {
+    this.prefs.removeObserver("", me);
+    delete this.prefs;
+    this.hookedGlobalFunctions.forEach( hooked => hooked.unweave() );
+    ExpressionSearchLog.info("Expression Search: cleanup done");
   },
   
   refreshFilterBar: function(win) {
@@ -287,8 +293,8 @@ var ExpressionSearchChrome = {
       filterNode.value = '';
 
     // move expression search box along with other buttons to dest position
-    if ( this.options.move2bar != this.options.savedPosition ) {
-      this.options.savedPosition = this.options.move2bar;
+    if ( this.options.move2bar != win._expression_search.savedPosition ) {
+      win._expression_search.savedPosition = this.options.move2bar;
       let dest = 'quick-filter-bar';
       let qfb = document.getElementById(dest);
       if ( this.options.move2bar ) qfb.classList.add('resetHeight'); // hide the qfb bar when move the elements to other places
@@ -326,7 +332,7 @@ var ExpressionSearchChrome = {
     if ( resultsLabel ) {
       if ( typeof(resultsLabel._saved_minWidth) == 'undefined' ) resultsLabel._saved_minWidth = resultsLabel.getAttribute('minwidth') || 1;
       let layout = Services.prefs.getIntPref("mail.pane_config.dynamic"); 
-      let minWidth = ( this.options.results_label_size == 2 || ( this.options.results_label_size == 0 &&  this.options.move2bar == 0 && layout == kVerticalMailLayout ) ) ? 0 : resultsLabel._saved_minWidth;
+      let minWidth = ( this.options.results_label_size == 2 || ( this.options.results_label_size == 0 &&  this.options.move2bar == 0 && layout == win.kVerticalMailLayout ) ) ? 0 : resultsLabel._saved_minWidth;
       resultsLabel.setAttribute('minwidth', minWidth);
       if ( minWidth == 0 ) delete resultsLabel.style.width;
       if ( spacer ) {
@@ -380,8 +386,8 @@ var ExpressionSearchChrome = {
   
   helpTimer: 0,
 
-  showHideHelp: function(show, line1, line2, line3, line4) {
-    return; // TODO remvoe
+  showHideHelp: function(win, show, line1, line2, line3, line4) {
+    let document = win.document;
     if ( typeof(document) == 'undefined' || typeof(document.defaultView) == 'undefined' ) return;
     let tooltip = document.getElementById(tooltipId);
     let tooltip1 = document.getElementById("expression-search-tooltip-line1");
@@ -418,7 +424,7 @@ var ExpressionSearchChrome = {
     let term = undefined;
     if ( searchValue == '' ) term = ' ';
     let win = ExpressionSearchChrome.getWinFromEvent(event);
-    ExpressionSearchChrome.showHideHelp(1, help.alias, help.info, help.matchString, term);
+    ExpressionSearchChrome.showHideHelp(win, 1, help.alias, help.info, help.matchString, term);
   },
   
   delayedOnSearchKeyPress: function(event) {
@@ -472,7 +478,7 @@ var ExpressionSearchChrome = {
     let win = ExpressionSearchChrome.getWinFromEvent(event);
     ExpressionSearchChrome.hideUpsellPanel(win);
     ExpressionSearchChrome.isFocus = false;
-    ExpressionSearchChrome.showHideHelp(false);
+    ExpressionSearchChrome.showHideHelp(win, false);
   },
   
   getWinFromEvent: function(event) {
@@ -501,7 +507,7 @@ var ExpressionSearchChrome = {
       return;
     }
 
-    let aNode = this.textBoxNode = doc.createElementNS(XULNS, "textbox");
+    let aNode = this.textBoxNode = doc.createElementNS(XULNS, "textbox"); // TODO, no textBoxNode
     aNode.id = this.textBoxDomId;
     aNode.setAttribute("type", "search");
     aNode.setAttribute("emptytextbase", this.strBundle.GetStringFromName("textbox.emptyText.base"));
@@ -540,7 +546,7 @@ var ExpressionSearchChrome = {
   // not works well for complex searchTerms. But it's for all folders.
   createQuickFolder: function(searchTerms) {
     const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
-    var currFolder = gFolderDisplay.displayedFolder;
+    var currFolder = gFolderDisplay.displayedFolder; // TODO, no gFolderDisplay
     this.originalURI = currFolder.URI;
     var rootFolder = currFolder.rootFolder; // nsIMsgFolder
     var QSFolderName = "ExpressionSearch";
@@ -555,14 +561,7 @@ var ExpressionSearchChrome = {
     var QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
-      let allDescendants;
-      if ( typeof(rootFolder.descendants) != 'undefined' ) { // bug 436089
-        allDescendants = rootFolder.descendants;
-      } else { // < TB 21
-        allDescendants = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
-        rootFolder.ListDescendents(allDescendants);
-      }
-      for (let folder in fixIterator(allDescendants, Ci.nsIMsgFolder)) {
+      for (let folder in fixIterator(rootFolder.descendants, Ci.nsIMsgFolder)) {
         // only add non-virtual non-news folders
         if ( !folder.isSpecialFolder(nsMsgFolderFlags.Newsgroup,false) && !folder.isSpecialFolder(nsMsgFolderFlags.Virtual,false) ) {
           if (uriSearchString != "") {
@@ -610,6 +609,7 @@ var ExpressionSearchChrome = {
 
   // select first message, expand first container if closed
   selectFirstMessage: function(win, needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
+    // TODO
     if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
       let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBox_Object <= addon validator warning with comments
       let treeView = treeBox.view; //nsITreeView
@@ -893,6 +893,7 @@ var ExpressionSearchChrome = {
       me.initStatusBar.apply(me, [win]);
       me.initSearchInput.apply(me, [win]);
       me.refreshFilterBar(win);
+      me.registerCallback(win);
       let threadPane = win.document.getElementById("threadTree");
       if ( threadPane ) {
         // On Mac, contextmenu is fired before onclick, thus even break onclick  still has context menu
@@ -917,7 +918,7 @@ var ExpressionSearchChrome = {
     let me = ExpressionSearchChrome;
     //window.removeEventListener("load", me.Load, false);
     if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
-    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
+    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, savedPosition: 0, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
     win.ExpressionSearchChrome = ExpressionSearchChrome; // export ExpressionSearchChrome to windows name space
 
     let type = win.document.documentElement.getAttribute('windowtype');

@@ -1,10 +1,5 @@
 "use strict";
 function onLoad() {
-  if ( Services.vc.compare(Application.version, "19") < 0) { // bug 363238
-    // AddEventListner not works here, also setAttribute is too late
-    // document.getElementById("customHeadersText").setAttribute("onsyncfrompreference", "return onSyncFromPreference();");
-    document.getElementById("tooltip_customHeaders").style.display = "none";
-  }
   var folderPicker = document.getElementById("esNewFolderPicker");
   if ( folderPicker.value == '' ) return;
   var msgFolder = {};
@@ -34,31 +29,5 @@ function onFolderPick(aEvent) {
 function onSyncFromPreference() {
   var preference = document.getElementById("pref_customHeaders");
   // .value === undefined means the preference is set to the default value
-  var actualValue = preference.value !== undefined ? preference.value : preference.defaultValue;
-  // actualValue may be |null| here if the pref didn't have the default value.
-  if ( Services.vc.compare(Application.version, "19") >= 0 ) return actualValue; // bug 363238
-  var currentHeaders = document.getElementById("customHeadersText").value.split(/: /);
-  var inputHeaders = actualValue.split(/: /);
-  var customDBHeaders = Services.prefs.getCharPref("mailnews.customDBHeaders").split(" ");
-  var added = 0;
-  var removed = 0;
-  // all inputHeaders need be in customeDBHeaders
-  // If some value was removed, need removed in DBHeaders too
-  inputHeaders.forEach( function(header, index, array) {
-    if ( customDBHeaders.indexOf(header.toLowerCase()) < 0 ) {
-      customDBHeaders.push(header.toLowerCase());
-      added = 1;
-    }
-  } );
-  currentHeaders.forEach( function(header, index, array) {
-    if ( inputHeaders.indexOf(header) < 0 && customDBHeaders.indexOf(header.toLowerCase()) >= 0 ) {
-      customDBHeaders.splice( customDBHeaders.indexOf(header.toLowerCase()), 1 );
-      removed = 1;
-    }
-  } );
-  if ( added || removed ) Services.prefs.setCharPref("mailnews.customDBHeaders", customDBHeaders.sort().join(" ").trim());
-  if ( added ) {
-    //Services.prompt.alert(window, "Warning", "New added, need repair folder");
-  }
-  return actualValue;
+  return preference.value !== undefined ? preference.value : preference.defaultValue;
 }
