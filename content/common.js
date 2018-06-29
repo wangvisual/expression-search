@@ -30,14 +30,12 @@ var ExpressionSearchCommon = {
       { tabType: "contentTab", tabParams: {contentPage: ExpressionSearchCommon.translateURL(url,anchor) } });
   },
   getTabObject: function() {
-    let tabmail = document.getElementById("tabmail");
-    if (!tabmail) {
-      // Try opening new tabs in an existing 3pane window
-      let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
-      if (mail3PaneWindow) {
-        tabmail = mail3PaneWindow.document.getElementById("tabmail");
-        mail3PaneWindow.focus();
-      }
+    let tabmail;
+    // Try opening new tabs in an existing 3pane window
+    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+      tabmail = mail3PaneWindow.document.getElementById("tabmail");
+      mail3PaneWindow.focus();
     }
     return tabmail;
   },

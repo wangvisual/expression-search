@@ -240,6 +240,10 @@ var ExpressionSearchChrome = {
     if ( typeof(win._expression_search) == 'undefined' ) return;
     ExpressionSearchLog.info("Expression Search: unload...");
     let me = ExpressionSearchChrome;
+    if ( me.helpTimer > 0 ) {
+      clearTimeout( me.helpTimer );
+      me.helpTimer = 0;
+    }
     let index = me.three_panes.indexOf(win); // using ===
     if ( index >= 0 ) me.three_panes.splice(index, 1);
     let threadPane = win.document.getElementById("threadTree");
@@ -445,7 +449,7 @@ var ExpressionSearchChrome = {
             //this._fireCommand(this); // just for selection, but no use as TB will unselect it
             let tabmail = win.document.getElementById("tabmail");
             tabmail.openTab("glodaFacet", {
-              searcher: new GlodaMsgSearcher(null, searchValue)
+              searcher: new win.GlodaMsgSearcher(null, searchValue)
             });
           }
         } else {
