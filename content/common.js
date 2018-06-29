@@ -24,11 +24,6 @@ var ExpressionSearchCommon = {
       // open is more standard compare with openDialog
       win.open(url, "_blank", "chrome,dialog,modal");
   },
-  loadInTopWindow: function(url,anchor) {
-    //openDialog will open another top window
-    window.openDialog("chrome://messenger/content/", "_blank", "chrome,dialog=no,all", null,
-      { tabType: "contentTab", tabParams: {contentPage: ExpressionSearchCommon.translateURL(url,anchor) } });
-  },
   getTabObject: function() {
     let tabmail;
     // Try opening new tabs in an existing 3pane window
