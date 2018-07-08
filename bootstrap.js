@@ -26,7 +26,6 @@ var windowListener = {
     };
     aWindow.addEventListener("load", onLoadWindow, false);
   },
-  //onCloseWindow: function(aWindow) {}, onWindowTitleChange: function(aWindow) {},
   observe: function(subject, topic, data) {
     if ( topic == "xul-window-registered") {
       windowListener.onOpenWindow( subject.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow) );
@@ -37,11 +36,8 @@ var windowListener = {
 // A toplevel window in a XUL app is an nsXULWindow.  Inside that there is an nsGlobalWindow (aka nsIDOMWindow).
 function startup(aData, aReason) {
   Services.console.logStringMessage("Expression Search / Google Mail UI startup...");
-  //Cu.import("chrome://expressionsearch/content/expressionsearchUtil.jsm");
-  //expressionsearchUtil.initPerf( __SCRIPT_URI_SPEC__.replace(/bootstrap\.js$/, "") );
   Cu.import("chrome://expressionsearch/content/es.js");
   ExpressionSearchChrome.init();
-  //expressionsearchUtil.setChangeCallback( function(clean) { expressionsearch.clearCache(clean); } );
   let windows = Services.wm.getEnumerator(null);
   while (windows.hasMoreElements()) {
     let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
@@ -52,10 +48,7 @@ function startup(aData, aReason) {
     }
   }
   // Wait for new windows
-  //Services.ww.registerNotification(windowListener); // nsIDOMWindow, can't get cached compose window open call
-  //Services.wm.addListener(windowListener); // nsIXULWindow, onOpenWindow, onCloseWindow, onWindowTitleChange, works with compose window
   Services.obs.addObserver(windowListener, "xul-window-registered", false);
-  //Services.obs.addObserver(windowListener, "domwindowopened", false);
   // install userCSS, works for all document like userChrome.css, see https://developer.mozilla.org/en/docs/Using_the_Stylesheet_Service
   // validator warnings on the below line, ignore it
   if ( !sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.loadAndRegisterSheet(userCSS, sss.USER_SHEET); // will be unregister when shutdown
@@ -63,13 +56,11 @@ function startup(aData, aReason) {
  
 function shutdown(aData, aReason) {
   // When the application is shutting down we normally don't have to clean up any UI changes made
-  // but we have to abort LDAP related job or crash
   try {
     if ( sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.unregisterSheet(userCSS, sss.USER_SHEET);
   } catch (err) {Cu.reportError(err);}
   
   try {
-    //Services.ww.unregisterNotification(windowListener);
     Services.obs.removeObserver(windowListener, "xul-window-registered");
     // Unload from any existing windows
     let windows = Services.wm.getEnumerator(null);
@@ -81,7 +72,7 @@ function shutdown(aData, aReason) {
         // Cc["@mozilla.org/cycle-collector-logger;1"].createInstance(Ci.nsICycleCollectorListener).allTraces()
       );
     }
-    //expressionsearch.cleanup();
+    ExpressionSearchChrome.cleanup();
   } catch (err) {Cu.reportError(err);}
   if (aReason == APP_SHUTDOWN) return;
   Services.strings.flushBundles(); // clear string bundles
