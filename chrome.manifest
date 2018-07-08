@@ -1,6 +1,7 @@
 content   expressionsearch                 content/
 skin      expressionsearch   classic/1.0   skin/
 locale    expressionsearch   en-US         locale/en-US/
+locale    expressionsearch   de-DE         locale/de-DE/
 locale    expressionsearch   zh-CN         locale/zh-CN/
 
 #overlay	chrome://messenger/content/addressbook/addressbook.xul	chrome://expressionsearch/content/esAddressbook.xul
