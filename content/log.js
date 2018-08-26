@@ -2,7 +2,7 @@
 // GPL V3 / MPL
 // debug utils
 "use strict";
-const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm, stack: Cs } = Components;
+const { stack: Cs } = Components;
 const { loader, require } = Cu.import("resource://devtools/shared/Loader.jsm", {});
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");

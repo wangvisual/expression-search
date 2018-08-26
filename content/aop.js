@@ -21,7 +21,7 @@ var EXPORTED_SYMBOLS = ["ExpressionSearchaop"];
 
 var ExpressionSearchaop;
 
-Components.utils.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 (function() {
 

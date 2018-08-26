@@ -1,7 +1,6 @@
 // Opera.Wang+expressionsearch@gmail.com GPL/MPL
 "use strict";
 
-const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu, results: Cr, manager: Cm } = Components;
 Cu.import("resource://gre/modules/Services.jsm");
 // if use custom resouce, refer here
 // http://mdn.beonex.com/en/JavaScript_code_modules/Using.html

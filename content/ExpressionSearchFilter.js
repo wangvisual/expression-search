@@ -6,7 +6,6 @@
 
 var EXPORTED_SYMBOLS = ["ExperssionSearchFilter"];
 
-const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
 Cu.import("chrome://expressionsearch/content/es.js");
 Cu.import("chrome://expressionsearch/content/log.js");

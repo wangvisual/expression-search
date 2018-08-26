@@ -2,8 +2,8 @@
 // MPL/GPL
 // Opera.Wang 2011/03/21
 "use strict";
-Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 var EXPORTED_SYMBOLS = ["ExpressionSearchCommon"];
 var ExpressionSearchCommon = {
   strings: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
