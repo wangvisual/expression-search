@@ -7,7 +7,7 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
 const userCSS = Services.io.newURI("chrome://expressionsearch/skin/overlay.css", null, null);
-const targetWindows = [ "mail:3pane", "mail:addressbook", "mail:messageWindow", "mailnews:virtualFolderList" ];
+const targetWindows = [ "mail:3pane", "mailnews:virtualFolderList" ];
 
 function loadIntoWindow(window) {
   if ( !window ) return; // windows is the global host context

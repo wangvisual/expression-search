@@ -221,11 +221,9 @@ fields, and the <i>body</i>.
 
 <h3>Hot Key</h3>
 <p>
-By default, Before TB8, Press Ctrl+F, your cursor will appear in the expression search bar or in the "search in message" bar, depend on where current focus is, and
-you will be able to type. See <span class="bz_closed"><a href='https://bugzilla.mozilla.org/show_bug.cgi?id=564328'>Bug 564328</a></span>.</p>
-<p>After TB8, the hot key was changed to "Ctrl+Shif+K".</p>
-<p>Expression Search add one additional hot key "Ctrl+B", this will only focus your cursor in the expression search bar.
-</p>
+By default, Press Ctrl+Shift+K, your cursor will appear in the expression search bar and
+you will be able to type.</p>
+<p>Expression Search add one additional hot key "Ctrl+B".</p>
 <p>Once you are typing in your search query, and you hit enter or otherwise let
 it begin searching, your cursor will remain inside of the query box to allow you 
 to modify the query.  However, if you'd rather go back to browsing your messages,
@@ -329,6 +327,11 @@ Also common prefix like 'Re:', 'Fw:', [mail-list-name] will be removed before se
 <a name="version_history"></a>
 <h3>Version history</h3>
 <ul><li>
+Version 1.4: <ul>
+<li>Works with TB 63 nightly, drop support for TB older than 60</li>
+<li>Change from legacy XUL overly addon to restartless addon</li>
+</ul>
+</li><li>
 Version 1.3: <ul>
 <li>Works with TB 60 nightly, drop support for TB older than 52</li>
 <li>Fixed issue with 'only' filter</li>

@@ -36,10 +36,6 @@
   color: grey;
 }
 
-.search-value-custom[searchAttribute^="expressionsearch#"] {
-  -moz-binding: url("chrome://expressionsearch/content/bindings.xml#expressionSearchTextBoxBinding");
-}
-
 .expressionsearch_pref_input {
   margin: 0px;
   padding: 0px;

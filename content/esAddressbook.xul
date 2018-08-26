@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
-
-<overlay id="esAddressbookOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <keyset id="tasksKeys">
-    <key id="key_find_people_expression_search" key="&expressionsearch.focusPeopleSearch.key;" modifiers="&expressionsearch.focusPeopleSearch.mod;" oncommand="document.getElementById('peopleSearchInput').focus();"/>
-  </keyset>
-</overlay>

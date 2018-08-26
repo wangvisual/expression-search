@@ -197,8 +197,8 @@ var ExpressionSearchChrome = {
         let aTerms = invocation.arguments[0];
         let aCloneTerms = invocation.arguments[1];
         let topWin = Services.wm.getMostRecentWindow("mail:3pane");
-        ExpressionSearchLog.logObject(invocation, 'inv', 0);
-        if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
+        let aNode = topWin.document.getElementById(ExpressionSearchChrome.textBoxDomId);
+        if ( !aNode || !aNode.value ) return invocation.proceed();
         let outTerms = aCloneTerms ? [] : aTerms;
         let term;
         if ( aCloneTerms ) {
