@@ -393,7 +393,7 @@ let ExperssionSearchFilter = {
       if ( ExperssionSearchFilter.latchQSFolderReq ) {
         let terms = aTerms.slice();
         ExperssionSearchFilter.createSearchTermsFromExpression(e,aTermCreator,terms);
-        ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [terms]);
+        ExperssionSearchFilter.latchQSFolderReq.createQuickFolder.apply(ExperssionSearchFilter.latchQSFolderReq, [topWin, terms]);
         ExperssionSearchFilter.latchQSFolderReq = 0;
       } else {
         ExpressionSearchLog.info("Experssion Search Statements: " + ExpressionSearchExprToStringInfix(e));
@@ -455,7 +455,7 @@ let ExperssionSearchFilter = {
       needSearch = true;
     }
     if ( !needSearch && ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter ) // else the first message will be selected in reflectInDom
-        ExpressionSearchChrome.selectFirstMessage(true);
+        ExpressionSearchChrome.selectFirstMessage(aDocument.defaultView, true);
     return [aState, needSearch];
   },
 
@@ -499,7 +499,7 @@ let ExperssionSearchFilter = {
     if (panel.state != "closed")
       panel.hidePopup();
 
-    ExpressionSearchChrome.selectFirstMessage(ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
+    ExpressionSearchChrome.selectFirstMessage(aDocument.defaultView, ExpressionSearchChrome.isEnter && ExpressionSearchChrome.options.select_msg_on_enter);
   },
 
   postFilterProcess: function(aState, aViewWrapper, aFiltering) {

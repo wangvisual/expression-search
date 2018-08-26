@@ -61,7 +61,7 @@ var ExpressionSearchChrome = {
     Cu.import("resource://gre/modules/Services.jsm");
     Cu.import("resource:///modules/mailServices.js");
     // for create quick search folder
-    Cu.import("resource:///modules/virtualFolderWrapper.js");
+    Cu.import("resource:///modules/virtualFolderWrapper.js"); // for VirtualFolderHelper
     Cu.import("resource:///modules/iteratorUtils.jsm");
     Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
     Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
@@ -158,7 +158,8 @@ var ExpressionSearchChrome = {
     if ( data == 'enable_verbose_info' ) ExpressionSearchLog.setVerbose(this.options.enable_verbose_info);
     if ( ['hide_normal_filer', 'move2bar', 'showbuttonlabel', 'enable_verbose_info', "results_label_size"].indexOf(data) >= 0 )
       this.three_panes.forEach( win => this.refreshFilterBar(win) );
-    if ( data == 'search_timeout' ) this.setSearchTimeout();
+    if ( data == 'search_timeout' )
+      this.three_panes.forEach( win => this.setSearchTimeout(win) );
   },
 
   initFunctionHook: function(win) {
@@ -196,11 +197,13 @@ var ExpressionSearchChrome = {
       ExpressionSearchChrome.hookedGlobalFunctions.push( ExpressionSearchaop.around( {target: SearchSpec.prototype, method: '_flattenGroupifyTerms'}, function(invocation) {
         let aTerms = invocation.arguments[0];
         let aCloneTerms = invocation.arguments[1];
+        let topWin = Services.wm.getMostRecentWindow("mail:3pane");
+        ExpressionSearchLog.logObject(invocation, 'inv', 0);
         if ( !ExpressionSearchChrome.textBoxNode.value ) return invocation.proceed();
         let outTerms = aCloneTerms ? [] : aTerms;
         let term;
         if ( aCloneTerms ) {
-          for (term in fixIterator(aTerms, Components.interfaces.nsIMsgSearchTerm)) {
+          for (term in fixIterator(aTerms, Ci.nsIMsgSearchTerm)) {
             let cloneTerm = this.session.createTerm();
             cloneTerm.attrib = term.attrib;
             cloneTerm.value = term.value;
@@ -250,7 +253,6 @@ var ExpressionSearchChrome = {
     if ( threadPane && threadPane.RemoveEventListener )
       threadPane.RemoveEventListener("contextmenu", me.onContextMenu, true);
     win._expression_search.hookedFunctions.forEach( hooked => hooked.unweave() );
-    //if ( win._expression_search.contextMenuItem ) win._expression_search.contextMenuItem.parentNode.removeEventListener('popupshowing', this.beforePopupShow, true);
     let doc = win.document;
     for ( let node of win._expression_search.createdElements ) {
       if ( typeof(node) == 'string' ) node = doc.getElementById(node);
@@ -264,7 +266,7 @@ var ExpressionSearchChrome = {
   },
   
   cleanup: function() {
-    this.prefs.removeObserver("", me);
+    this.prefs.removeObserver("", ExpressionSearchChrome);
     delete this.prefs;
     this.hookedGlobalFunctions.forEach( hooked => hooked.unweave() );
     ExpressionSearchLog.info("Expression Search: cleanup done");
@@ -453,10 +455,10 @@ var ExpressionSearchChrome = {
             });
           }
         } else {
-          let e = ExpressionSearchComputeExpression(searchValue);
-          if (e.kind == 'spec' && e.tok == 'calc') {
+          let expression = ExpressionSearchComputeExpression(searchValue);
+          if (expression.kind == 'spec' && expression.tok == 'calc') {
             me.isEnter = 0; // showCalculationResult also will select the result.
-            me.showCalculationResult(e);
+            me.showCalculationResult(win, expression);
           }
         }
       }
@@ -468,7 +470,7 @@ var ExpressionSearchChrome = {
     else if ( ( typeof(searchValue) == 'undefined' || searchValue == '' ) && event && event.DOM_VK_ESCAPE && ( event.keyCode == event.DOM_VK_ESCAPE ) && !event.altKey && !event.ctrlKey )
       me.selectFirstMessage(win); // no select message, but select pane
     //else if (  event.altKey && ( event.ctrlKey || event.metaKey ) && event.keyCode == event.DOM_VK_LEFT ) // Ctrl + <-- not works when focus in textbox
-    //  me.back2OriginalFolder();
+    //  me.back2OriginalFolder(win);
     else me.onTokenChange.apply(this, [event]);
   },
   
@@ -511,7 +513,7 @@ var ExpressionSearchChrome = {
       return;
     }
 
-    let aNode = this.textBoxNode = doc.createElementNS(XULNS, "textbox"); // TODO, no textBoxNode
+    let aNode = doc.createElementNS(XULNS, "textbox");
     aNode.id = this.textBoxDomId;
     aNode.setAttribute("type", "search");
     aNode.setAttribute("emptytextbase", this.strBundle.GetStringFromName("textbox.emptyText.base"));
@@ -528,33 +530,33 @@ var ExpressionSearchChrome = {
     aNode.addEventListener("click", this.onTokenChange, true); // to track selectEnd change
     aNode.addEventListener("blur", this.onSearchBarBlur, true);
     aNode.addEventListener("focus", this.onSearchBarFocus, true);
-    this.setSearchTimeout();
+    this.setSearchTimeout(win);
   },
   
-  setSearchTimeout: function() {
-    if (!this.textBoxNode) return;
-    this.textBoxNode.timeout = this.options.search_timeout || 1000000000;
+  setSearchTimeout: function(win) {
+    let doc = win.document;
+    let aNode = doc.getElementById(this.textBoxDomId);
+    if ( !aNode ) return;
+    aNode.timeout = this.options.search_timeout || 1000000000;
   },
   
-  back2OriginalFolder: function() {
+  back2OriginalFolder: function(win) {
     try {
-      let me = ExpressionSearchChrome;
-      if ( typeof(me.originalURI) == 'undefined' ) {
-        me.originalURI = gFolderDisplay.displayedFolder.rootFolder.URI;
-      }
-      SelectFolder(me.originalURI);
+      if ( typeof(win._expression_search.originalURI) == 'undefined' ) return;
+      win.SelectFolder(win._expression_search.originalURI);
     } catch (err) {
     }
   },
   
   // not works well for complex searchTerms. But it's for all folders.
-  createQuickFolder: function(searchTerms) {
+  createQuickFolder: function(win, searchTerms) {
     const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
-    var currFolder = gFolderDisplay.displayedFolder; // TODO, no gFolderDisplay
-    this.originalURI = currFolder.URI;
-    var rootFolder = currFolder.rootFolder; // nsIMsgFolder
-    var QSFolderName = "ExpressionSearch";
-    var uriSearchString = "";
+    let gFolderDisplay = win.gFolderDisplay;
+    let currFolder = gFolderDisplay.displayedFolder;
+    win._expression_search.originalURI = currFolder.URI;
+    let rootFolder = currFolder.rootFolder; // nsIMsgFolder
+    let QSFolderName = "ExpressionSearch";
+    let uriSearchString = "";
     if (!rootFolder) {
       alert('Expression Search: Cannot determine root folder of search');
       return;
@@ -562,7 +564,7 @@ var ExpressionSearchChrome = {
     let virtual_folder_path = this.prefs.getCharPref('virtual_folder_path'); // '' or 'mailbox://nobody@Local%20Folders/Archive'
     let targetFolderParent = rootFolder;
     if ( virtual_folder_path != '' ) targetFolderParent = MailUtils.getFolderForURI(virtual_folder_path, true);
-    var QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
+    let QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
       for (let folder in fixIterator(rootFolder.descendants, Ci.nsIMsgFolder)) {
@@ -578,15 +580,15 @@ var ExpressionSearchChrome = {
 
     if ( this.options.load_virtual_folder_in_tab ) {
       // select folders to clear the search box
-      SelectFolder(QSFolderURI);
-      SelectFolder(this.originalURI);
+      win.SelectFolder(QSFolderURI);
+      win.SelectFolder(win._expression_search.originalURI);
       // if loadTab later, will get 'Error: There is no active filterer but we want one.'
       ExpressionSearchCommon.loadTab( {folder:rootFolder, type:'folder'} );
     }
     //Check if folder exists already
     if (targetFolderParent.containsChildNamed(QSFolderName)) {
       // modify existing folder
-      var msgFolder = MailUtils.getFolderForURI(QSFolderURI);
+      let msgFolder = MailUtils.getFolderForURI(QSFolderURI);
       if (!msgFolder.isSpecialFolder(nsMsgFolderFlags.Virtual,false)) {
         alert('Expression Search: Non search folder '+QSFolderName+' is in the way');
         return;
@@ -604,29 +606,33 @@ var ExpressionSearchChrome = {
       VirtualFolderHelper.createNewVirtualFolder(QSFolderName, targetFolderParent, uriSearchString, searchTerms, false);
     }
 
-    if (this.originalURI == QSFolderURI) {
+    if (win._expression_search.originalURI == QSFolderURI) {
       // select another folder to force reload of our virtual folder
-      SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
+      win.SelectFolder(rootFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox).URI);
     }
-    SelectFolder(QSFolderURI);
+    win.SelectFolder(QSFolderURI);
   },
 
   // select first message, expand first container if closed
   selectFirstMessage: function(win, needSelect) { // needSelect: false:no foucus change, undefined:focus pan, true: focus to pan and select message
-    // TODO
-    if ( typeof(gFolderDisplay)!='undefined' && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
+    if ( !win || !win.document ) return;
+    let doc = win.document;
+    let aNode = doc.getElementById(this.textBoxDomId);
+    let gFolderDisplay = win.gFolderDisplay;
+    if ( !aNode || !gFolderDisplay ) return;
+    if ( gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject && gFolderDisplay.tree.treeBoxObject.view ) {
       let treeBox = gFolderDisplay.tree.treeBoxObject; //nsITreeBox_Object <= addon validator warning with comments
       let treeView = treeBox.view; //nsITreeView
       let dbViewWrapper = gFolderDisplay.view; // DBViewWrapper
-      if ( ExpressionSearchChrome.textBoxNode && treeView && dbViewWrapper && treeView.rowCount > 0 ) {
+      if ( treeView && dbViewWrapper && treeView.rowCount > 0 ) {
         if ( treeView.isContainer(0) && !treeView.isContainerOpen(0))
           treeView.toggleOpenState(0);
         if ( typeof(needSelect) == 'undefined' || needSelect ) {
-          let threadPane = document.getElementById("threadTree");
+          let threadPane = doc.getElementById("threadTree");
           // focusing does not actually select the row...
           threadPane.focus();
           if ( needSelect ) {
-            // ...so explicitly select the currentIndex if avaliable or the 1st one
+            // ...so explicitly select the currentIndex if available or the 1st one
             //threadPane.view.selection.select(threadPane.currentIndex);
             var row = treeView.isContainer(0)&&dbViewWrapper.showGroupedBySort ? 1 : 0;
             treeView.selection.select(row);
@@ -673,15 +679,17 @@ var ExpressionSearchChrome = {
     return { kind: 'error', tok: 'internal' };
   },
 
-  showCalculationResult: function(e) {
-    e = e.left; // skip the calc: specifier
+  showCalculationResult: function(win, expression) {
+    let aNode = win.document.getElementById(this.textBoxDomId);
+    if ( !aNode ) return;
+    expression = expression.left; // skip the calc: specifier
     // compute the result of this calculation
-    var r = this.calculateResult(e);
+    var r = this.calculateResult(expression);
     // print the expression,
-    var lhs = ExpressionSearchExprToStringInfix(e);
+    var lhs = ExpressionSearchExprToStringInfix(expression);
     var rhs = '' + ((r.kind == 'num') ? r.tok : "<<ERROR: "+r.tok+">>");
-    this.textBoxNode.value = lhs + " = " + rhs;
-    this.textBoxNode.setSelectionRange(lhs.length, lhs.length + rhs.length + 3);
+    aNode.value = lhs + " = " + rhs;
+    aNode.setSelectionRange(lhs.length, lhs.length + rhs.length + 3); // TODO: not work?
   },
   
   //Check conditions for search: corresponding modifier is hold on or middle button is pressed
@@ -821,11 +829,11 @@ var ExpressionSearchChrome = {
     let key1 = doc.createElementNS(XULNS, "key");
     key1.setAttribute("key", this.strBundle.GetStringFromName("focusSearch.key"));
     key1.setAttribute("modifiers", this.strBundle.GetStringFromName("focusSearch.mod"));
-    key1.setAttribute('oncommand', "ExpressionSearchChrome.setFocus()");
+    key1.setAttribute('oncommand', "ExpressionSearchChrome.setFocus(window)");
     let key2 = doc.createElementNS(XULNS, "key");
     key2.setAttribute("keycode", this.strBundle.GetStringFromName("back2folder.keycode"));
     key2.setAttribute("modifiers", this.strBundle.GetStringFromName("back2folder.mod"));
-    key2.setAttribute('oncommand', "ExpressionSearchChrome.back2OriginalFolder()");
+    key2.setAttribute('oncommand', "ExpressionSearchChrome.back2OriginalFolder(window)");
     keyset.insertBefore(key1, null);
     keyset.insertBefore(key2, null);
     mailKeys.insertBefore(keyset, null);
@@ -922,7 +930,7 @@ var ExpressionSearchChrome = {
     let me = ExpressionSearchChrome;
     //window.removeEventListener("load", me.Load, false);
     if ( typeof(win._expression_search) != 'undefined' ) return ExpressionSearchLog.log("expression search already loaded, return");
-    win._expression_search = { createdElements:[], hookedFunctions:[], contextMenuItem: null, savedPosition: 0, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer) };
+    win._expression_search = { createdElements:[], hookedFunctions:[], savedPosition: 0, timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer), originalURI: undefined };
     win.ExpressionSearchChrome = ExpressionSearchChrome; // export ExpressionSearchChrome to windows name space
 
     let type = win.document.documentElement.getAttribute('windowtype');
@@ -953,10 +961,11 @@ var ExpressionSearchChrome = {
     ExpressionSearchChrome.unLoad(aWindow);
   },
   
-  setFocus: function() {
+  setFocus: function(win) {
     if ( ExpressionSearchChrome.options.move2bar==0 && !QuickFilterBarMuxer.activeFilterer.visible )
       QuickFilterBarMuxer._showFilterBar(true);
-    ExpressionSearchChrome.textBoxNode.focus();
+    let aNode = win.document.getElementById(this.textBoxDomId);
+    if ( aNode ) aNode.focus();
   },
 
   addMenuItem: function(menu, doc, parent) {
