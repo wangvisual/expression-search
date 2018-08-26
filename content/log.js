@@ -17,15 +17,11 @@ let {HUDService} = require("devtools/client/webconsole/hudservice");
 const popupImage = "chrome://expressionsearch/skin/statusbar_icon.png";
 var EXPORTED_SYMBOLS = ["ExpressionSearchLog"];
 let ExpressionSearchLog = {
-  oldAPI_22: Services.vc.compare(Services.appinfo.platformVersion, '22') < 0,
-  oldAPI_23: Services.vc.compare(Services.appinfo.platformVersion, '23') < 0,
-  oldAPI_52: Services.vc.compare(Services.appinfo.platformVersion, '52') < 0,
   popupDelay: null,
   setPopupDelay: function(delay) {
     this.popupDelay = delay * 1000; // input unit is seconds, internal using ms
   },
   popupListener: {
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports, Ci.nsIObserver]), // not needed, just be safe
     observe: function(subject, topic, cookie) {
       if ( topic == 'alertclickcallback' ) { // or alertfinished / alertshow(Gecko22)
         HUDService.openBrowserConsoleOrFocus();
@@ -71,8 +67,6 @@ let ExpressionSearchLog = {
     // arguments[11] -> the nsIURI.hostPort of the origin, optional
     // arguments[12] -> the alert icon URL, optional
     let args = [popupImage, title, msg, true, cookie, 0, '', '', null, false, this.popupListener];
-    if ( this.oldAPI_52 ) args.splice(9,1); // remove alert window (false)
-    if ( this.oldAPI_22 ) args.splice(6,3); // remove '', '', null
     // win is nsIDOMJSWindow, nsIDOMWindow
     let win = Services.ww.openWindow(null, 'chrome://global/content/alerts/alert.xul', "_blank", 'chrome,titlebar=no,popup=yes',
       // https://alexvincent.us/blog/?p=451

@@ -68,7 +68,7 @@ function shutdown(aData, aReason) {
       let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
       ExpressionSearchChrome.unLoad(domWindow); // won't check windowtype as unload will check
       // Do CC & GC, comment out allTraces when release
-      domWindow.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).garbageCollect(
+      domWindow.windowUtils.garbageCollect(
         // Cc["@mozilla.org/cycle-collector-logger;1"].createInstance(Ci.nsICycleCollectorListener).allTraces()
       );
     }
