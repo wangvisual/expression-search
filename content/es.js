@@ -1004,8 +1004,8 @@ var ExpressionSearchChrome = {
       [''], // items before seprator and the seprator it self will only shown if verbose
       [this.strBundle.GetStringFromName("dialog.settings"), "chrome://messenger/skin/accountcentral/account-settings.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/esPrefDialog.xul'); }],
       [this.strBundle.GetStringFromName("option.help"), "chrome://global/skin/icons/question-64.png", function(){ ExpressionSearchCommon.loadURL('expressionsearch.helpfile', 'expressionsearch.help'); }],
-      [this.strBundle.GetStringFromName("donate.label"), this.strBundle.GetStringFromName("donate.image"), function(){ ExpressionSearchCommon.loadDonate(this.strBundle.GetStringFromName("donate.pay")); }],
-      ["Addon @ Mozilla", "chrome://mozapps/skin/extensions/extensionGeneric.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://addons.mozilla.org/en-US/thunderbird/addon/gmailui"); }],
+      [this.strBundle.GetStringFromName("donate.label"), this.strBundle.GetStringFromName("donate.image"), function(){ ExpressionSearchCommon.loadDonate(ExpressionSearchChrome.strBundle.GetStringFromName("donate.pay")); }],
+      ["Addon @ Mozilla", "chrome://mozapps/skin/extensions/extensionGeneric.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://addons.thunderbird.net/en-US/thunderbird/addon/gmailui"); }],
       ["Addon @ GitHub", "chrome://awsomeAutoArchive/content/github.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search"); }],
       ["Report Bug", "chrome://global/skin/icons/information-32.png", function(){ ExpressionSearchCommon.loadUseProtocol("https://github.com/wangvisual/expression-search/issues"); }],
       [this.strBundle.GetStringFromName("about.about"), "chrome://expressionsearch/skin/statusbar_icon.png", function(){ ExpressionSearchCommon.loadURL('chrome://expressionsearch/content/about.xul'); }],
