@@ -202,7 +202,7 @@ var ExpressionSearchChrome = {
         let outTerms = aCloneTerms ? [] : aTerms;
         let term;
         if ( aCloneTerms ) {
-          for (term in fixIterator(aTerms, Ci.nsIMsgSearchTerm)) {
+          for (term of fixIterator(aTerms, Ci.nsIMsgSearchTerm)) {
             let cloneTerm = this.session.createTerm();
             cloneTerm.attrib = term.attrib;
             cloneTerm.value = term.value;
@@ -566,7 +566,7 @@ var ExpressionSearchChrome = {
     let QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
-      for (let folder in fixIterator(rootFolder.descendants, Ci.nsIMsgFolder)) {
+      for (let folder of fixIterator(rootFolder.descendants, Ci.nsIMsgFolder)) {
         // only add non-virtual non-news folders
         if ( !folder.isSpecialFolder(nsMsgFolderFlags.Newsgroup,false) && !folder.isSpecialFolder(nsMsgFolderFlags.Virtual,false) ) {
           if (uriSearchString != "") {
