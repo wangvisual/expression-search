@@ -5,7 +5,6 @@
 const { stack: Cs } = Components;
 const { loader, require } = Cu.import("resource://devtools/shared/Loader.jsm", {});
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/iteratorUtils.jsm"); // import toXPCOMArray
 
 // Console.jsm in Gecko < 23 calls dump(), not to Error Console
