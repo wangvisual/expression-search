@@ -55,10 +55,14 @@ var ExpressionSearchChrome = {
     Cu.import("chrome://expressionsearch/content/aop.js");
     Cu.import("chrome://expressionsearch/content/common.js");
     // for hook functions for attachment search
-    Cu.import("resource:///modules/searchSpec.js");
+    try {
+      ChromeUtils.import("resource:///modules/SearchSpec.jsm");
+    } catch (err) {
+      Cu.import("resource:///modules/searchSpec.js");
+    }
     // general services
     Cu.import("resource://gre/modules/Services.jsm");
-    Cu.import("resource:///modules/mailServices.js");
+    Cu.import("resource:///modules/mailServices.js"); // TODO, renamed to MailServices.jsm
     // for create quick search folder
     Cu.import("resource:///modules/virtualFolderWrapper.js"); // for VirtualFolderHelper
     Cu.import("resource:///modules/iteratorUtils.jsm");

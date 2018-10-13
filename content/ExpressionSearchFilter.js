@@ -9,7 +9,11 @@ var EXPORTED_SYMBOLS = ["ExperssionSearchFilter"];
 const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMsgMessageFlags: nsMsgMessageFlags, nsMsgSearchScope: nsMsgSearchScope } = Ci;
 Cu.import("chrome://expressionsearch/content/es.js");
 Cu.import("chrome://expressionsearch/content/log.js");
-Cu.import("resource:///modules/quickFilterManager.js");
+try {
+  ChromeUtils.import("resource:///modules/QuickFilterManager.jsm");
+} catch (err) {
+  Cu.import("resource:///modules/quickFilterManager.js");
+}
 Cu.import("chrome://expressionsearch/content/gmailuiParse.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");
@@ -17,13 +21,9 @@ Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.deMime and pa
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/gloda/mimemsg.js"); // for check attachment name, https://developer.mozilla.org/en/Extensions/Thunderbird/HowTos/Common_Thunderbird_Use_Cases/View_Message
 Cu.import("resource://gre/modules/AppConstants.jsm");
-let hasJSMIME = 0;
-try {
-  Cu.import("resource:///modules/mimeParser.jsm");
-  Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
-  Cu.import("resource:///modules/jsmime.jsm"); // JSMIME 0.2
-  hasJSMIME = 1;
-} catch (err) { ExpressionSearchLog.log("ExperssionSearch / GmailUI only support TB 31 or later", 1); }
+Cu.import("resource:///modules/mimeParser.jsm");
+Cu.import("resource://gre/modules/NetUtil.jsm"); // for readInputStreamToString
+Cu.import("resource:///modules/jsmime.jsm"); // JSMIME
 
 let platformIsMac = ( AppConstants.platform == "macosx" ? true : false );
 let strings = Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties');
@@ -73,8 +73,8 @@ function _getRegEx(aSearchValue) {
     self.getEnabled = function _getEnabled(scope, op) {
       return self._isValid(scope);
     };
-    // called by searchSpec.js to check if avaliable for offlineScope and serverScope
-    // or in addressbook search
+    // called by SearchSpec.jsm to check if available for offlineScope and serverScope
+    // or in address book search
     self.getAvailable = function _getAvailable(scope, op) {
       return self._isValid(scope);
     };
@@ -333,10 +333,8 @@ function _getRegEx(aSearchValue) {
   filterService.addCustomTerm(toRegex);
   filterService.addCustomTerm(dayTime);
   filterService.addCustomTerm(dateMatch);
-  if ( hasJSMIME ) {
-    filterService.addCustomTerm(attachmentNameOrType);
-    filterService.addCustomTerm(bodyRegex);
-  }
+  filterService.addCustomTerm(attachmentNameOrType);
+  filterService.addCustomTerm(bodyRegex);
 })();
 
 let ExperssionSearchFilter = {
