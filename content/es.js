@@ -888,13 +888,14 @@ var ExpressionSearchChrome = {
       this.createTooltip(win, status_bar);
       this.createKeyset(win);
       this.createPopup(win); // simple menu popup may can be in statusbarpanel by set that to 'statusbarpanel-menu-iconic', but better not
-      let statusbarPanel = doc.createElementNS(XULNS, "statusbarpanel");
+      let statusbarPanel = doc.createElementNS(XULNS, "hbox");
       let statusbarIcon = doc.createElementNS(XULNS, "image");
       statusbarIcon.id = statusbarIconID;
       statusbarIcon.setAttribute('src', statusbarIconSrc);
       statusbarIcon.setAttribute('tooltip', tooltipId);
       statusbarIcon.setAttribute('popup', contextMenuID);
       statusbarIcon.setAttribute('context', contextMenuID);
+      statusbarPanel.classList.add('statusbarpanel');
       statusbarPanel.insertBefore(statusbarIcon, null);
       status_bar.insertBefore(statusbarPanel, null);
       win._expression_search.createdElements.push(statusbarPanel);
