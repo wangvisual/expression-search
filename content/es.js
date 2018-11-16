@@ -12,6 +12,7 @@ const statusbarIconSrc = 'chrome://expressionsearch/skin/statusbar_icon.png';
 const popupsetID = "expressionSearch-statusbar-popup";
 const contextMenuID = "expression-search-context-menu";
 const tooltipId = "expression-search-tooltip";
+const oldAPI_65 = Services.vc.compare(Services.appinfo.platformVersion, '65') < 0;
 
 var EXPORTED_SYMBOLS = ["ExpressionSearchChrome"];
 var ExpressionSearchChrome = {
@@ -888,14 +889,20 @@ var ExpressionSearchChrome = {
       this.createTooltip(win, status_bar);
       this.createKeyset(win);
       this.createPopup(win); // simple menu popup may can be in statusbarpanel by set that to 'statusbarpanel-menu-iconic', but better not
-      let statusbarPanel = doc.createElementNS(XULNS, "hbox");
+      let statusbarPanel;
+      if ( oldAPI_65 ) {
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1491660 [de-xbl] Migrate statusbar and statusbarpanel to custom element.
+        statusbarPanel = doc.createElementNS(XULNS, "statusbarpanel");
+      } else {
+        statusbarPanel = doc.createElementNS(XULNS, "hbox");
+        statusbarPanel.classList.add('statusbarpanel');
+      }
       let statusbarIcon = doc.createElementNS(XULNS, "image");
       statusbarIcon.id = statusbarIconID;
       statusbarIcon.setAttribute('src', statusbarIconSrc);
       statusbarIcon.setAttribute('tooltip', tooltipId);
       statusbarIcon.setAttribute('popup', contextMenuID);
       statusbarIcon.setAttribute('context', contextMenuID);
-      statusbarPanel.classList.add('statusbarpanel');
       statusbarPanel.insertBefore(statusbarIcon, null);
       status_bar.insertBefore(statusbarPanel, null);
       win._expression_search.createdElements.push(statusbarPanel);
