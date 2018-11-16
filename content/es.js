@@ -12,7 +12,7 @@ const statusbarIconSrc = 'chrome://expressionsearch/skin/statusbar_icon.png';
 const popupsetID = "expressionSearch-statusbar-popup";
 const contextMenuID = "expression-search-context-menu";
 const tooltipId = "expression-search-tooltip";
-const oldAPI_65 = Services.vc.compare(Services.appinfo.platformVersion, '65') < 0;
+const oldAPI_65 = Services.vc.compare(Services.appinfo.platformVersion, '65.0a1') < 0;
 
 var EXPORTED_SYMBOLS = ["ExpressionSearchChrome"];
 var ExpressionSearchChrome = {
