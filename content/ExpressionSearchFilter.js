@@ -10,7 +10,7 @@ const { nsMsgSearchAttrib: nsMsgSearchAttrib, nsMsgSearchOp: nsMsgSearchOp, nsMs
 Cu.import("chrome://expressionsearch/content/es.js");
 Cu.import("chrome://expressionsearch/content/log.js");
 try {
-  ChromeUtils.import("resource:///modules/QuickFilterManager.jsm");
+  Cu.import("resource:///modules/QuickFilterManager.jsm");
 } catch (err) {
   Cu.import("resource:///modules/quickFilterManager.js");
 }

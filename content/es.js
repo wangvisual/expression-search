@@ -13,6 +13,7 @@ const popupsetID = "expressionSearch-statusbar-popup";
 const contextMenuID = "expression-search-context-menu";
 const tooltipId = "expression-search-tooltip";
 const oldAPI_65 = Services.vc.compare(Services.appinfo.platformVersion, '65.0a1') < 0;
+const oldAPI_67 = Services.vc.compare(Services.appinfo.platformVersion, '67.0a1') < 0;
 
 var EXPORTED_SYMBOLS = ["ExpressionSearchChrome"];
 var ExpressionSearchChrome = {
@@ -57,7 +58,7 @@ var ExpressionSearchChrome = {
     Cu.import("chrome://expressionsearch/content/common.js");
     // for hook functions for attachment search
     try {
-      ChromeUtils.import("resource:///modules/SearchSpec.jsm");
+      Cu.import("resource:///modules/SearchSpec.jsm");
     } catch (err) {
       Cu.import("resource:///modules/searchSpec.js");
     }
@@ -728,20 +729,30 @@ var ExpressionSearchChrome = {
 
   onContextMenu: function(event) {
     let me = ExpressionSearchChrome;
-    if ( !event.currentTarget || !event.currentTarget.treeBoxObject || !event.currentTarget.view ) return;
+    let target = event.composedTarget || event.currentTarget;
+    if ( !target ) return;
+    let box = target.parentNode || target.treeBoxObject;
+    if ( !box ) return;
     let win = ExpressionSearchChrome.getWinFromEvent(event);
     let aNode = win.document.getElementById(ExpressionSearchChrome.textBoxDomId);
     if ( !aNode || !win.gDBView || !win.gFolderDisplay ) return;
     if ( ! me.CheckClickSearchEvent(event) ) return;
     let gFolderDisplay = win.gFolderDisplay;
-    var row = {}; var col = {}; var childElt = {};
-    event.currentTarget.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-    if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' || row.value < 0 || col.value == null ) return;
-    // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
+    let row = {}; let col = {};
+    if ( oldAPI_67 ) {
+      let childElt = {};
+      box.getCellAt(event.clientX, event.clientY, row, col, childElt);
+      if ( !row || !col || typeof(row.value)=='undefined' || typeof(col.value)=='undefined' || row.value < 0 || col.value == null ) return;
+      // col.value.id: subjectCol, senderCol, recipientCol (may contains multi recipient, Comma Seprated), tagsCol, sio_inoutaddressCol (ShowInOut)
+      row = row.value; col = col.value;
+    } else {
+      let cell = box.getCellAt(event.clientX, event.clientY); // row => 1755, col => { id : 'sizeCol', columns : array }
+      row = cell.row; col = cell.col;
+    }
     let token = "";
-    let sCellText = event.currentTarget.view.getCellText(row.value, col.value);
-    let msgHdr = win.gDBView.getMsgHdrAt(row.value);
-    switch(col.value.id) {
+    let msgHdr = win.gDBView.getMsgHdrAt(row);
+    let sCellText = box.view.getCellText(row, col);
+    switch(col.id) {
        case "subjectCol":
          if ( ( me.options.c2s_enableCtrlReplace && event.ctrlKey ) || ( me.options.c2s_enableShiftReplace && event.shiftKey ) ) {
            sCellText = me.RegexpReplaceString( sCellText );
@@ -752,7 +763,7 @@ var ExpressionSearchChrome = {
          let oldValue = "";
          while ( oldValue != sCellText ) {
            oldValue = sCellText;
-           // \uFF1A is chinese colon
+           // \uFF1A is Chinese colon
            [/^\s*\S{2,3}(?::|\uFF1A)\s*(.*)$/, /^\s*\[.+\]:*\s*(.*)$/, /^\s+(.*)$/].forEach( function(element, index, array) {
              sCellText = sCellText.replace(element, '$1');
            });
@@ -760,16 +771,14 @@ var ExpressionSearchChrome = {
          break;
        case "senderCol":
          token = "f";
-         //break;
+         //no break;
        case "recipientCol":
          if ( token == "" ) token = "t";
-         //break;
+         //no break;
        case "sio_inoutaddressCol": //showInOut support
        case "correspondentCol": // https://bugzilla.mozilla.org/show_bug.cgi?id=36489
-         if ( token == "" && gFolderDisplay && gFolderDisplay.tree && gFolderDisplay.tree.treeBoxObject ) { // not recipientCol
-           let treeBox = gFolderDisplay.tree.treeBoxObject;
-           let treeView = treeBox.view;
-           let properties = treeView.getCellProperties(row.value, col.value).split(/ +/); // ['incoming', 'imap', 'read', 'replied', 'offline']
+         if ( token == "" ) { // not recipientCol
+           let properties = box.view.getCellProperties(row, col).split(/ +/); // ['incoming', 'imap', 'read', 'replied', 'offline']
            token = ( properties.indexOf("in") >= 0 || properties.indexOf("incoming") >= 0 ) ? "f" : "t";
          }
          let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
