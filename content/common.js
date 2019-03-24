@@ -3,7 +3,11 @@
 // Opera.Wang 2011/03/21
 "use strict";
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource:///modules/mailServices.js");
+try {
+  Cu.import("resource:///modules/MailServices.jsm");
+} catch (err) {
+  Cu.import("resource:///modules/mailServices.js");
+}
 var EXPORTED_SYMBOLS = ["ExpressionSearchCommon"];
 var ExpressionSearchCommon = {
   strings: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),

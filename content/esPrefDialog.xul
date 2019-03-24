@@ -198,6 +198,4 @@
 <!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
 <script type="application/x-javascript" src="chrome://expressionsearch/content/esPrefDialog.js"/>
-<!-- for getFolderForURI -->
-<script type="application/javascript" src="resource:///modules/MailUtils.js"/>
 </prefwindow>

@@ -64,12 +64,21 @@ var ExpressionSearchChrome = {
     }
     // general services
     Cu.import("resource://gre/modules/Services.jsm");
-    Cu.import("resource:///modules/mailServices.js"); // TODO, renamed to MailServices.jsm
+    try {
+      Cu.import("resource:///modules/MailServices.jsm");
+    } catch (err) {
+      Cu.import("resource:///modules/mailServices.js");
+    }
     // for create quick search folder
     Cu.import("resource:///modules/virtualFolderWrapper.js"); // for VirtualFolderHelper
     Cu.import("resource:///modules/iteratorUtils.jsm");
     Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
-    Cu.import("resource:///modules/MailUtils.js"); // for MailUtils.getFolderForURI
+    // for MailUtils.getFolderForURI
+    try {
+      Cu.import("resource:///modules/MailUtils.jsm");
+    } catch (err) {
+      Cu.import("resource:///modules/MailUtils.js");
+    }
     Cu.import("resource://gre/modules/AddonManager.jsm");
     // need to know whether gloda enabled
     Cu.import("resource:///modules/gloda/indexer.js");
