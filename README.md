@@ -18,3 +18,5 @@ Add-ons created/maintained by me:
   * [Expression Search / GMailUI](https://addons.thunderbird.net/en-US/thunderbird/addon/gmailui/) Powerful message searching through expressions. Type "from:fred to:tom" to see all messages from Fred to Tom in the current view
   * [Awesome ldapInfoShow](https://addons.thunderbird.net/en-US/thunderbird/addon/ldapinfoshow/) Showing LDAP/Facebook/LinkedIn information
   * [Awesome Auto Archive](https://addons.thunderbird.net/en-US/thunderbird/addon/awesome-auto-archive/) Automatically do Archive/Copy/Delete/Move actions based on user defined rules
+
+<a href="https://996.icu"><img src="https://img.shields.io/badge/link-996.icu-red.svg"></a>
