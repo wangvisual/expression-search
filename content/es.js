@@ -738,9 +738,9 @@ var ExpressionSearchChrome = {
 
   onContextMenu: function(event) {
     let me = ExpressionSearchChrome;
-    let target = event.composedTarget || event.currentTarget;
+    let target = oldAPI_67 ? event.currentTarget : event.composedTarget;
     if ( !target ) return;
-    let box = target.parentNode || target.treeBoxObject;
+    let box = oldAPI_67 ? target.treeBoxObject : target.parentNode;
     if ( !box ) return;
     let win = ExpressionSearchChrome.getWinFromEvent(event);
     let aNode = win.document.getElementById(ExpressionSearchChrome.textBoxDomId);
