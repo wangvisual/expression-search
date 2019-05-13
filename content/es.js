@@ -790,14 +790,17 @@ var ExpressionSearchChrome = {
            let properties = box.view.getCellProperties(row, col).split(/ +/); // ['incoming', 'imap', 'read', 'replied', 'offline']
            token = ( properties.indexOf("in") >= 0 || properties.indexOf("incoming") >= 0 ) ? "f" : "t";
          }
-         let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.mime2DecodedAuthor : msgHdr.mime2DecodedRecipients );
-         let addressesFromCell = GlodaUtils.parseMailAddresses(sCellText);
+         // parseMailAddresses needed undecoded option, so can't use mime2DecodedAuthor & mime2DecodedRecipients
+         let addressesFromHdr = GlodaUtils.parseMailAddresses( token=='f' ? msgHdr.author : msgHdr.recipients );
+         // sCellText is already decoded, so can't use parseMailAddresses
+         let addressesFromCell = MailServices.headerParser.parseDecodedHeader(sCellText);
          sCellText = addressesFromHdr.addresses.map( function(address,index) {
            let ret = address;
-           if ( addressesFromHdr.fullAddresses[index] && addressesFromCell.names[index] ) {
-             addressesFromCell.names[index] = addressesFromCell.names[index].replace(/['"<>]/g,'');
-             if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( addressesFromCell.names[index].toLowerCase() ) != -1)
-               ret = addressesFromCell.names[index]; // if display name is part of full address, then use display name
+           let display = addressesFromCell[index].name;
+           if ( addressesFromHdr.fullAddresses[index] && display ) {
+             display = display.replace(/['"<>]/g,'');
+             if ( addressesFromHdr.fullAddresses[index].toLowerCase().indexOf( display.toLowerCase() ) != -1)
+               ret = display; // if display name is part of full address, then use display name
            }
            if ( !me.options.c2s_removeDomainName ) return ret;
            return ret.replace(/(.*)@.*/, '$1'); // use mail ID only if it's an email address and c2s_removeDomainName.
