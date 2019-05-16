@@ -31,3 +31,30 @@ function onSyncFromPreference() {
   // .value === undefined means the preference is set to the default value
   return preference.value !== undefined ? preference.value : preference.defaultValue;
 }
+
+Preferences.forceEnableInstantApply();
+Preferences.addAll([
+  {id: "extensions.expressionsearch.hide_normal_filer", type: "bool"},
+  {id: "extensions.expressionsearch.act_as_normal_filter", type: "bool"},
+  {id: "extensions.expressionsearch.showbuttonlabel", type: "int", instantApply: "true"},
+  {id: "extensions.expressionsearch.results_label_size", type: "int", instantApply: "true"},
+  {id: "extensions.expressionsearch.reuse_existing_folder", type: "bool"},
+  {id: "extensions.expressionsearch.load_virtual_folder_in_tab", type: "bool"},
+  {id: "extensions.expressionsearch.search_timeout", type: "int"},
+  {id: "extensions.expressionsearch.select_msg_on_enter", type: "bool"},
+  {id: "extensions.expressionsearch.move2bar", type: "int", instantApply: "true"},
+  {id: "extensions.expressionsearch.c2s_enableCtrl", type: "bool"},
+  {id: "extensions.expressionsearch.c2s_enableShift", type: "bool"},
+  {id: "extensions.expressionsearch.c2s_enableCtrlReplace", type: "bool"},
+  {id: "extensions.expressionsearch.c2s_enableShiftReplace", type: "bool"},
+  {id: "extensions.expressionsearch.c2s_regexpMatch", type: "string"},
+  {id: "extensions.expressionsearch.c2s_regexpReplace", type: "string"},
+  {id: "extensions.expressionsearch.c2s_removeDomainName", type: "bool"},
+  {id: "extensions.expressionsearch.enable_verbose_info", type: "bool"},
+  {id: "extensions.expressionsearch.enable_statusbar_info", type: "bool"},
+  {id: "extensions.expressionsearch.statusbar_info_showtime", type: "int"},
+  {id: "extensions.expressionsearch.statusbar_info_hidetime", type: "int"},
+  {id: "extensions.expressionsearch.virtual_folder_path", type: "string"},
+  {id: "mailnews.customHeaders", type: "string"},
+  {id: "mailnews.customDBHeaders", type: "string"},
+]);

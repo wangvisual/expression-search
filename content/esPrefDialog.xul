@@ -6,62 +6,37 @@
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css" type="text/css"?>
 
-<!DOCTYPE window SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
-<prefwindow id="expressionsearch-prefs"
+<!DOCTYPE dialog SYSTEM "chrome://expressionsearch/locale/ExpressionSearch.dtd">
+<dialog id="expressionsearch-prefs"
      title="&expressionsearch.dialog.title;"
      onload="onLoad();"
+     buttons="accept, cancel"
+     xmlns:html="http://www.w3.org/1999/xhtml"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-<prefpane id="expressionsearch-pane" label="&expressionsearch.dialog.settings;" style="overflow: auto;">
-  
-  <preferences>
-    <preference id="pref_hide" name="extensions.expressionsearch.hide_normal_filer" type="bool" instantApply="true"/>
-    <preference id="pref_act_as_normal_filter" name="extensions.expressionsearch.act_as_normal_filter" type="bool"/>
-    <preference id="pref_showbuttonlabel" name="extensions.expressionsearch.showbuttonlabel" type="int" instantApply="true"/>
-    <preference id="pref_results_label_size" name="extensions.expressionsearch.results_label_size" type="int" instantApply="true"/>
-    <preference id="pref_reuse" name="extensions.expressionsearch.reuse_existing_folder" type="bool"/>
-    <preference id="perf_vf_intab" name="extensions.expressionsearch.load_virtual_folder_in_tab" type="bool"/>
-    <preference id="perf_search_timeout" name="extensions.expressionsearch.search_timeout" type="int"/>
-    <preference id="pref_select_on_enter" name="extensions.expressionsearch.select_msg_on_enter" type="bool"/>
-    <preference id="pref_move2bar" name="extensions.expressionsearch.move2bar" type="int" instantApply="true"/>
-    <preference id="pref_c2s_enableCtrl" name="extensions.expressionsearch.c2s_enableCtrl" type="bool"/>
-    <preference id="pref_c2s_enableShift" name="extensions.expressionsearch.c2s_enableShift" type="bool"/>
-    <preference id="pref_c2s_enableCtrlReplace" name="extensions.expressionsearch.c2s_enableCtrlReplace" type="bool"/>
-    <preference id="pref_c2s_enableShiftReplace" name="extensions.expressionsearch.c2s_enableShiftReplace" type="bool"/>
-    <preference id="pref_c2s_regexpMatch" name="extensions.expressionsearch.c2s_regexpMatch" type="string"/>
-    <preference id="pref_c2s_regexpReplace" name="extensions.expressionsearch.c2s_regexpReplace" type="string"/>
-    <preference id="pref_c2s_removeDomainName" name="extensions.expressionsearch.c2s_removeDomainName" type="bool"/>
-    <preference id="pref_enable_verbose_info" name="extensions.expressionsearch.enable_verbose_info" type="bool"/>
-    <preference id="pref_enable_statusbar_info" name="extensions.expressionsearch.enable_statusbar_info" type="bool"/>
-    <preference id="pref_statusbar_info_showtime" name="extensions.expressionsearch.statusbar_info_showtime" type="int"/>
-    <preference id="pref_statusbar_info_hidetime" name="extensions.expressionsearch.statusbar_info_hidetime" type="int"/>
-    <preference id="pref_virtual_folder_path" name="extensions.expressionsearch.virtual_folder_path" type="string"/>
-    <preference id="pref_customHeaders" name="mailnews.customHeaders" type="string"/>
-    <preference id="pref_customDBHeaders" name="mailnews.customDBHeaders" type="string"/>
-  </preferences>
-  
+<vbox id="expressionsearch-pane" label="&expressionsearch.dialog.settings;" style="overflow: auto;">
   <vbox flex="1">
-    <groupbox flex="1" id="expressionsearch-pane-setting">
-      <caption label="&expressionsearch.dialog.settings;"/>
+    <html:fieldset flex="1" id="expressionsearch-pane-setting">
+      <html:legend>&expressionsearch.dialog.settings;</html:legend>
       <vbox>
-        <checkbox preference="pref_hide" label="&expressionsearch.option.hidenormal;"/>
-        <checkbox preference="pref_act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
-        <checkbox preference="pref_select_on_enter" label="&expressionsearch.option.select_on_enter;"/>
+        <checkbox preference="extensions.expressionsearch.hide_normal_filer" label="&expressionsearch.option.hidenormal;"/>
+        <checkbox preference="extensions.expressionsearch.act_as_normal_filter" label="&expressionsearch.option.act_as_normal_filter;"/>
+        <checkbox preference="extensions.expressionsearch.select_msg_on_enter" label="&expressionsearch.option.select_on_enter;"/>
         <hbox>
-          <checkbox preference="pref_reuse" label="&expressionsearch.option.reusefolder;"/>
+          <checkbox preference="extensions.expressionsearch.reuse_existing_folder" label="&expressionsearch.option.reusefolder;"/>
           <text class='textlink' value="?" onclick="ExpressionSearchCommon.loadTab('expressionsearch.helpfile','#keep_saved_search');"/>
         </hbox>
-        <checkbox preference="pref_enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
+        <checkbox preference="extensions.expressionsearch.enable_verbose_info" label="&expressionsearch.option.enable_verbose_info;"/>
         <hbox align='center'>
-          <checkbox preference="pref_enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info1;"/>
-          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_showtime" hidespinbuttons="true" size='2'/>
+          <checkbox preference="extensions.expressionsearch.enable_statusbar_info" label="&expressionsearch.option.enable_statusbar_info1;"/>
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="extensions.expressionsearch.statusbar_info_showtime" hidespinbuttons="true" size='2'/>
           <label value="&expressionsearch.option.enable_statusbar_info2;"/>
-          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="pref_statusbar_info_hidetime" hidespinbuttons="true" size='2'/>
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="extensions.expressionsearch.statusbar_info_hidetime" hidespinbuttons="true" size='2'/>
           <label value="&expressionsearch.option.enable_statusbar_info3;"/>
         </hbox>
-        <checkbox preference="perf_vf_intab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
+        <checkbox preference="extensions.expressionsearch.load_virtual_folder_in_tab" label="&expressionsearch.option.load_virtual_folder_in_tab;"/>
         <hbox align='center' tooltip="esSearchTimeout">
           <label value='&expressionsearch.option.search_timeout;' />
-          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="perf_search_timeout" hidespinbuttons="true" size='4'/>
+          <textbox class='expressionsearch_pref_input' type="number" min="0" preference="extensions.expressionsearch.search_timeout" hidespinbuttons="true" size='4'/>
           <label value='&expressionsearch.option.ms;' />
           <tooltip id="esSearchTimeout">
             <description value="&expressionsearch.option.search_timeout.tooltip_1;"/>
@@ -71,7 +46,7 @@
         </hbox>
         <hbox align='center'>
           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
-          <menulist id="esNewFolderPicker" flex="1" preference='pref_virtual_folder_path' oncommand="onFolderPick(event);">
+          <menulist id="esNewFolderPicker" flex="1" preference='extensions.expressionsearch.virtual_folder_path' oncommand="onFolderPick(event);">
             <menupopup id="esNewFolderPopup" type="folder" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
               <menuitem label='&expressionsearch.option.use_root_folder;' value='' class='folderMenuItem' SpecialFolder="Virtual" />
               <menuseparator/>
@@ -79,7 +54,7 @@
           </menulist>
         </hbox>
         <hbox align='center'>
-          <menulist preference='pref_showbuttonlabel'>
+          <menulist preference='extensions.expressionsearch.showbuttonlabel'>
             <menupopup>
               <menuitem label="&expressionsearch.option.showbuttonlabel.auto;" value="0"/>
               <menuitem label="&expressionsearch.option.showbuttonlabel.show;" value="1"/>
@@ -91,7 +66,7 @@
         </hbox>
         <hbox align='center' tooltip="esResultsLabelTooltip">
           <text value='&expressionsearch.option.results_label_size.before;' />
-          <menulist preference='pref_results_label_size'>
+          <menulist preference='extensions.expressionsearch.results_label_size'>
             <menupopup tooltip="esResultsLabelTooltip">
               <menuitem label="&expressionsearch.option.results_label_size.auto;" value="0"/>
               <menuitem label="&expressionsearch.option.results_label_size.show;" value="1"/>
@@ -106,19 +81,19 @@
         </hbox>
         <hbox>
           <button id="customHeadersButton" tooltip="esCustomDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="ExpressionSearchCommon.showModalDialog(window, 'chrome://messenger/content/CustomHeaders.xul');"/> 
-          <textbox preference="pref_customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
+          <textbox preference="mailnews.customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
           <tooltip id="esCustomDBHeadersTooltip">
             <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>
-            <description class='tooltip-info' id="tooltip_customHeaders" preference="pref_customHeaders" preference-editable="true"/>
-            <description class='tooltip-info' preference="pref_customDBHeaders" preference-editable="true"/>
+            <description class='tooltip-info' id="tooltip_customHeaders" preference="mailnews.customHeaders" preference-editable="true"/>
+            <description class='tooltip-info' preference="mailnews.customDBHeaders" preference-editable="true"/>
           </tooltip>
         </hbox>
       </vbox>
-    </groupbox>
+    </html:fieldset>
     
-    <groupbox flex="1" id="expressionsearch-pane-move2bar">
-      <caption label="&expressionsearch.dialog.move2bar;"/>
-      <radiogroup id="expressionsearch_move2bar" preference="pref_move2bar">
+    <html:fieldset flex="1" id="expressionsearch-pane-move2bar">
+      <html:legend>&expressionsearch.dialog.move2bar;</html:legend>
+      <radiogroup id="expressionsearch_move2bar" preference="extensions.expressionsearch.move2bar">
         <hbox pack="center">
           <radio id="expressionsearch_move2nowhere" label="&expressionsearch.dialog.move2quicksearchbar;" value="0"/>
           <radio id="expressionsearch_move2toolbar" label="&expressionsearch.dialog.move2toolbar;" value="1"/>
@@ -126,10 +101,11 @@
           <radio id="expressionsearch_move2menubar" label="&expressionsearch.dialog.move2tabbar;" value="3"/>
         </hbox>
       </radiogroup>
-    </groupbox>
+    </html:fieldset>
 
-    <groupbox flex="1" id="expressionsearch-pane-c2ssetting">
-      <caption label="&expressionsearch.dialog.c2s_settings;"/>
+    <html:fieldset flex="1" id="expressionsearch-pane-c2ssetting">
+      <html:legend>&expressionsearch.dialog.c2s_settings;</html:legend>
+      <vbox>
         <grid id="c2sEnableGrid">
             <columns>
               <column flex="1"/>
@@ -137,15 +113,15 @@
             </columns>
             <rows>
               <row>
-                <checkbox preference="pref_c2s_enableCtrl" label="&expressionsearch.option.c2s_enableCtrl;"/>
-                <checkbox preference="pref_c2s_enableShift" label="&expressionsearch.option.c2s_enableShift;"/>
+                <checkbox preference="extensions.expressionsearch.c2s_enableCtrl" label="&expressionsearch.option.c2s_enableCtrl;"/>
+                <checkbox preference="extensions.expressionsearch.c2s_enableShift" label="&expressionsearch.option.c2s_enableShift;"/>
               </row>
               <row>
-                <checkbox preference="pref_c2s_enableCtrlReplace" label="&expressionsearch.option.c2s_enableCtrlReplace;"/>
-                <checkbox preference="pref_c2s_enableShiftReplace" label="&expressionsearch.option.c2s_enableShiftReplace;"/>
+                <checkbox preference="extensions.expressionsearch.c2s_enableCtrlReplace" label="&expressionsearch.option.c2s_enableCtrlReplace;"/>
+                <checkbox preference="extensions.expressionsearch.c2s_enableShiftReplace" label="&expressionsearch.option.c2s_enableShiftReplace;"/>
               </row>
             </rows>
-          </grid>
+        </grid>
         <text/>
         <hbox>
           <text value="&expressionsearch.dialog.c2s_replace_title;"/>
@@ -159,19 +135,20 @@
           <rows>
             <row>
               <label value="&expressionsearch.dialog.c2s_match;"/>
-              <textbox preference="pref_c2s_regexpMatch" id="c2sMatch"/>
+              <textbox preference="extensions.expressionsearch.c2s_regexpMatch" id="c2sMatch"/>
             </row>
             <row>
               <label value="&expressionsearch.dialog.c2s_replace;"/>
-              <textbox preference="pref_c2s_regexpReplace" id="c2sReplace"/>
+              <textbox preference="extensions.expressionsearch.c2s_regexpReplace" id="c2sReplace"/>
             </row>
           </rows>
         </grid>
-        <checkbox preference="pref_c2s_removeDomainName" label="&expressionsearch.option.c2s_removeDomainName;"/>
-    </groupbox>
+        <checkbox preference="extensions.expressionsearch.c2s_removeDomainName" label="&expressionsearch.option.c2s_removeDomainName;"/>
+      </vbox>
+    </html:fieldset>
 
-    <groupbox flex="1" id="expressionsearch-pane-help">
-      <caption label="&expressionsearch.dialog.help;"/>
+    <html:fieldset flex="1" id="expressionsearch-pane-help">
+      <html:legend>&expressionsearch.dialog.help;</html:legend>
       <vbox align="center">
         <hbox>
           <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('paypal');" />
@@ -186,7 +163,7 @@
           <label class='textlink' value='&expressionsearch.option.crash;' onclick="ExpressionSearchCommon.loadTab('about:crashes');"/>
         </hbox>
       </vbox>
-    </groupbox>
+    </html:fieldset>
   </vbox>
   
   <popupset>
@@ -194,8 +171,9 @@
       <image src="qr-alipay.png"/>
     </tooltip>
   </popupset>
-</prefpane>
+</vbox>
 <!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
+<script type="application/x-javascript" src="chrome://global/content/preferencesBindings.js"/>
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
 <script type="application/x-javascript" src="chrome://expressionsearch/content/esPrefDialog.js"/>
-</prefwindow>
+</dialog>
