@@ -10,12 +10,12 @@
 <dialog id="expressionsearch-prefs"
      title="&expressionsearch.dialog.title;"
      onload="onLoad();"
-     buttons="accept, cancel"
+     buttons="accept"
      xmlns:html="http://www.w3.org/1999/xhtml"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-<vbox id="expressionsearch-pane" label="&expressionsearch.dialog.settings;" style="overflow: auto;">
+<vbox id="expressionsearch-pane" label="&expressionsearch.dialog.settings;">
   <vbox flex="1">
-    <html:fieldset flex="1" id="expressionsearch-pane-setting">
+    <html:fieldset id="expressionsearch-pane-setting">
       <html:legend>&expressionsearch.dialog.settings;</html:legend>
       <vbox>
         <checkbox preference="extensions.expressionsearch.hide_normal_filer" label="&expressionsearch.option.hidenormal;"/>
@@ -91,7 +91,7 @@
       </vbox>
     </html:fieldset>
     
-    <html:fieldset flex="1" id="expressionsearch-pane-move2bar">
+    <html:fieldset id="expressionsearch-pane-move2bar">
       <html:legend>&expressionsearch.dialog.move2bar;</html:legend>
       <radiogroup id="expressionsearch_move2bar" preference="extensions.expressionsearch.move2bar">
         <hbox pack="center">
@@ -103,7 +103,7 @@
       </radiogroup>
     </html:fieldset>
 
-    <html:fieldset flex="1" id="expressionsearch-pane-c2ssetting">
+    <html:fieldset id="expressionsearch-pane-c2ssetting">
       <html:legend>&expressionsearch.dialog.c2s_settings;</html:legend>
       <vbox>
         <grid id="c2sEnableGrid">
@@ -147,7 +147,7 @@
       </vbox>
     </html:fieldset>
 
-    <html:fieldset flex="1" id="expressionsearch-pane-help">
+    <html:fieldset id="expressionsearch-pane-help">
       <html:legend>&expressionsearch.dialog.help;</html:legend>
       <vbox align="center">
         <hbox>

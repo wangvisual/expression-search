@@ -30,7 +30,10 @@ var ExpressionSearchChrome = {
   prefs: null, // preference object
   options: {}, // preference strings
 
+  loaded: 0,
   init: function() {
+    if ( this.loaded ) return;
+    this.loaded = 1;
     Cu.import("chrome://expressionsearch/content/log.js"); // load log first
     try {
       ExpressionSearchLog.log("Expression Search: init...", false, true);
@@ -73,12 +76,6 @@ var ExpressionSearchChrome = {
     Cu.import("resource:///modules/virtualFolderWrapper.js"); // for VirtualFolderHelper
     Cu.import("resource:///modules/iteratorUtils.jsm");
     Cu.import("resource:///modules/gloda/utils.js"); // for GlodaUtils.parseMailAddresses
-    // for MailUtils.getFolderForURI
-    try {
-      Cu.import("resource:///modules/MailUtils.jsm");
-    } catch (err) {
-      Cu.import("resource:///modules/MailUtils.js");
-    }
     Cu.import("resource://gre/modules/AddonManager.jsm");
     // need to know whether gloda enabled
     Cu.import("resource:///modules/gloda/indexer.js");
@@ -577,7 +574,11 @@ var ExpressionSearchChrome = {
     }
     let virtual_folder_path = this.prefs.getCharPref('virtual_folder_path'); // '' or 'mailbox://nobody@Local%20Folders/Archive'
     let targetFolderParent = rootFolder;
-    if ( virtual_folder_path != '' ) targetFolderParent = MailUtils.getFolderForURI(virtual_folder_path, true);
+    if ( virtual_folder_path != '' ) targetFolderParent = ExpressionSearchCommon.getFolder(virtual_folder_path);
+    if ( !targetFolderParent ) {
+      alert('Expression Search: Cannot determine virtual folder path:' + virtual_folder_path);
+      return;
+    }
     let QSFolderURI = targetFolderParent.URI + "/" + QSFolderName;
     
     if ( !targetFolderParent.containsChildNamed(QSFolderName) || ! this.options.reuse_existing_folder ) {
@@ -602,7 +603,7 @@ var ExpressionSearchChrome = {
     //Check if folder exists already
     if (targetFolderParent.containsChildNamed(QSFolderName)) {
       // modify existing folder
-      let msgFolder = MailUtils.getFolderForURI(QSFolderURI);
+      let msgFolder = ExpressionSearchCommon.getFolder(QSFolderURI);
       if (!msgFolder.isSpecialFolder(nsMsgFolderFlags.Virtual,false)) {
         alert('Expression Search: Non search folder '+QSFolderName+' is in the way');
         return;

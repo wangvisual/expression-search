@@ -8,6 +8,11 @@ try {
 } catch (err) {
   Cu.import("resource:///modules/mailServices.js");
 }
+try {
+  Cu.import("resource:///modules/MailUtils.jsm");
+} catch (err) {
+  Cu.import("resource:///modules/MailUtils.js");
+}
 var EXPORTED_SYMBOLS = ["ExpressionSearchCommon"];
 var ExpressionSearchCommon = {
   strings: Services.strings.createBundle('chrome://expressionsearch/locale/ExpressionSearch.properties'),
@@ -65,5 +70,16 @@ var ExpressionSearchCommon = {
   },
   sendEmailWithTB: function(url) {
       MailServices.compose.OpenComposeWindowWithURI(null, Services.io.newURI(url, null, null));
-  }
+  },
+  getFolder: function(url) {
+    let msgFolder;
+    try {
+      msgFolder = MailUtils.getExistingFolder(url);
+    } catch(err) {
+      try {
+        msgFolder = MailUtils.getFolderForURI(url);
+      } catch(err) {}
+    }
+    return msgFolder;
+  },
 }

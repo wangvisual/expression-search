@@ -8,12 +8,14 @@ Cu.import("resource://gre/modules/Services.jsm");
 const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
 const userCSS = Services.io.newURI("chrome://expressionsearch/skin/overlay.css", null, null);
 const targetWindows = [ "mail:3pane", "mailnews:virtualFolderList" ];
+const observeEvent = "xul-window-registered";
 
 function loadIntoWindow(window) {
   if ( !window ) return; // windows is the global host context
   let document = window.document; // XULDocument
   let type = document.documentElement.getAttribute('windowtype'); // documentElement maybe 'messengerWindow' / 'addressbookWindow'
   if ( targetWindows.indexOf(type) < 0 ) return;
+  ExpressionSearchChrome.init(); // will and add my filter, and TB want the domID exists when filter registered, so only called when have window ready
   ExpressionSearchChrome.Load(window);
 }
  
@@ -26,7 +28,7 @@ var windowListener = {
     aWindow.addEventListener("load", onLoadWindow, false);
   },
   observe: function(subject, topic, data) {
-    if ( topic == "xul-window-registered") {
+    if ( topic == observeEvent) {
       windowListener.onOpenWindow( subject.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow) );
     }
   },
@@ -36,7 +38,7 @@ var windowListener = {
 function startup(aData, aReason) {
   Services.console.logStringMessage("Expression Search / Google Mail UI startup...");
   Cu.import("chrome://expressionsearch/content/es.js");
-  ExpressionSearchChrome.init();
+  //ExpressionSearchChrome.init();
   let windows = Services.wm.getEnumerator(null);
   while (windows.hasMoreElements()) {
     let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
@@ -47,7 +49,7 @@ function startup(aData, aReason) {
     }
   }
   // Wait for new windows
-  Services.obs.addObserver(windowListener, "xul-window-registered", false);
+  Services.obs.addObserver(windowListener, observeEvent, false);
   // install userCSS, works for all document like userChrome.css, see https://developer.mozilla.org/en/docs/Using_the_Stylesheet_Service
   // validator warnings on the below line, ignore it
   if ( !sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.loadAndRegisterSheet(userCSS, sss.USER_SHEET); // will be unregister when shutdown
@@ -55,12 +57,14 @@ function startup(aData, aReason) {
  
 function shutdown(aData, aReason) {
   // When the application is shutting down we normally don't have to clean up any UI changes made
+  if (aReason == APP_SHUTDOWN) return;
+
   try {
     if ( sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.unregisterSheet(userCSS, sss.USER_SHEET);
   } catch (err) {Cu.reportError(err);}
   
   try {
-    Services.obs.removeObserver(windowListener, "xul-window-registered");
+    Services.obs.removeObserver(windowListener, observeEvent);
     // Unload from any existing windows
     let windows = Services.wm.getEnumerator(null);
     while (windows.hasMoreElements()) {
@@ -73,7 +77,6 @@ function shutdown(aData, aReason) {
     }
     ExpressionSearchChrome.cleanup();
   } catch (err) {Cu.reportError(err);}
-  if (aReason == APP_SHUTDOWN) return;
   Services.strings.flushBundles(); // clear string bundles
   ["aop", "log"].forEach( function(file) {
     Cu.unload("chrome://expressionsearch/content/" + file + ".js");
@@ -81,10 +84,8 @@ function shutdown(aData, aReason) {
   try {
     ExpressionSearchChrome = null;
   } catch (err) {Cu.reportError(err);}
-  // flushStartupCache
-  // Init this, so it will get the notification.
-  //Cc["@mozilla.org/xul/xul-prototype-cache;1"].getService(Ci.nsISupports);
-  Services.obs.notifyObservers(null, "startupcache-invalidate", null);
+  Services.obs.notifyObservers(null, "startupcache-invalidate", null); //ADDON_DISABLE ADDON_UNINSTALL ADDON_UPGRADE ADDON_DOWNGRADE
+  Services.obs.notifyObservers(null, "chrome-flush-caches", null);
   Cu.schedulePreciseGC( Cu.forceGC );
   Services.console.logStringMessage("Expression Search / Google Mail UI shutdown");
 }
