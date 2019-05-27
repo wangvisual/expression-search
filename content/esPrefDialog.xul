@@ -149,7 +149,7 @@
 
     <html:fieldset id="expressionsearch-pane-help">
       <html:legend>&expressionsearch.dialog.help;</html:legend>
-      <vbox align="center">
+      <vbox>
         <hbox>
           <image style="cursor:pointer;" src="donate-with-paypal.png" onclick="ExpressionSearchCommon.loadDonate('paypal');" />
           <label value="               " flex="100"/>

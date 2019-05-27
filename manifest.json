@@ -2,7 +2,8 @@
   "applications": {
     "gecko": {
       "id": "{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}",
-      "strict_min_version": "60.0"
+      "strict_min_version": "60.0",
+      "strict_max_version": "69.0"
     }
   },
   "version": "1.4beta",
@@ -19,6 +20,8 @@
     }
   },
   "icons": {
+    "32": "icon.png",
+    "48": "icon.png",
     "64": "icon.png"
   }
 }
