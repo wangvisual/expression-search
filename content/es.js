@@ -12,6 +12,7 @@ const statusbarIconSrc = 'chrome://expressionsearch/skin/statusbar_icon.png';
 const popupsetID = "expressionSearch-statusbar-popup";
 const contextMenuID = "expression-search-context-menu";
 const tooltipId = "expression-search-tooltip";
+const oldAPI_61 = Services.vc.compare(Services.appinfo.platformVersion, '61.0a1') < 0;
 const oldAPI_65 = Services.vc.compare(Services.appinfo.platformVersion, '65.0a1') < 0;
 const oldAPI_67 = Services.vc.compare(Services.appinfo.platformVersion, '67.0a1') < 0;
 
@@ -987,13 +988,20 @@ var ExpressionSearchChrome = {
     // first get my own version
     me.options.current_version = "0.0"; // in default.js, it's 0.1, so first installed users also have help loaded
     try {
-        AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}", function(addon) {
-          me.options.current_version = addon.version;
-          me.firstRunAction.apply(me);
-      });
+        if ( oldAPI_61 ) {
+          AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}", function(addon) {
+            me.options.current_version = addon.version;
+            me.firstRunAction.apply(me);
+          });
+        } else {
+          AddonManager.getAddonByID("{03EF8A6E-C972-488f-92FA-98ABC2C9F8B9}").then(addon => {
+            me.options.current_version = addon.version;
+            me.firstRunAction.apply(me);
+          });
+        }
     } catch (ex) {
     }
-    
+
     win.addEventListener("unload", me.onUnLoad, false);
   },
 
