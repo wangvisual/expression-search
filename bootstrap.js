@@ -38,7 +38,6 @@ var windowListener = {
 function startup(aData, aReason) {
   Services.console.logStringMessage("Expression Search / Google Mail UI startup...");
   Cu.import("chrome://expressionsearch/content/es.js");
-  //ExpressionSearchChrome.init();
   let windows = Services.wm.getEnumerator(null);
   while (windows.hasMoreElements()) {
     let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
@@ -68,10 +67,12 @@ function shutdown(aData, aReason) {
     // Unload from any existing windows
     let windows = Services.wm.getEnumerator(null);
     while (windows.hasMoreElements()) {
-      let domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
+      let winInterface = windows.getNext().QueryInterface(Ci.nsIInterfaceRequestor);
+      let domWindow = winInterface.getInterface(Ci.nsIDOMWindow);
+      let windowUtils = winInterface.getInterface(Ci.nsIDOMWindowUtils);
       ExpressionSearchChrome.unLoad(domWindow); // won't check windowtype as unload will check
       // Do CC & GC, comment out allTraces when release
-      domWindow.windowUtils.garbageCollect(
+      windowUtils.garbageCollect(
         // Cc["@mozilla.org/cycle-collector-logger;1"].createInstance(Ci.nsICycleCollectorListener).allTraces()
       );
     }

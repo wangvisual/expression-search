@@ -32,9 +32,13 @@ var ExpressionSearchChrome = {
 
   loaded: 0,
   init: function() {
-    if ( this.loaded ) return;
-    this.loaded = 1;
     Cu.import("chrome://expressionsearch/content/log.js"); // load log first
+    if ( this.loaded ) {
+      if ( !this.prefs && ExpressionSearchLog ) {
+        ExpressionSearchLog.log("Expression Search is NOT restartless! Please restart Thunderbird!", 1);
+      } else return;
+    }
+    this.loaded = 1;
     try {
       ExpressionSearchLog.log("Expression Search: init...", false, true);
       this.importModules();
@@ -775,7 +779,8 @@ var ExpressionSearchChrome = {
            oldValue = sCellText;
            // \uFF1A is Chinese colon
            [/^\s*\S{2,3}(?::|\uFF1A)\s*(.*)$/, /^\s*\[.+\]:*\s*(.*)$/, /^\s+(.*)$/].forEach( function(element, index, array) {
-             sCellText = sCellText.replace(element, '$1');
+             let newTxt = sCellText.replace(element, '$1');
+             if ( newTxt != '' ) sCellText = newTxt;
            });
          }
          break;
@@ -812,6 +817,12 @@ var ExpressionSearchChrome = {
          token = "tag";
          sCellText = sCellText.replace(/\s+/g, ' and '); //maybe not correct for "To Do"
          sCellText = "(" + sCellText + ")";
+         break;
+       case "dateCol":
+         token = "date";
+          // 5/20/2019, 6:00 PM => 5/20/2019
+          // 6:00 PM => 6:00
+         sCellText = sCellText.replace(/[,\s]+.*/g, '');
          break;
        default:
          return;
