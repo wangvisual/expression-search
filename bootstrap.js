@@ -69,7 +69,7 @@ function shutdown(aData, aReason) {
     while (windows.hasMoreElements()) {
       let winInterface = windows.getNext().QueryInterface(Ci.nsIInterfaceRequestor);
       let domWindow = winInterface.getInterface(Ci.nsIDOMWindow);
-      let windowUtils = winInterface.getInterface(Ci.nsIDOMWindowUtils);
+      let windowUtils = domWindow.windowUtils || winInterface.getInterface(Ci.nsIDOMWindowUtils);
       ExpressionSearchChrome.unLoad(domWindow); // won't check windowtype as unload will check
       // Do CC & GC, comment out allTraces when release
       windowUtils.garbageCollect(
