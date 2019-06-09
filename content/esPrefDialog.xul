@@ -47,7 +47,7 @@
         <hbox align='center'>
           <text value='&expressionsearch.option.when_press_ctrl_plus_enter;' />
           <menulist id="esNewFolderPicker" flex="1" preference='extensions.expressionsearch.virtual_folder_path' oncommand="onFolderPick(event);">
-            <menupopup id="esNewFolderPopup" type="folder" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
+            <menupopup id="esNewFolderPopup" type="folder" is="folder-menupopup" mode="newFolder" showFileHereLabel="true" fileHereLabel="here">
               <menuitem label='&expressionsearch.option.use_root_folder;' value='' class='folderMenuItem' SpecialFolder="Virtual" />
               <menuseparator/>
             </menupopup>
@@ -81,7 +81,7 @@
         </hbox>
         <hbox>
           <button id="customHeadersButton" tooltip="esCustomDBHeadersTooltip" label="&expressionsearch.dialog.searchmoreheaders;" oncommand="ExpressionSearchCommon.showModalDialog(window, 'chrome://messenger/content/CustomHeaders.xul');"/> 
-          <textbox preference="mailnews.customHeaders" id="customHeadersText" readonly="true" onsyncfrompreference="return onSyncFromPreference();" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
+          <textbox preference="mailnews.customHeaders" id="customHeadersText" readonly="true" tooltip="esCustomDBHeadersTooltip" flex="100" class="customHeadersShow"/>
           <tooltip id="esCustomDBHeadersTooltip">
             <description value="&expressionsearch.dialog.searchmoreheaderstooltip;"/>
             <description class='tooltip-info' id="tooltip_customHeaders" preference="mailnews.customHeaders" preference-editable="true"/>
@@ -90,7 +90,7 @@
         </hbox>
       </vbox>
     </html:fieldset>
-    
+
     <html:fieldset id="expressionsearch-pane-move2bar">
       <html:legend>&expressionsearch.dialog.move2bar;</html:legend>
       <radiogroup id="expressionsearch_move2bar" preference="extensions.expressionsearch.move2bar">
@@ -174,6 +174,7 @@
 </vbox>
 <!--script type="application/x-javascript" src="resource://expressionsearch/log.js"/-->
 <script type="application/x-javascript" src="chrome://global/content/preferencesBindings.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/folder-menupopup.js"/>
 <script type="application/x-javascript" src="chrome://expressionsearch/content/common.js"/>
 <script type="application/x-javascript" src="chrome://expressionsearch/content/esPrefDialog.js"/>
 </dialog>

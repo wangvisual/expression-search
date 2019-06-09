@@ -91,7 +91,7 @@ var ExpressionSearchChrome = {
     
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1415567 Remove {get,set}ComplexValue use of nsISupportsString in Thunderbird
   oldAPI_58: Services.vc.compare(Services.appinfo.platformVersion, '58') < 0,
-  complexPrefs: ["c2s_regexpMatch", "c2s_regexpReplace", "installed_version"],
+  complexPrefs: ["c2s_regexpMatch", "c2s_regexpReplace", "installed_version", "virtual_folder_path"],
   mozIJSSubScriptLoader: Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader),
   
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1413413 Remove support for extensions having their own prefs file

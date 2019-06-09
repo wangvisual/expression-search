@@ -26,12 +26,6 @@ function onFolderPick(aEvent) {
   folderPicker.setAttribute('tooltiptext', showPrettyTooltip(value, label));
 }
 
-function onSyncFromPreference() {
-  let preference = document.getElementById("pref_customHeaders");
-  // .value === undefined means the preference is set to the default value
-  return preference.value !== undefined ? preference.value : preference.defaultValue;
-}
-
 // The new Preferences can't make instantApply for each item easily, and it will be default for all OSes
 // So here just force it
 Preferences.forceEnableInstantApply();
