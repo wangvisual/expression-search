@@ -529,8 +529,10 @@ var ExpressionSearchChrome = {
       return;
     }
 
-    let aNode = doc.createElementNS(XULNS, "textbox");
+    // TB69, for customElements.define("search-textbox", MozSearchTextbox, { extends: "textbox" });
+    let aNode = doc.createElementNS(XULNS, "textbox", {is: "search-textbox"});
     aNode.id = this.textBoxDomId;
+    aNode.setAttribute("class", "searchBox");
     aNode.setAttribute("type", "search");
     aNode.setAttribute("emptytextbase", this.strBundle.GetStringFromName("textbox.emptyText.base"));
     aNode.setAttribute("timeout", 1000);

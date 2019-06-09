@@ -22,10 +22,10 @@ function loadIntoWindow(window) {
 var windowListener = {
   onOpenWindow: function(aWindow) {
     let onLoadWindow = function() {
-      aWindow.removeEventListener("load", onLoadWindow, false);
+      aWindow.removeEventListener("DOMContentLoaded", onLoadWindow, false);
       loadIntoWindow(aWindow);
     };
-    aWindow.addEventListener("load", onLoadWindow, false);
+    aWindow.addEventListener("DOMContentLoaded", onLoadWindow, false);
   },
   observe: function(subject, topic, data) {
     if ( topic == observeEvent) {
