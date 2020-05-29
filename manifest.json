@@ -6,17 +6,17 @@
       "strict_max_version": "68.9"
     }
   },
-  "version": "1.4beta",
+  "version": "1.4.2",
   "manifest_version": 2,
   "name": "Expression Search / Google Mail UI",
   "description": "Type 'from:fred to:tom' to see all messages from Fred to Tom in the current view.",
-  "author": "Opera Wang",
+  "author": "Opera Wang V68 by Rich Roth - http://www.tnrglobal.com/2020/05/thunderbird-addons/",
   "homepage_url": "https://github.com/wangvisual/expression-search",
   "legacy": {
     "type": "bootstrap",
     "options": {
       "page": "chrome://expressionsearch/content/esPrefDialog.xul",
-      "open_in_tab": false
+      "open_in_tab": true
     }
   },
   "icons": {
