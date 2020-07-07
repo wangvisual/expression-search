@@ -14,14 +14,12 @@ function loadIntoWindow(window) {
   if ( !window ) return; // windows is the global host context
   let document = window.document; // XULDocument
   let type = document.documentElement.getAttribute('windowtype'); // documentElement maybe 'messengerWindow' / 'addressbookWindow'
-
   if ( targetWindows.indexOf(type) < 0 ) return;
-
   Services.console.logStringMessage("Expression Search: loading ExpressionSearchChrome");
   ExpressionSearchChrome.init(); // will and add my filter, and TB want the domID exists when filter registered, so only called when have window ready
   ExpressionSearchChrome.Load(window);
 }
-
+ 
 var windowListener = {
   onOpenWindow: function(aWindow) {
     let onLoadWindow = function() {
@@ -56,7 +54,7 @@ function startup(aData, aReason) {
   // validator warnings on the below line, ignore it
   if ( !sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.loadAndRegisterSheet(userCSS, sss.USER_SHEET); // will be unregister when shutdown
 }
-
+ 
 function shutdown(aData, aReason) {
   // When the application is shutting down we normally don't have to clean up any UI changes made
   //** if (aReason == APP_SHUTDOWN) return;
@@ -64,7 +62,7 @@ function shutdown(aData, aReason) {
   try {
     if ( sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.unregisterSheet(userCSS, sss.USER_SHEET);
   } catch (err) {Cu.reportError(err);}
-
+  
   try {
     Services.obs.removeObserver(windowListener, observeEvent);
     // Unload from any existing windows
