@@ -15,6 +15,7 @@ function loadIntoWindow(window) {
   let document = window.document; // XULDocument
   let type = document.documentElement.getAttribute('windowtype'); // documentElement maybe 'messengerWindow' / 'addressbookWindow'
   if ( targetWindows.indexOf(type) < 0 ) return;
+  Services.console.logStringMessage("Expression Search: loading ExpressionSearchChrome");
   ExpressionSearchChrome.init(); // will and add my filter, and TB want the domID exists when filter registered, so only called when have window ready
   ExpressionSearchChrome.Load(window);
 }
@@ -56,7 +57,7 @@ function startup(aData, aReason) {
  
 function shutdown(aData, aReason) {
   // When the application is shutting down we normally don't have to clean up any UI changes made
-  if (aReason == APP_SHUTDOWN) return;
+  //** if (aReason == APP_SHUTDOWN) return;
 
   try {
     if ( sss.sheetRegistered(userCSS, sss.USER_SHEET) ) sss.unregisterSheet(userCSS, sss.USER_SHEET);

@@ -35,13 +35,20 @@ var ExpressionSearchChrome = {
   init: function() {
     Cu.import("chrome://expressionsearch/content/log.js"); // load log first
     if ( this.loaded ) {
+	    try {
+		    ExpressionSearchLog.log("Expression Search: init...1", false, true);
+		    this.importModules();
+		    this.initPerf();
+	    } catch (err) {
+		    ExpressionSearchLog.logException(err);
+	    }
       if ( !this.prefs && ExpressionSearchLog ) {
         ExpressionSearchLog.log("Expression Search is NOT restartless! Please restart Thunderbird!", 1);
       } else return;
     }
     this.loaded = 1;
     try {
-      ExpressionSearchLog.log("Expression Search: init...", false, true);
+      ExpressionSearchLog.log("Expression Search: init...2", false, true);
       this.importModules();
       this.initPerf();
     } catch (err) {
@@ -128,6 +135,7 @@ var ExpressionSearchChrome = {
      "results_label_size", "showbuttonlabel", "statusbar_info_showtime", "statusbar_info_hidetime", "c2s_enableCtrl", "c2s_enableShift", "c2s_enableCtrlReplace",
      "c2s_enableShiftReplace", "c2s_regexpMatch", "c2s_regexpReplace", "c2s_removeDomainName", "installed_version", "enable_statusbar_info", "enable_verbose_info"].forEach( function(key) {
       try {
+		ExpressionSearchLog.log("Expression Search: watch key:"+key, false, true);
         ExpressionSearchChrome.observe('', 'nsPref:changed', key); // we fake one
       } catch ( err ) {
         ExpressionSearchLog.logException(err);
